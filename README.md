@@ -61,11 +61,13 @@ src/
    pnpm install
    # or
    npm install
+   # or clean install
+   npm ci
    ```
 
 3. Start the development server:
    ```bash
-   pnpm run dev
+   pnpm dev
    # or
    npm run dev
    ```
