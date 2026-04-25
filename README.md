@@ -1,73 +1,101 @@
-# React + TypeScript + Vite
+# ⚛️ React Kanban Board
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A high-performance, modern Kanban board built with React and TypeScript, featuring a custom router, drag-and-drop, and a beautiful, responsive UI.
 
-Currently, two official plugins are available:
+![Kanban Board Screenshot](public/screenshot.png)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## ✨ Features
 
-## React Compiler
+- **🗂️ Drag-and-Drop:** Seamlessly move tasks between "To Do", "In Progress", and "Done" columns using `@dnd-kit`.
+- **🧭 Custom Client-Side Router:** Built entirely from scratch (no React Router) with a custom history stack and nested layout support.
+- **🧠 Zustand State Management:** Fast, scalable state management with a clean separation of concerns.
+- **🎨 Modern UI/UX:** Crafted with Tailwind CSS and Radix UI primitives for a polished, accessible design.
+- **🌓 Dark & Light Mode:** Full theme support with smooth transitions.
+- **📱 Fully Responsive:** Works flawlessly on desktop, tablet, and mobile.
+- **🔍 Live Search:** Floating command-palette-style search to quickly find any task.
+- **⚡ Instant Task Creation:** Floating action button (FAB) for quick task addition from anywhere.
+- **🎯 Priority Badges:** Visual indicators for Low, Medium, and High priority tasks.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🛠️ Tech Stack
 
-## Expanding the ESLint configuration
+- **Framework:** React 19 with TypeScript
+- **Build Tool:** Vite
+- **Styling:** Tailwind CSS + Radix UI
+- **State Management:** Zustand
+- **Drag-and-Drop:** `@dnd-kit/core` + `@dnd-kit/sortable`
+- **Architecture:** Custom Router, Separation of Concerns, Provider Pattern
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 📦 Project Structure
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Here’s a quick look at the project's clean architecture:
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+src/
+├── components/         # Reusable UI & Kanban components
+│   ├── board/          # KanbanBoard, Column, TaskCard, TaskDialog
+│   └── ui/             # Button, Card, Badge, etc.
+├── providers/          # AppProvider (theme, clock, etc.)
+├── router/             # My custom client-side router 🛠️
+├── stores/             # Zustand stores (tasks, ui)
+├── lib/                # Utility functions
+└── App.tsx
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🚀 Getting Started
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Prerequisites
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- Node.js (v18+)
+- pnpm (Recommended) or npm
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/Mehrdadnka/react-kanban.git
+   cd react-kanban
+   ```
+
+2. Install dependencies:
+   ```bash
+   pnpm install
+   # or
+   npm install
+   ```
+
+3. Start the development server:
+   ```bash
+   pnpm run dev
+   # or
+   npm run dev
+   ```
+
+4. Open [http://localhost:5173](http://localhost:5173) in your browser.
+
+### Building for Production
+
+```bash
+pnpm run build
+# The output will be in the `dist/` folder.
 ```
+
+## 📚 What I Learned & Challenges
+
+This project was a deep dive into React internals and modern front-end architecture:
+- **Custom Router:** Implemented `pushState`, `popState`, and a `navigate` function from scratch to understand how React Router works under the hood.
+- **Advanced Drag-and-Drop:** Handled complex DnD state with `@dnd-kit` including drag overlays and cross-column movement.
+- **Architecture Patterns:** Applied Separation of Concerns and the Provider pattern for a clean, testable codebase.
+- **UI Primitives:** Leveraged Radix UI for unstyled, accessible components, custom-styled with Tailwind.
+
+## 🤝 Contributing
+
+This is a personal showcase project, but if you have any ideas or find a bug, feel free to open an issue!
+
+## 📬 Contact
+
+- **GitHub:** [@Mehrdadnka](https://github.com/Mehrdadnka)
+- **Email:** [mehrdaad2762@gmail.com]
+
+---
+
+**⭐ If you like this project, please give it a star! It means a lot.**
