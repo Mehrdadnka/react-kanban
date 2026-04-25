@@ -18,12 +18,20 @@ A high-performance, modern Kanban board built with React and TypeScript, featuri
 
 ## 🛠️ Tech Stack
 
-- **Framework:** React 19 with TypeScript
+- **Framework:** React with TypeScript
 - **Build Tool:** Vite
 - **Styling:** Tailwind CSS + Radix UI
 - **State Management:** Zustand
 - **Drag-and-Drop:** `@dnd-kit/core` + `@dnd-kit/sortable`
 - **Architecture:** Custom Router, Separation of Concerns, Provider Pattern
+
+![React](https://img.shields.io/badge/React-18.3-61DAFB?logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-7.3-646CFF?logo=vite&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/Tailwind-3.4-06B6D4?logo=tailwindcss&logoColor=white)
+![Zustand](https://img.shields.io/badge/Zustand-5.0-6643B5?logo=zustand&logoColor=white)
+![Radix UI](https://img.shields.io/badge/Radix_UI-3.3-161618?logo=radixui&logoColor=white)
+![dnd kit](https://img.shields.io/badge/dnd_kit-6.3-4B32C3?logo=dndkit&logoColor=white)
 
 ## 📦 Project Structure
 
