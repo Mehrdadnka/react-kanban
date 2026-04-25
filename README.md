@@ -2,7 +2,7 @@
 
 A high-performance, modern Kanban board built with React and TypeScript, featuring a custom router, drag-and-drop, and a beautiful, responsive UI.
 
-![Kanban Board Screenshot](public/screenshot.png)
+![Kanban Board Screenshot](public/Screenshot.png)
 
 ## ✨ Features
 
