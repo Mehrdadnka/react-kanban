@@ -94,7 +94,7 @@ This is a personal showcase project, but if you have any ideas or find a bug, fe
 ## 📬 Contact
 
 - **GitHub:** [@Mehrdadnka](https://github.com/Mehrdadnka)
-- **Email:** [mehrdaad2762@gmail.com]
+- **Email:** [mehrdad2762@gmail.com]
 
 ---
 
