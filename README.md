@@ -2,6 +2,8 @@
 
 A high-performance Kanban board built with React and TypeScript, featuring a custom client-side router, drag-and-drop functionality, and a responsive, accessible UI.
 
+![Kanban Board Screenshot](public/Screenshot.png)
+
 ## Features
 
 - **Drag-and-Drop:** Seamlessly move tasks between "To Do", "In Progress", and "Done" columns using `@dnd-kit`.
@@ -155,4 +157,3 @@ This is a personal showcase project. If you have ideas for improvements or disco
 
 - **GitHub:** [@Mehrdadnka](https://github.com/Mehrdadnka)
 - **Email:** [mehrdad2762@gmail.com]
-```
