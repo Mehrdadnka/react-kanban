@@ -5,7 +5,7 @@ A high-performance Kanban board built with React and TypeScript, featuring a cus
 ![Kanban Board Screenshot](public/Screenshot.png)
 
 | | |
-|:-------------------------:|:-------------------------:|
+|:-----------------------------------:|:-----------------------------------:|
 | ![mobile view](public/mobile-view.png) | ![not found page](public/mobile-NotFoundPage.png) |
 
 ![vitest ui Screenshot](public/vitest-ui.png)
