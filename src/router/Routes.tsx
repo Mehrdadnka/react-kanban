@@ -1,5 +1,6 @@
 import React from 'react';
 import { useRouter } from './RouterContext';
+import { NotFound } from './Pages/NotFound';
 
 interface RoutesProps {
   children: React.ReactNode | React.ReactNode[];
@@ -38,7 +39,7 @@ export function Routes({ children }: RoutesProps) {
   }
   
   if (!matchingRoute) {
-    return <div>404 - Page Not Found</div>;
+    return <NotFound />;
   }
   
   return <>{matchingRoute}</>;

@@ -122,11 +122,6 @@ export const TaskDialog: React.FC<TaskDialogProps> = ({
             </div>
 
             <div className="flex justify-end gap-2 mt-6">
-              <Dialog.Close asChild>
-                <Button type="button" variant="destructive">
-                  <X size={34} />
-                </Button>
-              </Dialog.Close>
               <Button type="submit" variant='success'>
                 <Plus size={34} />
               </Button>

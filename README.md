@@ -6,6 +6,8 @@ A high-performance Kanban board built with React and TypeScript, featuring a cus
 
 ![vitest ui Screenshot](public/vitest-ui.png)
 
+![mobile view Screenshot](public/mobile-view.png) ![not found page](public/mobile-NotFoundPage.png)
+
 ## Features
 
 - **Drag-and-Drop:** Seamlessly move tasks between "To Do", "In Progress", and "Done" columns using `@dnd-kit`.

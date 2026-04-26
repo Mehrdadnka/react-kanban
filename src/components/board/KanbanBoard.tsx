@@ -37,15 +37,22 @@ export const KanbanBoard: React.FC = () => {
             />
           ))}
           {/* Logo/Add Button Area */}
-          <div className="absolute top-2 right-20 flex flex-col items-center pt-4 pb-2 border-b border-transparent">
+          <div className="fixed top-4 right-4 lg:right-20 z-50 flex flex-col items-center">
             <TooltipProvider>
               <Tooltip.Root delayDuration={300}>
                 <Tooltip.Trigger asChild>
                   <IconButton
                     variant='surface'
                     className={cn(
-                      'mb-2 transition-all duration-200',
-                      'hover:shadow-md group hover:scale-150',
+                      'transition-all duration-200',
+                      'hover:shadow-md group',
+                      // Consistent size across devices
+                      'w-12 h-12',
+                      // Shadow for visibility
+                      'shadow-md hover:shadow-lg',
+                      // Solid background
+                      'bg-white dark:bg-gray-800',
+                      'hover:scale-110',
                     )}
                     onClick={() => openTaskDialog()}
                   >
@@ -54,7 +61,7 @@ export const KanbanBoard: React.FC = () => {
                 </Tooltip.Trigger>
                 <Tooltip.Portal>
                   <Tooltip.Content
-                    side="right"
+                    side="bottom"
                     sideOffset={10}
                     className={cn(
                       'rounded-lg px-3 py-1.5 text-sm font-medium shadow-lg border z-[9999]',
