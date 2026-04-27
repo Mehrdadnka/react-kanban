@@ -30,9 +30,9 @@ const priorityColors = {
 };
 
 const statusLabels = {
-  'todo': '📋 Todo',
-  'in-progress': '⚡ In Progress',
-  'done': '✅ Done',
+  'todo': 'Todo',
+  'in-progress': 'In Progress',
+  'done': 'Done',
 };
 
 export const TaskSidebar: React.FC = () => {
@@ -388,46 +388,129 @@ export const TaskSidebar: React.FC = () => {
                 {/* Actions */}
                 <div className="flex justify-between items-center pt-4 border-t">
                   {isViewMode && selectedTask && (
-                    <div className="flex gap-2 w-full">
-                        <Button
+                    <AnimatePresence mode="wait">
+                      {!showDeleteConfirm ? (
+                        <motion.div 
+                          key="actions"
+                          className="flex gap-2 w-full"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <Button
                             type="button"
                             variant="destructive"
-                            onClick={handleDelete}
+                            onClick={handleDeleteClick}
                             className="flex items-center gap-2 flex-1"
-                        >
+                          >
                             <Trash2 size={16} />
                             Delete Task
-                        </Button>
-                        <Button
+                          </Button>
+                          <Button
                             type="button"
                             variant="outline"
                             onClick={() => openEditSidebar(selectedTask)}
                             className="flex items-center gap-2 flex-1"
-                        >
+                          >
                             <Edit3 size={16} />
                             Edit Task
-                        </Button>
-                    </div>
+                          </Button>
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key="confirm"
+                          className="w-full"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ delay: 0.1, duration: 0.2 }}
+                            className={cn(
+                              "p-4 rounded-lg border-2 mb-4",
+                              isDarkMode
+                                ? "bg-red-900/20 border-red-800/50 text-red-300"
+                                : "bg-red-50 border-red-200 text-red-700"
+                            )}
+                          >
+                            <div className="flex items-start gap-3">
+                              <motion.div
+                                initial={{ rotate: -10 }}
+                                animate={{ rotate: 0 }}
+                                transition={{ 
+                                  delay: 0.2,
+                                  type: "spring",
+                                  stiffness: 200 
+                                }}
+                              >
+                                <AlertTriangle size={20} className="flex-shrink-0 mt-0.5" />
+                              </motion.div>
+                              <div>
+                                <p className="font-semibold text-sm mb-1">
+                                  Are you sure?
+                                </p>
+                                <p className="text-xs opacity-80">
+                                  This action cannot be undone. The task "{selectedTask.title}" will be permanently deleted.
+                                </p>
+                              </div>
+                            </div>
+                          </motion.div>
+
+                          <motion.div 
+                            className="flex gap-2 w-full"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.3, duration: 0.2 }}
+                          >
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              onClick={handleDeleteConfirm}
+                              className="flex items-center gap-2 flex-1 bg-red-600 hover:bg-red-700 border-red-600 hover:border-red-700"
+                            >
+                              <Trash2 size={16} />
+                              Yes, Delete
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={handleDeleteCancel}
+                              className="flex items-center gap-2 flex-1"
+                            >
+                              No, Cancel
+                            </Button>
+                          </motion.div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   )}
                     
                   {isEditMode && (
-                        <div className="flex gap-2 ml-auto">
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            onClick={closeSidebar}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            type="submit"
-                            variant="success"
-                            className="flex items-center gap-2"
-                        >
-                            <Save size={16} />
-                            {mode === 'create' ? 'Create Task' : 'Save Changes'}
-                        </Button>
-                        </div>
+                    <motion.div 
+                      className="flex gap-2 ml-auto"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                    >
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={closeSidebar}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        variant="success"
+                        className="flex items-center gap-2"
+                      >
+                        <Save size={16} />
+                        {mode === 'create' ? 'Create Task' : 'Save Changes'}
+                      </Button>
+                    </motion.div>
                   )}
                 </div>
               </form>
