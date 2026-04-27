@@ -10,7 +10,7 @@ interface ColumnProps {
   id: string;
   title: string;
   tasks: Task[];
-  onDeleteTask: (id: string) => void;
+  onTaskClick?: (task: Task) => void;
   color: string;
 }
 
@@ -18,7 +18,7 @@ export const Column: React.FC<ColumnProps> = ({
   id,
   title,
   tasks,
-  onDeleteTask,
+  onTaskClick,
   color,
 }) => {
   const { setNodeRef, isOver } = useDroppable({ id });
@@ -42,7 +42,11 @@ export const Column: React.FC<ColumnProps> = ({
         <CardContent className="p-3 flex-1 overflow-y-auto overflow-x-hidden">
           <SortableContext items={tasks} strategy={verticalListSortingStrategy}>
             {tasks.map((task) => (
-              <TaskCard key={task.id} task={task} onDelete={onDeleteTask} />
+              <TaskCard 
+                key={task.id} 
+                task={task} 
+                onClick={onTaskClick} 
+              />
             ))}
           </SortableContext>
         </CardContent>

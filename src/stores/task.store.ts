@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface Task {
+  updatedAt: string | number | Date;
   id: string;
   title: string;
   description?: string;
@@ -32,6 +33,7 @@ export const useTaskStore = create<TaskStore>()(
           status: 'todo',
           priority: 'medium',
           createdAt: new Date(),
+          updatedAt: ''
         },
       ],
       
@@ -43,11 +45,15 @@ export const useTaskStore = create<TaskStore>()(
         }]
       })),
       
-      updateTask: (id, updates) => set((state) => ({
-        tasks: state.tasks.map(task => 
-          task.id === id ? { ...task, ...updates } : task
-        )
-      })),
+      updateTask: (id: string, updates: Partial<Omit<Task, 'id' | 'createdAt'>>) => {
+        set((state) => ({
+          tasks: state.tasks.map((task) =>
+            task.id === id
+              ? { ...task, ...updates, updatedAt: new Date().toISOString() }
+              : task
+          ),
+        }));
+      },
       
       deleteTask: (id) => set((state) => ({
         tasks: state.tasks.filter(task => task.id !== id)
@@ -58,6 +64,7 @@ export const useTaskStore = create<TaskStore>()(
           task.id === id ? { ...task, status: newStatus } : task
         )
       })),
+      
       
       reorderTasks: (activeId, overId) => set((state) => {
         const tasks = [...state.tasks];

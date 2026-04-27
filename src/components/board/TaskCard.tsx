@@ -4,13 +4,14 @@ import { CSS } from '@dnd-kit/utilities';
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card/Card';
 import { Badge } from '@/components/ui/badge/Badge';
 import { Button } from '@/components/ui/button/Button';
-import { GripVertical, Paperclip, Trash2 } from 'lucide-react';
+import { Eye, GripVertical, Paperclip, Trash2 } from 'lucide-react';
 import { Task } from '@/stores/task.store';
 import { cn } from '@/lib/utils';
+import { IconButton } from '@radix-ui/themes';
 
 interface TaskCardProps {
   task: Task;
-  onDelete: (id: string) => void;
+  onClick?: (task: Task) => void;
 }
 
 const priorityColors = {
@@ -19,7 +20,7 @@ const priorityColors = {
   high: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
 };
 
-export const TaskCard: React.FC<TaskCardProps> = ({ task, onDelete }) => {
+export const TaskCard: React.FC<TaskCardProps> = ({ task, onClick }) => {
   const {
     attributes,
     listeners,
@@ -35,8 +36,16 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onDelete }) => {
     opacity: isDragging ? 0.5 : 1,
   };
 
+  const handleViewClick = () => {
+    onClick?.(task)
+  }
+
   return (
-    <div ref={setNodeRef} style={style} className="mb-3">
+    <div 
+      ref={setNodeRef} 
+      style={style} 
+      className="mb-3"
+    >
       <Card className={cn(
         "shadow-sm hover:shadow-md transition-all",
         isDragging && "shadow-lg rotate-2 scale-105"
@@ -48,6 +57,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onDelete }) => {
                 {...attributes}
                 {...listeners}
                 className="cursor-grab active:cursor-grabbing"
+                onClick={(e) => e.stopPropagation()}
+
               >
                 <GripVertical size={18} className="text-gray-400" />
               </button>
@@ -55,14 +66,18 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onDelete }) => {
                 {task.title}
               </CardTitle>
             </div>
-            <Button
+            <IconButton
               variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => onDelete(task.id)}
+              size="2"
+              className={cn(
+                "h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity",
+                "hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20 dark:hover:text-blue-400"
+              )}
+              onClick={handleViewClick}
+              title="View Details"
             >
-              <Trash2 size={16} />
-            </Button>
+              <Eye size={16} />
+            </IconButton>
           </div>
           {task.description && (
             <CardDescription className="text-sm mt-1 ml-6">

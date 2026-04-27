@@ -70,7 +70,7 @@ export const KanbanDndProvider: React.FC<KanbanDndProviderProps> = ({
       <DragOverlay>
         {activeTask && (
           <div className="w-80">
-            <TaskCard task={activeTask} onDelete={deleteTask} />
+            <TaskCard task={activeTask} />
           </div>
         )}
       </DragOverlay>

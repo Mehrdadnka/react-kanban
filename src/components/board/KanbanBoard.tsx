@@ -1,8 +1,6 @@
 import React from 'react';
 import { Column } from './Column';
 import { useTaskStore } from '@/stores/task.store';
-import { TaskDialog } from './TaskDialog';
-import { useUIStore } from '@/stores/ui.store';
 import { KanbanDndProvider } from './KanbanDndProvider';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { TooltipProvider } from '@radix-ui/react-tooltip';
@@ -10,6 +8,8 @@ import { IconButton } from '@radix-ui/themes';
 import { cn } from '@/lib/utils';
 import { Plus } from 'lucide-react';
 import { useApp } from '@/providers/AppProvider';
+import { TaskSidebar } from './TaskSidebar/TaskSidebar';
+import { useTaskSidebarStore } from '@/stores/task-sidebar.store';
 
 const columns = [
   { id: 'todo', title: '📋 Todo', color: 'bg-gray-100 dark:bg-gray-800' },
@@ -19,8 +19,8 @@ const columns = [
 
 export const KanbanBoard: React.FC = () => {
   const { isDarkMode } = useApp();
-  const { tasks, deleteTask } = useTaskStore();
-  const { openTaskDialog ,taskDialogOpen, selectedColumn, closeTaskDialog } = useUIStore();
+  const { tasks } = useTaskStore();
+  const { openCreateSidebar, openViewSidebar } = useTaskSidebarStore();
 
   return (
     <>
@@ -33,7 +33,7 @@ export const KanbanBoard: React.FC = () => {
               title={column.title}
               color={column.color}
               tasks={tasks.filter((task) => task.status === column.id)}
-              onDeleteTask={deleteTask}
+              onTaskClick={(task) => openViewSidebar(task)}
             />
           ))}
           {/* Logo/Add Button Area */}
@@ -54,7 +54,7 @@ export const KanbanBoard: React.FC = () => {
                       'bg-white dark:bg-gray-800',
                       'hover:scale-110',
                     )}
-                    onClick={() => openTaskDialog()}
+                    onClick={() => openCreateSidebar()}
                   >
                     <Plus size={24} className="group-hover:rotate-90 transition-transform duration-300" />
                   </IconButton>
@@ -79,14 +79,15 @@ export const KanbanBoard: React.FC = () => {
           </div>
         </div>
       </KanbanDndProvider>
-
+{/* 
       <TaskDialog
         open={taskDialogOpen}
         onOpenChange={(open) => {
           if (!open) closeTaskDialog();
         }}
         defaultStatus={selectedColumn as any}
-      />
+      /> */}
+      <TaskSidebar />
     </>
   );
 };

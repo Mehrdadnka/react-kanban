@@ -1,0 +1,440 @@
+// src/components/board/TaskSidebar/TaskSidebar.tsx
+import React, { useEffect, useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+    X, Save, Edit3, 
+    Trash2, Calendar, Clock, AlertTriangle
+ } from 'lucide-react';
+import { Button } from '@/components/ui/button/Button';
+import { Input } from '@/components/ui/input/Input';
+import { Textarea } from '@/components/ui/textarea/Textarea';
+import { Label } from '@/components/ui/label/Label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select/Select';
+import { Badge } from '@/components/ui/badge/Badge';
+import { useTaskSidebarStore } from '@/stores/task-sidebar.store';
+import { useTaskStore, Task } from '@/stores/task.store';
+import { useApp } from '@/providers/AppProvider';
+import { Breadcrumb } from './Breadcrumb';
+import { cn } from '@/lib/utils';
+
+const priorityColors = {
+  low: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+  medium: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+  high: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
+};
+
+const statusLabels = {
+  'todo': '📋 Todo',
+  'in-progress': '⚡ In Progress',
+  'done': '✅ Done',
+};
+
+export const TaskSidebar: React.FC = () => {
+  const { isDarkMode } = useApp();
+  const { addTask, updateTask, deleteTask } = useTaskStore();
+  const {
+    isOpen,
+    mode,
+    selectedTask,
+    formState,
+    breadcrumbs,
+    closeSidebar,
+    updateFormField,
+    openEditSidebar,
+  } = useTaskSidebarStore();
+  
+  const inputRef = useRef<HTMLInputElement>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Focus on title input when creating new task
+  useEffect(() => {
+    if (isOpen && mode === 'create' && inputRef.current) {
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  }, [isOpen, mode]);
+
+  // Close on Escape key
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeSidebar();
+    };
+    
+    if (isOpen) {
+      window.addEventListener('keydown', handleEsc);
+      return () => window.removeEventListener('keydown', handleEsc);
+    }
+  }, [isOpen, closeSidebar]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formState.title.trim()) return;
+
+    if (mode === 'create') {
+      addTask({
+          title: formState.title,
+          description: formState.description,
+          status: formState.status,
+          priority: formState.priority,
+          updatedAt: ''
+      });
+    } else if (mode === 'edit' && selectedTask) {
+      updateTask(selectedTask.id, {
+        title: formState.title,
+        description: formState.description,
+        status: formState.status,
+        priority: formState.priority,
+      });
+    }
+    
+    closeSidebar();
+  };
+    const handleDeleteClick = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (selectedTask) {
+      deleteTask(selectedTask.id);
+      closeSidebar();
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteConfirm(false);
+  };
+
+  // Reset confirm state when sidebar closes
+  useEffect(() => {
+    if (!isOpen) {
+      setShowDeleteConfirm(false);
+    }
+  }, [isOpen]);
+
+  const handleDelete = () => {
+    if (selectedTask) {
+      deleteTask(selectedTask.id);
+      closeSidebar();
+    }
+  };
+
+  const isViewMode = mode === 'view';
+  const isEditMode = mode === 'edit' || mode === 'create';
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Overlay */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
+            onClick={closeSidebar}
+          />
+          
+          {/* Sidebar */}
+          <motion.div
+            ref={sidebarRef}
+            initial={{ x: '100%', opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: '100%', opacity: 0 }}
+            transition={{
+              type: 'spring',
+              damping: 25,
+              stiffness: 200,
+              mass: 0.8,
+            }}
+            className={cn(
+              'fixed top-0 right-0 h-full w-full max-w-lg z-50',
+              'shadow-2xl border-l',
+              isDarkMode
+                ? 'bg-gray-900 border-gray-800 text-gray-100'
+                : 'bg-white border-gray-200 text-gray-900'
+            )}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 className="text-lg font-semibold">
+                {mode === 'create' && 'New Task'}
+                {mode === 'view' && 'Task Details'}
+                {mode === 'edit' && 'Edit Task'}
+              </h2>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={closeSidebar}
+                  className={cn(
+                    'p-1.5 rounded-lg transition-colors',
+                    isDarkMode
+                      ? 'hover:bg-gray-800 text-gray-400 hover:text-gray-200'
+                      : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
+                  )}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+
+            {/* Breadcrumb */}
+            {!isEditMode && (
+              <Breadcrumb items={breadcrumbs} isDarkMode={isDarkMode} />
+            )}
+
+            {/* Content */}
+            <div className="overflow-y-auto h-[calc(100vh-130px)] p-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Title */}
+                <div>
+                  <Label htmlFor="task-title">Title</Label>
+                  <Input
+                    ref={inputRef}
+                    id="task-title"
+                    value={formState.title}
+                    onChange={(e) => updateFormField('title', e.target.value)}
+                    placeholder="Task title..."
+                    disabled={isViewMode}
+                    className={cn(
+                      'mt-1.5 text-base',
+                      isViewMode && 'bg-transparent border-transparent px-0'
+                    )}
+                    autoFocus={mode === 'create'}
+                  />
+                </div>
+
+                {/* Description */}
+                <div>
+                  <Label htmlFor="task-description">Description</Label>
+                  <Textarea
+                    id="task-description"
+                    value={formState.description}
+                    onChange={(e) => updateFormField('description', e.target.value)}
+                    placeholder="Add a description..."
+                    disabled={isViewMode}
+                    className={cn(
+                      'mt-1.5 min-h-[100px]',
+                      isViewMode && 'bg-transparent border-transparent px-0 resize-none'
+                    )}
+                    rows={5}
+                  />
+                </div>
+
+                {/* Status & Priority Grid */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="task-status">Status</Label>
+                    {isViewMode ? (
+                      <div className="mt-1.5 flex items-center gap-2 py-2 px-3 rounded-md border border-transparent">
+                        <span className="text-lg">
+                        {formState.status === 'todo' && '📋'}
+                        {formState.status === 'in-progress' && '⚡'}
+                        {formState.status === 'done' && '✅'}
+                        </span>
+                        <span className="text-sm font-medium">
+                        {statusLabels[formState.status]}
+                        </span>
+                      </div>
+                    ) : (
+                    <Select
+                        value={formState.status}
+                        onValueChange={(value: Task['status']) => 
+                        updateFormField('status', value)
+                        }
+                    >
+                        <SelectTrigger 
+                        id="task-status"
+                        className={cn(
+                          "mt-1.5",
+                          isDarkMode 
+                            ? "bg-gray-800 border-gray-700 text-gray-100" 
+                            : "bg-white border-gray-300 text-gray-900"
+                        )}
+                        >
+                        <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent 
+                          className={cn(
+                            isDarkMode 
+                              ? "bg-gray-800 border-gray-700 text-gray-100" 
+                              : "bg-white border-gray-200 text-gray-900"
+                          )}
+                        >
+                        <SelectItem value="todo">📋 Todo</SelectItem>
+                        <SelectItem value="in-progress">⚡ In Progress</SelectItem>
+                        <SelectItem value="done">✅ Done</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    )}
+                  </div>
+
+                <div>
+                    <Label htmlFor="task-priority">Priority</Label>
+                    {isViewMode ? (
+                    <div className="mt-1.5 flex items-center gap-2 py-2 px-3 rounded-md border border-transparent">
+                        <Badge 
+                        variant="secondary" 
+                        className={cn("text-xs capitalize", priorityColors[formState.priority])}
+                        >
+                        {formState.priority}
+                        </Badge>
+                    </div>
+                    ) : (
+                    <Select
+                        value={formState.priority}
+                        onValueChange={(value: Task['priority']) => 
+                        updateFormField('priority', value)
+                        }
+                    >
+                        <SelectTrigger 
+                          id="task-priority"
+                          className={cn(
+                            "mt-1.5",
+                            isDarkMode 
+                              ? "bg-gray-800 border-gray-700 text-gray-100" 
+                              : "bg-white border-gray-300 text-gray-900"
+                            )}
+                        >
+                        <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent 
+                        className={cn(
+                            "z-50",
+                            isDarkMode 
+                            ? "bg-gray-800 border-gray-700 text-gray-100" 
+                            : "bg-white border-gray-200 text-gray-900"
+                        )}
+                        >
+                        <SelectItem 
+                            value="low"
+                            className={cn(
+                            "cursor-pointer",
+                            isDarkMode 
+                                ? "hover:bg-gray-700 focus:bg-gray-700" 
+                                : "hover:bg-gray-100 focus:bg-gray-100"
+                            )}
+                        >
+                            🟢 Low
+                        </SelectItem>
+                        <SelectItem 
+                            value="medium"
+                            className={cn(
+                            "cursor-pointer",
+                            isDarkMode 
+                                ? "hover:bg-gray-700 focus:bg-gray-700" 
+                                : "hover:bg-gray-100 focus:bg-gray-100"
+                            )}
+                        >
+                            🟡 Medium
+                        </SelectItem>
+                        <SelectItem 
+                            value="high"
+                            className={cn(
+                            "cursor-pointer",
+                            isDarkMode 
+                                ? "hover:bg-gray-700 focus:bg-gray-700" 
+                                : "hover:bg-gray-100 focus:bg-gray-100"
+                            )}
+                        >
+                            🔴 High
+                        </SelectItem>
+                        </SelectContent>
+                    </Select>
+                    )}
+                </div>
+                </div>
+
+                {/* Meta Information (View Mode) */}
+                {isViewMode && selectedTask && (
+                  <div className="space-y-3 pt-4 border-t">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-500">Created</span>
+                      <span className="flex items-center gap-2">
+                        <Calendar size={14} />
+                        {new Date(selectedTask.createdAt).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-500">Last Updated</span>
+                      <span className="flex items-center gap-2">
+                        <Clock size={14} />
+                        {new Date(selectedTask.updatedAt).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-500">Status</span>
+                      <Badge variant="secondary" className="text-xs">
+                        {statusLabels[selectedTask.status]}
+                      </Badge>
+                    </div>
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="flex justify-between items-center pt-4 border-t">
+                  {isViewMode && selectedTask && (
+                    <div className="flex gap-2 w-full">
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            onClick={handleDelete}
+                            className="flex items-center gap-2 flex-1"
+                        >
+                            <Trash2 size={16} />
+                            Delete Task
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => openEditSidebar(selectedTask)}
+                            className="flex items-center gap-2 flex-1"
+                        >
+                            <Edit3 size={16} />
+                            Edit Task
+                        </Button>
+                    </div>
+                  )}
+                    
+                  {isEditMode && (
+                        <div className="flex gap-2 ml-auto">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={closeSidebar}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="submit"
+                            variant="success"
+                            className="flex items-center gap-2"
+                        >
+                            <Save size={16} />
+                            {mode === 'create' ? 'Create Task' : 'Save Changes'}
+                        </Button>
+                        </div>
+                  )}
+                </div>
+              </form>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+};
