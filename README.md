@@ -14,7 +14,8 @@ A high-performance Kanban board built with React and TypeScript, featuring a cus
 
 | | |
 |:-----------------------------------:|:-----------------------------------:|
-| ![new task view](public/newtask.png) | ![edit task view](public/edittask.png) |
+| ![new task view](public/newtask.png) | ![edit task view](public/edittask.png) | 
+
 ![vitest ui Screenshot](public/vitest-ui.png)
 
 ## Features
