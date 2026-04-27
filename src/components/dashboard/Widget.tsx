@@ -8,6 +8,7 @@ interface WidgetProps {
   className?: string;
   colSpan?: 'full' | 'half' | 'third';
   fullHeight?: boolean;
+  onClick?: () => void;
 }
 
 export const Widget: React.FC<WidgetProps> = ({ 
@@ -32,7 +33,8 @@ export const Widget: React.FC<WidgetProps> = ({
       fullHeight ? 'h-full' : 'max-h-full',
       colSpanClasses[colSpan],
       className
-    )}>
+      )}
+    >
       <div className="flex items-center gap-2 mb-3 flex-shrink-0">
         {icon && <span className="text-gray-400">{icon}</span>}
         <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">

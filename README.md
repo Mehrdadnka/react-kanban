@@ -4,6 +4,8 @@ A high-performance Kanban board built with React and TypeScript, featuring a cus
 
 ![Home Page Screenshot](public/Dashboard.png)
 
+![Home Page sidebar Screenshot](public/dashboard-sidebar.png)
+
 ![Kanban Board Screenshot](public/Taskboard.png)
 
 ![Task Details Screenshot](public/taskdetails.png)

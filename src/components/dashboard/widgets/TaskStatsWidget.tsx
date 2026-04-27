@@ -1,10 +1,12 @@
+// components/dashboard/widgets/TaskStatsWidget.tsx
 import React from 'react';
 import { useTaskStore } from '@/stores/task.store';
 import { Widget } from '../Widget';
 import { CheckSquare, Clock, CheckCircle2, ListTodo, ArrowUpRight, TrendingUp, Activity } from 'lucide-react';
-import { useRouter } from '@/router';
 import { cn } from '@/lib/utils';
 import { useApp } from '@/providers/AppProvider';
+import { useDashboardSidebarStore } from '@/stores/dashboard-sidebar.store';
+import type { TaskFilterType } from '@/stores/dashboard-sidebar.store';
 
 interface StatCardProps {
   icon: React.ElementType;
@@ -13,7 +15,7 @@ interface StatCardProps {
   color: string;
   bgColor: string;
   borderColor: string;
-  onClick: () => void;
+  onClick: (e: React.MouseEvent) => void;
   isDarkMode: boolean;
 }
 
@@ -60,8 +62,15 @@ const StatCard: React.FC<StatCardProps> = ({
 
 export const TaskStatsWidget: React.FC = () => {
   const tasks = useTaskStore(state => state.tasks);
-  const { navigate } = useRouter();
   const { isDarkMode } = useApp();
+  const { openSidebar } = useDashboardSidebarStore();
+
+  const filteredTasks = {
+    all: tasks,
+    'in-progress': tasks.filter(t => t.status === 'in-progress'),
+    done: tasks.filter(t => t.status === 'done'),
+    todo: tasks.filter(t => t.status === 'todo'),
+  };
 
   const stats = [
     {
@@ -71,7 +80,7 @@ export const TaskStatsWidget: React.FC = () => {
       color: 'text-blue-600 dark:text-blue-400',
       bgColor: 'bg-blue-50 dark:bg-blue-900/30',
       borderColor: 'border-blue-200 dark:border-blue-800',
-      filter: '',
+      filter: 'all' as TaskFilterType,
     },
     {
       label: 'In Progress',
@@ -80,7 +89,7 @@ export const TaskStatsWidget: React.FC = () => {
       color: 'text-yellow-600 dark:text-yellow-400',
       bgColor: 'bg-yellow-50 dark:bg-yellow-900/30',
       borderColor: 'border-yellow-200 dark:border-yellow-800',
-      filter: 'in-progress',
+      filter: 'in-progress' as TaskFilterType,
     },
     {
       label: 'Completed',
@@ -89,7 +98,7 @@ export const TaskStatsWidget: React.FC = () => {
       color: 'text-green-600 dark:text-green-400',
       bgColor: 'bg-green-50 dark:bg-green-900/30',
       borderColor: 'border-green-200 dark:border-green-800',
-      filter: 'done',
+      filter: 'done' as TaskFilterType,
     },
     {
       label: 'Todo',
@@ -98,13 +107,39 @@ export const TaskStatsWidget: React.FC = () => {
       color: 'text-gray-600 dark:text-gray-400',
       bgColor: 'bg-gray-50 dark:bg-gray-700/30',
       borderColor: 'border-gray-200 dark:border-gray-700',
-      filter: 'todo',
+      filter: 'todo' as TaskFilterType,
     },
   ];
 
   const completionRate = tasks.length > 0 
     ? Math.round((tasks.filter(t => t.status === 'done').length / tasks.length) * 100)
     : 0;
+
+  const handleStatCardClick = (filter: TaskFilterType, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    const widgetType = filter === 'all' ? 'total-tasks' :
+                       filter === 'in-progress' ? 'in-progress' :
+                       filter === 'done' ? 'completed' : 'todo';
+
+    openSidebar(widgetType, {
+      totalTasks: tasks.length,
+      inProgressCount: tasks.filter(t => t.status === 'in-progress').length,
+      completedCount: tasks.filter(t => t.status === 'done').length,
+      todoCount: tasks.filter(t => t.status === 'todo').length,
+      completionRate,
+      recentTasks: [...tasks]
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .slice(0, 5),
+      priorityData: {
+        high: tasks.filter(t => t.priority === 'high').length,
+        medium: tasks.filter(t => t.priority === 'medium').length,
+        low: tasks.filter(t => t.priority === 'low').length,
+      },
+      filteredTasks: filteredTasks[filter],
+      activeFilter: filter,
+    });
+  };
 
   return (
     <Widget 
@@ -115,28 +150,19 @@ export const TaskStatsWidget: React.FC = () => {
       <div className="flex flex-col h-full gap-4 overflow-x-hidden">
         {/* Stats Grid */}
         <div className="grid grid-cols-2 gap-3">
-          {stats.map((stat, index) => {
-            const statusMap = ['', 'in-progress', 'done', 'todo'];
-            return (
-              <StatCard
-                key={index}
-                icon={stat.icon}
-                label={stat.label}
-                value={stat.value}
-                color={stat.color}
-                bgColor={stat.bgColor}
-                borderColor={stat.borderColor}
-                isDarkMode={isDarkMode}
-                onClick={() => {
-                  if (index > 0) {
-                    navigate(`/tasks?filter=${statusMap[index]}`);
-                  } else {
-                    navigate('/tasks');
-                  }
-                }}
-              />
-            );
-          })}
+          {stats.map((stat, index) => (
+            <StatCard
+              key={index}
+              icon={stat.icon}
+              label={stat.label}
+              value={stat.value}
+              color={stat.color}
+              bgColor={stat.bgColor}
+              borderColor={stat.borderColor}
+              isDarkMode={isDarkMode}
+              onClick={(e) => handleStatCardClick(stat.filter, e)}
+            />
+          ))}
         </div>
         
         {/* Progress Section */}
