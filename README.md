@@ -2,11 +2,13 @@
 
 A high-performance Kanban board built with React and TypeScript, featuring a custom client-side router, drag-and-drop functionality, and a responsive, accessible UI.
 
+![Home Page Screenshot](public/homepage.png)
+
 ![Kanban Board Screenshot](public/Screenshot.png)
 
-| | |
-|:-----------------------------------:|:-----------------------------------:|
-| ![mobile view](public/mobile-view.png) | ![not found page](public/mobile-NotFoundPage.png) |
+| | | |
+|:-----------------------------------:|:-----------------------------------:|:-----------------------------------:|
+| ![homepage mobile view](public/homepage-mobile.png) | ![tasks mobile view](public/mobile-view.png) | ![not found page](public/mobile-NotFoundPage.png) |
 
 ![vitest ui Screenshot](public/vitest-ui.png)
 
