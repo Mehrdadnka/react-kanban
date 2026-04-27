@@ -33,7 +33,7 @@ export const useTaskStore = create<TaskStore>()(
           status: 'todo',
           priority: 'medium',
           createdAt: new Date(),
-          updatedAt: ''
+          updatedAt: new Date()
         },
       ],
       
