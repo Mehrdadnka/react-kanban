@@ -1,5 +1,13 @@
-# React Kanban Board
+# 🚧 WIP (Work In Progress)
 
+> **This project is currently under active development.**
+> Features, documentation, and structure may change frequently.
+> Feel free to explore, but expect breaking changes and incomplete parts.
+
+---
+
+# React Kanban Board
+<!-- بقیه توضیحات پروژه -->
 A modern, high-performance Kanban board built with React 18 and TypeScript. Features a custom client-side router, intuitive drag-and-drop, interactive dashboard with sidebar drill-downs, and a polished responsive UI.
 
 ![Dashboard](public/Dashboard.png)
