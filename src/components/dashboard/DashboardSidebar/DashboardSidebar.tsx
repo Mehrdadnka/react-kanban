@@ -1,4 +1,3 @@
-// components/dashboard/DashboardSidebar/DashboardSidebar.tsx
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -9,20 +8,18 @@ import {
 import { useDashboardSidebarStore, DashboardWidgetType } from '@/stores/dashboard-sidebar.store';
 import { useApp } from '@/providers/AppProvider';
 import { useRouter } from '@/router';
-import { Breadcrumb } from '@/components/board/TaskSidebar/Breadcrumb';
+import { Breadcrumb } from '@/components/ui/breadcrumb/Breadcrumb';
 import { Badge } from '@/components/ui/badge/Badge';
 import { Button } from '@/components/ui/button/Button';
 import { cn } from '@/lib/utils';
 import { Task } from '@/stores/task.store';
 
-// تایپ‌های مشخص برای priorityColors
 const priorityColors: Record<Task['priority'], string> = {
   low: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
   medium: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
   high: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
 };
 
-// تایپ‌های مشخص برای statusLabels
 const statusLabels: Record<Task['status'], string> = {
   'todo': 'To Do',
   'in-progress': 'In Progress',
@@ -71,7 +68,6 @@ const widgetConfig: Record<DashboardWidgetType, {
   },
 };
 
-// تایپ‌های مشخص برای filterLabels و filterRoutes
 const filterLabels: Record<string, string> = {
   'total-tasks': 'all tasks',
   'in-progress': 'in progress tasks',
@@ -99,7 +95,6 @@ export const DashboardSidebar: React.FC = () => {
   const config = activeWidget ? widgetConfig[activeWidget] : null;
   const Icon = config?.icon || Activity;
 
-  // Close on Escape key
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') closeSidebar();
@@ -111,7 +106,6 @@ export const DashboardSidebar: React.FC = () => {
     }
   }, [isOpen, closeSidebar]);
 
-  // رندر کردن لیست تسک‌های فیلتر شده
   const renderTaskList = (tasks: Task[], emptyMessage: string) => {
     if (!tasks || tasks.length === 0) {
       return (
@@ -183,11 +177,9 @@ export const DashboardSidebar: React.FC = () => {
   const renderContent = () => {
     if (!activeWidget) return null;
 
-    // ویجت‌هایی که لیست تسک فیلتر شده دارند
     if (activeWidget === 'total-tasks' || activeWidget === 'in-progress' || 
         activeWidget === 'completed' || activeWidget === 'todo') {
       
-      // حالا TypeScript می‌داند activeWidget یکی از این چهار نوع است
       const currentFilterLabel = filterLabels[activeWidget] || 'tasks';
       const currentFilterRoute = filterRoutes[activeWidget] || '/tasks';
       const filteredTasksCount = widgetData.filteredTasks?.length || 0;
@@ -242,7 +234,6 @@ export const DashboardSidebar: React.FC = () => {
       );
     }
 
-    // بقیه ویجت‌ها
     switch (activeWidget) {
       case 'task-overview':
         return (
@@ -450,8 +441,8 @@ export const DashboardSidebar: React.FC = () => {
                       <div className="text-2xl font-bold">{priority.count}</div>
                       <div className="text-xs text-gray-500">{percentage.toFixed(1)}%</div>
                     </div>
-                  </div>
                   <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
+                  </div>
                     <div
                       className={cn(
                         'h-full rounded-full bg-gradient-to-r transition-all duration-500',

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { Task } from './task.store';
+import { useSidebarEngineStore } from '@/stores/sidebar-engine/sidebar-engine.store';
 
 export type SidebarMode = 'create' | 'view' | 'edit';
 
@@ -9,9 +10,6 @@ interface BreadcrumbItem {
 }
 
 interface TaskSidebarState {
-  // Sidebar visibility
-  isOpen: boolean;
-  
   // Current mode
   mode: SidebarMode;
   
@@ -54,7 +52,6 @@ const initialFormState = {
 };
 
 export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
-  isOpen: false,
   mode: 'create',
   selectedTask: null,
   defaultStatus: 'todo',
@@ -62,8 +59,8 @@ export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
   formState: { ...initialFormState },
   
   openCreateSidebar: (defaultStatus = 'todo') => {
+    // Setting inner state
     set({
-      isOpen: true,
       mode: 'create',
       selectedTask: null,
       defaultStatus,
@@ -73,11 +70,14 @@ export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
         status: defaultStatus,
       },
     });
+    
+    // Opening Sidebar engine
+    const engine = useSidebarEngineStore.getState();
+    engine.open('task-sidebar', { mode: 'create' });
   },
   
   openViewSidebar: (task: Task) => {
     set({
-      isOpen: true,
       mode: 'view',
       selectedTask: task,
       breadcrumbs: [
@@ -91,11 +91,13 @@ export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
         status: task.status,
       },
     });
+    
+    const engine = useSidebarEngineStore.getState();
+    engine.open('task-sidebar', { mode: 'view', taskId: task.id });
   },
   
   openEditSidebar: (task: Task) => {
     set({
-      isOpen: true,
       mode: 'edit',
       selectedTask: task,
       breadcrumbs: [
@@ -110,16 +112,21 @@ export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
         status: task.status,
       },
     });
+    
+    const engine = useSidebarEngineStore.getState();
+    engine.open('task-sidebar', { mode: 'edit', taskId: task.id });
   },
   
   closeSidebar: () => {
     set({
-      isOpen: false,
       mode: 'create',
       selectedTask: null,
       breadcrumbs: [],
       formState: { ...initialFormState },
     });
+    
+    const engine = useSidebarEngineStore.getState();
+    engine.close('task-sidebar');
   },
   
   updateFormField: (field, value) => {

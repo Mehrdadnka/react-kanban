@@ -1,4 +1,3 @@
-// components/dashboard/widgets/TaskStatsWidget.tsx
 import React from 'react';
 import { useTaskStore } from '@/stores/task.store';
 import { Widget } from '../Widget';

@@ -1,3 +1,4 @@
+// src/components/board/KanbanBoard.tsx
 import React from 'react';
 import { Column } from './Column';
 import { useTaskStore } from '@/stores/task.store';
@@ -8,7 +9,6 @@ import { IconButton } from '@radix-ui/themes';
 import { cn } from '@/lib/utils';
 import { Plus } from 'lucide-react';
 import { useApp } from '@/providers/AppProvider';
-import { TaskSidebar } from './TaskSidebar/TaskSidebar';
 import { useTaskSidebarStore } from '@/stores/task-sidebar.store';
 
 const columns = [
@@ -36,7 +36,7 @@ export const KanbanBoard: React.FC = () => {
               onTaskClick={(task) => openViewSidebar(task)}
             />
           ))}
-          {/* Logo/Add Button Area */}
+          {/* Floating Action Button */}
           <div className="fixed top-4 right-4 lg:right-20 z-50 flex flex-col items-center">
             <TooltipProvider>
               <Tooltip.Root delayDuration={300}>
@@ -46,11 +46,8 @@ export const KanbanBoard: React.FC = () => {
                     className={cn(
                       'transition-all duration-200',
                       'hover:shadow-md group',
-                      // Consistent size across devices
                       'w-12 h-12',
-                      // Shadow for visibility
                       'shadow-md hover:shadow-lg',
-                      // Solid background
                       'bg-white dark:bg-gray-800',
                       'hover:scale-110',
                     )}
@@ -79,15 +76,7 @@ export const KanbanBoard: React.FC = () => {
           </div>
         </div>
       </KanbanDndProvider>
-{/* 
-      <TaskDialog
-        open={taskDialogOpen}
-        onOpenChange={(open) => {
-          if (!open) closeTaskDialog();
-        }}
-        defaultStatus={selectedColumn as any}
-      /> */}
-      <TaskSidebar />
+      {/* TaskSidebar دیگه اینجا رندر نمیشه - موتور انجامش میده */}
     </>
   );
 };
