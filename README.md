@@ -5,11 +5,11 @@ A modern, high-performance Kanban board built with React 18 and TypeScript. Feat
 ![Dashboard](public/Dashboard.png)
 ![Dashboard Sidebar](public/dashboard-sidebar.png)
 ![Kanban Board](public/Taskboard.png)
-![Task Details](public/taskdetails.png)
+![Task Details](public/task-details.png)
 
 | Mobile Dashboard | Mobile Tasks | Not Found Page |
 |:---:|:---:|:---:|
-| ![Mobile Dashboard](public/homepage-mobile.png) | ![Mobile Tasks](public/mobile-view.png) | ![Not Found](public/mobile-NotFoundPage.png) |
+| ![Mobile Dashboard](public/homepage-mobile.png) | ![Mobile Tasks](public/mobileview.png) | ![Not Found](public/mobile-NotFoundPage.png) |
 
 | New Task | Edit Task |
 |:---:|:---:|
