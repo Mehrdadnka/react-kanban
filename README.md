@@ -152,7 +152,3 @@ This is a personal showcase project. If you have ideas for improvements or disco
 
 - **GitHub:** [@Mehrdadnka](https://github.com/Mehrdadnka)
 - **Email:** mehrdad2762@gmail.com
-
----
-
-Built with React, TypeScript, and modern web technologies.
