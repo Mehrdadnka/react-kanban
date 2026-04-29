@@ -114,4 +114,30 @@ export const useSidebarEngineStore = create<EngineStoreState>((set, get) => ({
     const panel = get().panels[id];
     return panel ? panel.isOpen && !panel.isMinimized : false;
   },
+
+  closeAll: () => {
+    set((state) => {
+      const updatedPanels = { ...state.panels };
+      Object.keys(updatedPanels).forEach(id => {
+        updatedPanels[id] = {
+          ...updatedPanels[id],
+          isOpen: false,
+          isMinimized: false,
+        };
+      });
+      return {
+        panels: updatedPanels,
+        stack: [],
+      };
+    });
+  },
 }));
+export const usePanelIds = () => 
+  useSidebarEngineStore(state => Object.keys(state.panels));
+
+export const useOpenPanelIds = () => 
+  useSidebarEngineStore(state => 
+    Object.values(state.panels)
+      .filter(p => p.isOpen)
+      .map(p => p.config.id)
+  );

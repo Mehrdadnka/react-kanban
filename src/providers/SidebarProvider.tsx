@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { AnimatePresence, motion } from 'framer-motion';
 import { useSidebarEngineStore } from '../stores/sidebar-engine/sidebar-engine.store';
 
-const PanelRenderer: React.FC = () => {
+const PanelRenderer: React.FC = memo(() => {
   const panels = useSidebarEngineStore(state => state.panels);
   const closeTop = useSidebarEngineStore(state => state.closeTop);
 
@@ -14,22 +13,15 @@ const PanelRenderer: React.FC = () => {
 
   return (
     <>
-      {/* Centeral Overlay */}
-      <AnimatePresence>
         {openPanels.length > 0 && (
-          <motion.div
+          <div
             key="engine-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            style={{ zIndex: topPanelZIndex - 100 }}
+            style={{ zIndex: topPanelZIndex - 100, marginLeft: '4rem' }}
             className="fixed inset-0 bg-black/20 backdrop-blur-sm"
             onClick={closeTop}
             aria-hidden="true"
           />
         )}
-      </AnimatePresence>
 
       {/* Rendering all open panels */}
       {openPanels.map((panel) => {
@@ -63,7 +55,7 @@ const PanelRenderer: React.FC = () => {
       })}
     </>
   );
-};
+});
 
 export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [mounted, setMounted] = useState(false);

@@ -33,6 +33,7 @@ export interface ISidebarEngine {
   open: (id: string, metadata?: Record<string, any>) => void;
   close: (id: string) => void;
   closeTop: () => void;
+  closeAll: () => void;
   getPanelState: (id: string) => PanelState | undefined;
   isPanelOpen: (id: string) => boolean;
 }
