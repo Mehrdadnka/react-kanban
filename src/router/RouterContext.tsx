@@ -10,8 +10,8 @@ interface RouterContextType {
 const RouterContext = createContext<RouterContextType | undefined>(undefined);
 
 export function RouterProvider({ children }: { children: ReactNode }) {
-  const [currentPath, setCurrentPath] = useState(() => normalizePath(window.location.pathname, BASENAME));
   const BASENAME = '/react-kanban';
+  const [currentPath, setCurrentPath] = useState(() => normalizePath(window.location.pathname, BASENAME));
   
   const navigate = useCallback((path: string) => {
     window.history.pushState({}, '', `${BASENAME}${path}`);
