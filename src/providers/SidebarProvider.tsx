@@ -23,7 +23,7 @@ const PanelRenderer: React.FC = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            style={{ zIndex: topPanelZIndex - 1 }}
+            style={{ zIndex: topPanelZIndex - 100 }}
             className="fixed inset-0 bg-black/20 backdrop-blur-sm"
             onClick={closeTop}
             aria-hidden="true"

@@ -1,10 +1,9 @@
-// src/components/board/TaskSidebar/TaskSidebar.tsx
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
     X, Save, Edit3, 
     Trash2, Calendar, Clock, AlertTriangle
- } from 'lucide-react';
+} from 'lucide-react';
 import { Button } from '@/components/ui/button/Button';
 import { Input } from '@/components/ui/input/Input';
 import { Textarea } from '@/components/ui/textarea/Textarea';
@@ -20,8 +19,9 @@ import { Badge } from '@/components/ui/badge/Badge';
 import { useTaskSidebarStore } from '@/stores/task-sidebar.store';
 import { useTaskStore, Task } from '@/stores/task.store';
 import { useApp } from '@/providers/AppProvider';
-import { Breadcrumb } from './Breadcrumb';
 import { cn } from '@/lib/utils';
+import { PanelProps } from '@/stores/sidebar-engine/sidebar-engine.types';
+import { Breadcrumb } from '@/components/ui/breadcrumb/Breadcrumb';
 
 const priorityColors = {
   low: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
@@ -35,11 +35,15 @@ const statusLabels = {
   'done': 'Done',
 };
 
-export const TaskSidebar: React.FC = () => {
+export const TaskSidebar: React.FC<PanelProps> = ({ 
+  zIndex, 
+  onClose, 
+  isOpen: panelIsOpen,
+  metadata 
+}) => {
   const { isDarkMode } = useApp();
   const { addTask, updateTask, deleteTask } = useTaskStore();
   const {
-    isOpen,
     mode,
     selectedTask,
     formState,
@@ -50,27 +54,39 @@ export const TaskSidebar: React.FC = () => {
   } = useTaskSidebarStore();
   
   const inputRef = useRef<HTMLInputElement>(null);
-  const sidebarRef = useRef<HTMLDivElement>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  // Focus on title input when creating new task
   useEffect(() => {
-    if (isOpen && mode === 'create' && inputRef.current) {
+    if (panelIsOpen && mode === 'create' && inputRef.current) {
       setTimeout(() => inputRef.current?.focus(), 100);
     }
-  }, [isOpen, mode]);
+  }, [panelIsOpen, mode]);
 
-  // Close on Escape key
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeSidebar();
+      if (e.key === 'Escape') {
+        closeSidebar();
+        onClose?.();
+      }
     };
     
-    if (isOpen) {
+    if (panelIsOpen) {
       window.addEventListener('keydown', handleEsc);
       return () => window.removeEventListener('keydown', handleEsc);
     }
-  }, [isOpen, closeSidebar]);
+  }, [panelIsOpen, closeSidebar, onClose]);
+
+  const handleClose = () => {
+    closeSidebar();
+    onClose?.();
+  };
+
+  // Reset confirm state
+  useEffect(() => {
+    if (!panelIsOpen) {
+      setShowDeleteConfirm(false);
+    }
+  }, [panelIsOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,11 +95,11 @@ export const TaskSidebar: React.FC = () => {
 
     if (mode === 'create') {
       addTask({
-          title: formState.title,
-          description: formState.description,
-          status: formState.status,
-          priority: formState.priority,
-          updatedAt: ''
+        title: formState.title,
+        description: formState.description,
+        status: formState.status,
+        priority: formState.priority,
+        updatedAt: new Date().toISOString()
       });
     } else if (mode === 'edit' && selectedTask) {
       updateTask(selectedTask.id, {
@@ -94,34 +110,15 @@ export const TaskSidebar: React.FC = () => {
       });
     }
     
-    closeSidebar();
-  };
-    const handleDeleteClick = () => {
-    setShowDeleteConfirm(true);
+    handleClose();
   };
 
+  const handleDeleteClick = () => setShowDeleteConfirm(true);
+  const handleDeleteCancel = () => setShowDeleteConfirm(false);
   const handleDeleteConfirm = () => {
     if (selectedTask) {
       deleteTask(selectedTask.id);
-      closeSidebar();
-    }
-  };
-
-  const handleDeleteCancel = () => {
-    setShowDeleteConfirm(false);
-  };
-
-  // Reset confirm state when sidebar closes
-  useEffect(() => {
-    if (!isOpen) {
-      setShowDeleteConfirm(false);
-    }
-  }, [isOpen]);
-
-  const handleDelete = () => {
-    if (selectedTask) {
-      deleteTask(selectedTask.id);
-      closeSidebar();
+      handleClose();
     }
   };
 
@@ -130,7 +127,7 @@ export const TaskSidebar: React.FC = () => {
 
   return (
     <AnimatePresence>
-      {isOpen && (
+      {panelIsOpen && (
         <>
           {/* Overlay */}
           <motion.div
@@ -139,31 +136,34 @@ export const TaskSidebar: React.FC = () => {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
-            onClick={closeSidebar}
+            onClick={handleClose}
           />
-          
+
           {/* Sidebar */}
           <motion.div
-            ref={sidebarRef}
-            initial={{ x: '100%', opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: '100%', opacity: 0 }}
+            style={{ zIndex: zIndex || 50 }}
+            className={cn(
+              'fixed top-0 right-0 h-full w-full max-w-lg',
+              'shadow-2xl border-l z-50',
+              isDarkMode
+                ? 'bg-gray-900 border-gray-800 text-gray-100'
+                : 'bg-white border-gray-200 text-gray-900'
+            )}
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
             transition={{
               type: 'spring',
               damping: 25,
               stiffness: 200,
               mass: 0.8,
             }}
-            className={cn(
-              'fixed top-0 right-0 h-full w-full max-w-lg z-50',
-              'shadow-2xl border-l',
-              isDarkMode
-                ? 'bg-gray-900 border-gray-800 text-gray-100'
-                : 'bg-white border-gray-200 text-gray-900'
-            )}
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b">
+            <div className={cn(
+              "flex items-center justify-between p-4 border-b",
+              isDarkMode ? "border-gray-800" : "border-gray-200"
+            )}>
               <h2 className="text-lg font-semibold">
                 {mode === 'create' && 'New Task'}
                 {mode === 'view' && 'Task Details'}
@@ -171,7 +171,7 @@ export const TaskSidebar: React.FC = () => {
               </h2>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={closeSidebar}
+                  onClick={handleClose}
                   className={cn(
                     'p-1.5 rounded-lg transition-colors',
                     isDarkMode
@@ -185,7 +185,7 @@ export const TaskSidebar: React.FC = () => {
             </div>
 
             {/* Breadcrumb */}
-            {!isEditMode && (
+            {breadcrumbs && breadcrumbs.length > 0 && (
               <Breadcrumb items={breadcrumbs} isDarkMode={isDarkMode} />
             )}
 
@@ -194,7 +194,11 @@ export const TaskSidebar: React.FC = () => {
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Title */}
                 <div>
-                  <Label htmlFor="task-title">Title</Label>
+                  <Label htmlFor="task-title" className={cn(
+                    isDarkMode ? "text-gray-300" : "text-gray-700"
+                  )}>
+                    Title
+                  </Label>
                   <Input
                     ref={inputRef}
                     id="task-title"
@@ -204,15 +208,19 @@ export const TaskSidebar: React.FC = () => {
                     disabled={isViewMode}
                     className={cn(
                       'mt-1.5 text-base',
-                      isViewMode && 'bg-transparent border-transparent px-0'
+                      isViewMode && 'bg-transparent border-transparent px-0',
+                      isDarkMode && !isViewMode && 'bg-gray-800 border-gray-700 text-gray-100 placeholder:text-gray-500'
                     )}
-                    autoFocus={mode === 'create'}
                   />
                 </div>
 
                 {/* Description */}
                 <div>
-                  <Label htmlFor="task-description">Description</Label>
+                  <Label htmlFor="task-description" className={cn(
+                    isDarkMode ? "text-gray-300" : "text-gray-700"
+                  )}>
+                    Description
+                  </Label>
                   <Textarea
                     id="task-description"
                     value={formState.description}
@@ -221,7 +229,8 @@ export const TaskSidebar: React.FC = () => {
                     disabled={isViewMode}
                     className={cn(
                       'mt-1.5 min-h-[100px]',
-                      isViewMode && 'bg-transparent border-transparent px-0 resize-none'
+                      isViewMode && 'bg-transparent border-transparent px-0 resize-none',
+                      isDarkMode && !isViewMode && 'bg-gray-800 border-gray-700 text-gray-100 placeholder:text-gray-500'
                     )}
                     rows={5}
                   />
@@ -230,64 +239,103 @@ export const TaskSidebar: React.FC = () => {
                 {/* Status & Priority Grid */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="task-status">Status</Label>
+                    <Label htmlFor="task-status" className={cn(
+                      isDarkMode ? "text-gray-300" : "text-gray-700"
+                    )}>
+                      Status
+                    </Label>
                     {isViewMode ? (
                       <div className="mt-1.5 flex items-center gap-2 py-2 px-3 rounded-md border border-transparent">
                         <span className="text-lg">
-                        {formState.status === 'todo' && '📋'}
-                        {formState.status === 'in-progress' && '⚡'}
-                        {formState.status === 'done' && '✅'}
+                          {formState.status === 'todo' && '📋'}
+                          {formState.status === 'in-progress' && '⚡'}
+                          {formState.status === 'done' && '✅'}
                         </span>
                         <span className="text-sm font-medium">
-                        {statusLabels[formState.status]}
+                          {statusLabels[formState.status]}
                         </span>
                       </div>
                     ) : (
-                    <Select
+                      <Select
                         value={formState.status}
                         onValueChange={(value: Task['status']) => 
-                        updateFormField('status', value)
+                          updateFormField('status', value)
                         }
-                    >
+                      >
                         <SelectTrigger 
-                        id="task-status"
-                        className={cn(
-                          "mt-1.5",
-                          isDarkMode 
-                            ? "bg-gray-800 border-gray-700 text-gray-100" 
-                            : "bg-white border-gray-300 text-gray-900"
-                        )}
+                          id="task-status"
+                          className={cn(
+                            "mt-1.5",
+                            isDarkMode 
+                              ? "bg-gray-800 border-gray-700 text-gray-100" 
+                              : "bg-white border-gray-300 text-gray-900"
+                          )}
                         >
-                        <SelectValue />
+                          <SelectValue />
                         </SelectTrigger>
                         <SelectContent 
                           className={cn(
+                            'z-[9999]',
                             isDarkMode 
                               ? "bg-gray-800 border-gray-700 text-gray-100" 
                               : "bg-white border-gray-200 text-gray-900"
                           )}
                         >
-                        <SelectItem value="todo">📋 Todo</SelectItem>
-                        <SelectItem value="in-progress">⚡ In Progress</SelectItem>
-                        <SelectItem value="done">✅ Done</SelectItem>
+                          <SelectItem 
+                            value="todo"
+                            className={cn(
+                              "cursor-pointer",
+                              isDarkMode 
+                                ? "hover:bg-gray-700 focus:bg-gray-700" 
+                                : "hover:bg-gray-100 focus:bg-gray-100"
+                            )}
+                          >
+                            📋 Todo
+                          </SelectItem>
+                          <SelectItem 
+                            value="in-progress"
+                            className={cn(
+                              "cursor-pointer",
+                              isDarkMode 
+                                ? "hover:bg-gray-700 focus:bg-gray-700" 
+                                : "hover:bg-gray-100 focus:bg-gray-100"
+                            )}
+                          >
+                            ⚡ In Progress
+                          </SelectItem>
+                          <SelectItem 
+                            value="done"
+                            className={cn(
+                              "cursor-pointer",
+                              isDarkMode 
+                                ? "hover:bg-gray-700 focus:bg-gray-700" 
+                                : "hover:bg-gray-100 focus:bg-gray-100"
+                            )}
+                          >
+                            ✅ Done
+                          </SelectItem>
                         </SelectContent>
-                    </Select>
+                      </Select>
                     )}
                   </div>
 
-                <div>
-                    <Label htmlFor="task-priority">Priority</Label>
+                  <div>
+                    <Label htmlFor="task-priority" className={cn(
+                      isDarkMode ? "text-gray-300" : "text-gray-700"
+                    )}>
+                      Priority
+                    </Label>
                     {isViewMode ? (
-                    <div className="mt-1.5 flex items-center gap-2 py-2 px-3 rounded-md border border-transparent">
+                      <div className="mt-1.5 flex items-center gap-2 py-2 px-3 rounded-md border border-transparent">
                         <Badge 
-                        variant="secondary" 
-                        className={cn("text-xs capitalize", priorityColors[formState.priority])}
+                          variant="secondary" 
+                          className={cn("text-xs capitalize", priorityColors[formState.priority])}
                         >
-                        {formState.priority}
+                          {formState.priority}
                         </Badge>
-                    </div>
+                      </div>
                     ) : (
-                    <Select
+                      <Select
                         value={formState.priority}
                         onValueChange={(value: Task['priority']) => 
                         updateFormField('priority', value)
@@ -306,7 +354,7 @@ export const TaskSidebar: React.FC = () => {
                         </SelectTrigger>
                         <SelectContent 
                         className={cn(
-                            "z-50",
+                            "z-[9999]",
                             isDarkMode 
                             ? "bg-gray-800 border-gray-700 text-gray-100" 
                             : "bg-white border-gray-200 text-gray-900"
@@ -348,14 +396,17 @@ export const TaskSidebar: React.FC = () => {
                         </SelectContent>
                     </Select>
                     )}
-                </div>
+                  </div>
                 </div>
 
                 {/* Meta Information (View Mode) */}
                 {isViewMode && selectedTask && (
-                  <div className="space-y-3 pt-4 border-t">
+                  <div className={cn(
+                    "space-y-3 pt-4 border-t",
+                    isDarkMode ? "border-gray-800" : "border-gray-200"
+                  )}>
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-500">Created</span>
+                      <span className={isDarkMode ? "text-gray-400" : "text-gray-500"}>Created</span>
                       <span className="flex items-center gap-2">
                         <Calendar size={14} />
                         {new Date(selectedTask.createdAt).toLocaleDateString('en-US', {
@@ -366,7 +417,7 @@ export const TaskSidebar: React.FC = () => {
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-500">Last Updated</span>
+                      <span className={isDarkMode ? "text-gray-400" : "text-gray-500"}>Last Updated</span>
                       <span className="flex items-center gap-2">
                         <Clock size={14} />
                         {new Date(selectedTask.updatedAt).toLocaleDateString('en-US', {
@@ -377,7 +428,7 @@ export const TaskSidebar: React.FC = () => {
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-500">Status</span>
+                      <span className={isDarkMode ? "text-gray-400" : "text-gray-500"}>Status</span>
                       <Badge variant="secondary" className="text-xs">
                         {statusLabels[selectedTask.status]}
                       </Badge>
@@ -386,9 +437,12 @@ export const TaskSidebar: React.FC = () => {
                 )}
 
                 {/* Actions */}
-                <div className="flex justify-between items-center pt-4 border-t">
+                <div className={cn(
+                  "flex justify-between items-center pt-4 border-t",
+                  isDarkMode ? "border-gray-800" : "border-gray-200"
+                )}>
                   {isViewMode && selectedTask && (
-                    <AnimatePresence mode="wait">
+                    <div className="flex gap-2 w-full">
                       {!showDeleteConfirm ? (
                         <motion.div 
                           key="actions"
@@ -396,7 +450,6 @@ export const TaskSidebar: React.FC = () => {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -10 }}
-                          transition={{ duration: 0.2 }}
                         >
                           <Button
                             type="button"
@@ -411,7 +464,10 @@ export const TaskSidebar: React.FC = () => {
                             type="button"
                             variant="outline"
                             onClick={() => openEditSidebar(selectedTask)}
-                            className="flex items-center gap-2 flex-1"
+                            className={cn(
+                              "flex items-center gap-2 flex-1",
+                              isDarkMode && "border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-gray-100"
+                            )}
                           >
                             <Edit3 size={16} />
                             Edit Task
@@ -424,48 +480,24 @@ export const TaskSidebar: React.FC = () => {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -10 }}
-                          transition={{ duration: 0.2 }}
                         >
-                          <motion.div
-                            initial={{ scale: 0.95, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ delay: 0.1, duration: 0.2 }}
-                            className={cn(
-                              "p-4 rounded-lg border-2 mb-4",
-                              isDarkMode
-                                ? "bg-red-900/20 border-red-800/50 text-red-300"
-                                : "bg-red-50 border-red-200 text-red-700"
-                            )}
-                          >
+                          <div className={cn(
+                            "p-4 rounded-lg border-2 mb-4",
+                            isDarkMode
+                              ? "bg-red-900/20 border-red-800/50 text-red-300"
+                              : "bg-red-50 border-red-200 text-red-700"
+                          )}>
                             <div className="flex items-start gap-3">
-                              <motion.div
-                                initial={{ rotate: -10 }}
-                                animate={{ rotate: 0 }}
-                                transition={{ 
-                                  delay: 0.2,
-                                  type: "spring",
-                                  stiffness: 200 
-                                }}
-                              >
-                                <AlertTriangle size={20} className="flex-shrink-0 mt-0.5" />
-                              </motion.div>
+                              <AlertTriangle size={20} className="flex-shrink-0 mt-0.5" />
                               <div>
-                                <p className="font-semibold text-sm mb-1">
-                                  Are you sure?
-                                </p>
+                                <p className="font-semibold text-sm mb-1">Are you sure?</p>
                                 <p className="text-xs opacity-80">
                                   This action cannot be undone. The task "{selectedTask.title}" will be permanently deleted.
                                 </p>
                               </div>
                             </div>
-                          </motion.div>
-
-                          <motion.div 
-                            className="flex gap-2 w-full"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.3, duration: 0.2 }}
-                          >
+                          </div>
+                          <div className="flex gap-2 w-full">
                             <Button
                               type="button"
                               variant="destructive"
@@ -479,38 +511,36 @@ export const TaskSidebar: React.FC = () => {
                               type="button"
                               variant="outline"
                               onClick={handleDeleteCancel}
-                              className="flex items-center gap-2 flex-1"
+                              className={cn(
+                                "flex items-center gap-2 flex-1",
+                                isDarkMode && "border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-gray-100"
+                              )}
                             >
                               No, Cancel
                             </Button>
-                          </motion.div>
+                          </div>
                         </motion.div>
                       )}
-                    </AnimatePresence>
+                    </div>
                   )}
-                    
+                        
                   {isEditMode && (
-                    <motion.div 
-                      className="flex gap-2 ml-auto"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                    >
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        onClick={closeSidebar}
+                    <div className="flex gap-2 ml-auto">
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        onClick={handleClose}
+                        className={cn(
+                          isDarkMode && "text-gray-300 hover:text-gray-100 hover:bg-gray-800"
+                        )}
                       >
                         Cancel
                       </Button>
-                      <Button
-                        type="submit"
-                        variant="success"
-                        className="flex items-center gap-2"
-                      >
+                      <Button type="submit" variant="success" className="flex items-center gap-2">
                         <Save size={16} />
                         {mode === 'create' ? 'Create Task' : 'Save Changes'}
                       </Button>
-                    </motion.div>
+                    </div>
                   )}
                 </div>
               </form>
