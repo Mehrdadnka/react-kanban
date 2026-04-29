@@ -25,19 +25,12 @@ export const KanbanBoard: React.FC = () => {
   return (
     <>
       <KanbanDndProvider columns={columns}>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-120px)]">
-          {columns.map((column) => (
-            <Column
-              key={column.id}
-              id={column.id}
-              title={column.title}
-              color={column.color}
-              tasks={tasks.filter((task) => task.status === column.id)}
-              onTaskClick={(task) => openViewSidebar(task)}
-            />
-          ))}
-          {/* Floating Action Button */}
-          <div className="fixed top-4 right-4 lg:right-20 z-50 flex flex-col items-center">
+        <div className="mb-6 flex items-center justify-between w-full">
+          <h1 className="lg:text-3xl sm:text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            TaskFlow Board
+          </h1>
+          {/* Action Button */}
+          <div className="z-50 flex flex-col items-center">
             <TooltipProvider>
               <Tooltip.Root delayDuration={300}>
                 <Tooltip.Trigger asChild>
@@ -74,6 +67,18 @@ export const KanbanBoard: React.FC = () => {
               </Tooltip.Root>
             </TooltipProvider>  
           </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-120px)]">
+          {columns.map((column) => (
+            <Column
+              key={column.id}
+              id={column.id}
+              title={column.title}
+              color={column.color}
+              tasks={tasks.filter((task) => task.status === column.id)}
+              onTaskClick={(task) => openViewSidebar(task)}
+            />
+          ))}
         </div>
       </KanbanDndProvider>
       {/* TaskSidebar دیگه اینجا رندر نمیشه - موتور انجامش میده */}
