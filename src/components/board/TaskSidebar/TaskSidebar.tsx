@@ -1,7 +1,13 @@
 import React, { useEffect, useRef, useState, memo } from 'react';
 import { 
     X, Save, Edit3, 
-    Trash2, Calendar, Clock, AlertTriangle
+    Trash2, Calendar, Clock, AlertTriangle,
+    CheckCircle2,
+    Zap,
+    ArrowDown,
+    Minus,
+    ArrowUp,
+    ClipboardList
 } from 'lucide-react';
 import { Button } from '@/components/ui/button/Button';
 import { Input } from '@/components/ui/input/Input';
@@ -33,7 +39,35 @@ const statusLabels = {
   'in-progress': 'In Progress',
   'done': 'Done',
 };
+const StatusIcon = ({ status, size = 20 }: { status: Task['status'], size?: number }) => {
+  const iconProps = { size };
+  
+  switch (status) {
+    case 'todo':
+      return <ClipboardList {...iconProps} className="text-blue-500" />;
+    case 'in-progress':
+      return <Zap {...iconProps} className="text-yellow-500" />;
+    case 'done':
+      return <CheckCircle2 {...iconProps} className="text-green-500" />;
+    default:
+      return null;
+  }
+};
 
+const PriorityIcon = ({ priority, size = 16 }: { priority: Task['priority'], size?: number }) => {
+  const iconProps = { size };
+  
+  switch (priority) {
+    case 'low':
+      return <ArrowDown {...iconProps} className="text-green-500" />;
+    case 'medium':
+      return <Minus {...iconProps} className="text-yellow-500" />;
+    case 'high':
+      return <ArrowUp {...iconProps} className="text-red-500" />;
+    default:
+      return null;
+  }
+};
 export const TaskSidebar: React.FC<PanelProps> = memo(({ 
   zIndex, 
   onClose, 
@@ -250,11 +284,7 @@ export const TaskSidebar: React.FC<PanelProps> = memo(({
                 </Label>
                 {isViewMode ? (
                   <div className="mt-1.5 flex items-center gap-2 py-2 px-3 rounded-md border border-transparent">
-                    <span className="text-lg">
-                      {formState.status === 'todo' && '📋'}
-                      {formState.status === 'in-progress' && '⚡'}
-                      {formState.status === 'done' && '✅'}
-                    </span>
+                    <StatusIcon status={formState.status} />
                     <span className="text-sm font-medium">
                       {statusLabels[formState.status]}
                     </span>
@@ -294,7 +324,10 @@ export const TaskSidebar: React.FC<PanelProps> = memo(({
                             : "hover:bg-gray-100 focus:bg-gray-100"
                         )}
                       >
-                        📋 Todo
+                        <div className='flex items-center gap-2'>
+                          <ClipboardList size={16} className="text-blue-500" />
+                          Todo
+                        </div>
                       </SelectItem>
                       <SelectItem 
                         value="in-progress"
@@ -305,7 +338,10 @@ export const TaskSidebar: React.FC<PanelProps> = memo(({
                             : "hover:bg-gray-100 focus:bg-gray-100"
                         )}
                       >
-                        ⚡ In Progress
+                        <div className='flex items-center gap-2'>
+                          <Zap size={16} className="text-yellow-500" />
+                        In Progress
+                        </div>
                       </SelectItem>
                       <SelectItem 
                         value="done"
@@ -316,7 +352,10 @@ export const TaskSidebar: React.FC<PanelProps> = memo(({
                             : "hover:bg-gray-100 focus:bg-gray-100"
                         )}
                       >
-                        ✅ Done
+                        <div className='flex items-center gap-2'>
+                          <CheckCircle2 size={16} className="text-green-500" />
+                        Done
+                        </div>
                       </SelectItem>
                     </SelectContent>
                   </Select>
@@ -331,6 +370,7 @@ export const TaskSidebar: React.FC<PanelProps> = memo(({
                 </Label>
                 {isViewMode ? (
                   <div className="mt-1.5 flex items-center gap-2 py-2 px-3 rounded-md border border-transparent">
+                    <PriorityIcon priority={formState.priority} />
                     <Badge 
                       variant="secondary" 
                       className={cn("text-xs capitalize", priorityColors[formState.priority])}
@@ -373,7 +413,10 @@ export const TaskSidebar: React.FC<PanelProps> = memo(({
                             : "hover:bg-gray-100 focus:bg-gray-100"
                         )}
                     >
-                        🟢 Low
+                      <div className="flex items-center gap-2">
+                        <ArrowDown size={16} className="text-green-500" />
+                        Low
+                      </div>
                     </SelectItem>
                     <SelectItem 
                         value="medium"
@@ -384,7 +427,10 @@ export const TaskSidebar: React.FC<PanelProps> = memo(({
                             : "hover:bg-gray-100 focus:bg-gray-100"
                         )}
                     >
-                        🟡 Medium
+                      <div className="flex items-center gap-2">
+                        <Minus size={16} className="text-yellow-500" />
+                        Medium
+                      </div>
                     </SelectItem>
                     <SelectItem 
                         value="high"
@@ -395,7 +441,10 @@ export const TaskSidebar: React.FC<PanelProps> = memo(({
                             : "hover:bg-gray-100 focus:bg-gray-100"
                         )}
                     >
-                        🔴 High
+                      <div className="flex items-center gap-2">
+                        <ArrowUp size={16} className="text-red-500" />
+                        High
+                      </div>
                     </SelectItem>
                     </SelectContent>
                 </Select>

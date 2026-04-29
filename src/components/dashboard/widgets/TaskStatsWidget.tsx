@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTaskStore } from '@/stores/task.store';
 import { Widget } from '../Widget';
-import { CheckSquare, Clock, CheckCircle2, ListTodo, ArrowUpRight, TrendingUp, Activity } from 'lucide-react';
+import { CheckSquare, Clock, CheckCircle2, ListTodo, ClipboardList, ArrowUpRight, TrendingUp, Activity, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useApp } from '@/providers/AppProvider';
 import { useDashboardSidebarStore } from '@/stores/dashboard-sidebar.store';
@@ -85,7 +85,7 @@ export const TaskStatsWidget: React.FC = () => {
     {
       label: 'In Progress',
       value: tasks.filter(t => t.status === 'in-progress').length,
-      icon: Clock,
+      icon: Zap,
       color: 'text-yellow-600 dark:text-yellow-400',
       bgColor: 'bg-yellow-50 dark:bg-yellow-900/30',
       borderColor: 'border-yellow-200 dark:border-yellow-800',
@@ -103,7 +103,7 @@ export const TaskStatsWidget: React.FC = () => {
     {
       label: 'Todo',
       value: tasks.filter(t => t.status === 'todo').length,
-      icon: CheckSquare,
+      icon: ClipboardList,
       color: 'text-gray-600 dark:text-gray-400',
       bgColor: 'bg-gray-50 dark:bg-gray-700/30',
       borderColor: 'border-gray-200 dark:border-gray-700',
@@ -145,7 +145,7 @@ export const TaskStatsWidget: React.FC = () => {
   return (
     <Widget 
       title="Task Overview" 
-      icon={<CheckSquare size={16} />}
+      icon={<ClipboardList size={16} />}
       fullHeight
     >
       <div className="flex flex-col h-full gap-4 overflow-x-hidden">
@@ -198,7 +198,7 @@ export const TaskStatsWidget: React.FC = () => {
                 </div>
               </div>
               <div className="text-center p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg">
-                <Clock size={16} className="mx-auto mb-1 text-yellow-500" />
+                <Zap size={16} className="mx-auto mb-1 text-yellow-500" />
                 <div className="text-xs text-gray-500">Active</div>
                 <div className="text-lg font-bold text-yellow-600">
                   {tasks.filter(t => t.status === 'in-progress').length}

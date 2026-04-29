@@ -2,7 +2,9 @@ import React, { useEffect, useState, memo } from 'react';
 import { 
   X, CheckSquare, Clock, CheckCircle2, 
   ListTodo, Flag, TrendingUp, Activity,
-  ArrowRight, AlertTriangle, ExternalLink
+  ArrowRight, AlertTriangle, ExternalLink,
+  ClipboardList,
+  Zap
 } from 'lucide-react';
 import { useDashboardSidebarStore, DashboardWidgetType } from '@/stores/dashboard-sidebar.store';
 import { useApp } from '@/providers/AppProvider';
@@ -43,7 +45,7 @@ const widgetConfig: Record<DashboardWidgetType, {
   },
   'in-progress': {
     title: 'Tasks In Progress',
-    icon: Clock,
+    icon: Zap,
     breadcrumbs: [{ label: 'Dashboard' }, { label: 'Task Overview' }, { label: 'In Progress' }],
   },
   'completed': {
@@ -53,7 +55,7 @@ const widgetConfig: Record<DashboardWidgetType, {
   },
   'todo': {
     title: 'Todo Tasks',
-    icon: ListTodo,
+    icon: ClipboardList,
     breadcrumbs: [{ label: 'Dashboard' }, { label: 'Task Overview' }, { label: 'Todo' }],
   },
   'recent-tasks': {
@@ -154,7 +156,7 @@ export const DashboardSidebar: React.FC<PanelProps> = memo(({
     if (!tasks || tasks.length === 0) {
       return (
         <div className="text-center py-12 text-gray-400">
-          <ListTodo size={32} className="mx-auto mb-3 opacity-50" />
+          {/* < size={32} className="mx-auto mb-3 opacity-50" /> */}
           <p>{emptyMessage}</p>
         </div>
       );
@@ -279,7 +281,7 @@ export const DashboardSidebar: React.FC<PanelProps> = memo(({
                 onClick={() => handleNavigate('/tasks')}
               />
               <StatDetailCard
-                icon={Clock}
+                icon={Zap}
                 label="In Progress"
                 value={widgetData.inProgressCount}
                 color="text-yellow-600"
@@ -340,7 +342,7 @@ export const DashboardSidebar: React.FC<PanelProps> = memo(({
                     'text-center p-3 rounded-lg',
                     isDarkMode ? 'bg-gray-700/50' : 'bg-white/50'
                   )}>
-                    <Clock size={16} className="mx-auto mb-1 text-yellow-500" />
+                    <Zap size={16} className="mx-auto mb-1 text-yellow-500" />
                     <div className="text-xs">Active</div>
                     <div className="text-lg font-bold text-yellow-600">{widgetData.inProgressCount}</div>
                   </div>

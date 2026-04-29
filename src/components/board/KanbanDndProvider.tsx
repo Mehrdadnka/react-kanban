@@ -21,7 +21,7 @@ export const KanbanDndProvider: React.FC<KanbanDndProviderProps> = ({
   children, 
   columns 
 }) => {
-  const { tasks, moveTask, deleteTask } = useTaskStore();
+  const { tasks, moveTask } = useTaskStore();
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const sensors = useSensors(

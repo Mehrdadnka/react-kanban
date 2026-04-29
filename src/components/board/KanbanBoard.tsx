@@ -6,14 +6,14 @@ import * as Tooltip from '@radix-ui/react-tooltip';
 import { TooltipProvider } from '@radix-ui/react-tooltip';
 import { IconButton } from '@radix-ui/themes';
 import { cn } from '@/lib/utils';
-import { Plus } from 'lucide-react';
+import { CheckCircle2, ClipboardList, Plus, Zap } from 'lucide-react';
 import { useApp } from '@/providers/AppProvider';
 import { useTaskSidebarStore } from '@/stores/task-sidebar.store';
 
 const columns = [
-  { id: 'todo', title: '📋 Todo', color: 'bg-gray-100 dark:bg-gray-800' },
-  { id: 'in-progress', title: '⚡ In progress', color: 'bg-blue-100 dark:bg-blue-900' },
-  { id: 'done', title: '✅ Done', color: 'bg-green-100 dark:bg-green-900' },
+  { id: 'todo', title: 'Todo', icon: <ClipboardList />,color: 'text-blue-500' },
+  { id: 'in-progress', title: 'In progress', icon: <Zap />, color: 'text-yellow-500' },
+  { id: 'done', title: 'Done', icon: <CheckCircle2 />, color: 'text-green-500' },
 ];
 
 export const KanbanBoard: React.FC = () => {
@@ -72,6 +72,7 @@ export const KanbanBoard: React.FC = () => {
             <Column
               key={column.id}
               id={column.id}
+              icon={column.icon}
               title={column.title}
               color={column.color}
               tasks={tasks.filter((task) => task.status === column.id)}
