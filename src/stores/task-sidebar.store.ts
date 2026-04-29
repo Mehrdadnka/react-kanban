@@ -82,6 +82,7 @@ export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
       selectedTask: task,
       breadcrumbs: [
         { label: 'Tasks' },
+        { label: task.status },
         { label: task.title },
       ],
       formState: {
@@ -102,6 +103,7 @@ export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
       selectedTask: task,
       breadcrumbs: [
         { label: 'Tasks' },
+        { label: task.status },
         { label: task.title, onClick: () => get().transitionTo('view', task) },
         { label: 'Edit' },
       ],
