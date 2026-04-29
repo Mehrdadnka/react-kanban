@@ -115,7 +115,7 @@ const Sidebar = () => {
                       : 'bg-white border-gray-200 text-gray-700'
                   )}
                 >
-                  Search (⌘K)
+                  Search
                   <Tooltip.Arrow className={isDarkMode ? 'fill-gray-800' : 'fill-white'} />
                 </Tooltip.Content>
               </Tooltip.Portal>

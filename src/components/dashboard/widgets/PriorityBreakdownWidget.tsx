@@ -85,7 +85,7 @@ export const PriorityBreakdownWidget: React.FC = () => {
     <Widget 
       title="Priorities" 
       icon={<Flag size={16} />}
-      className="lg:max-h-[50%]"
+      className="h-80"
       onClick={openPrioritySidebar}
     >
       <div className="space-y-3">
