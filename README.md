@@ -10,18 +10,18 @@
 
 A modern, high-performance Kanban board built with React 18 and TypeScript. Features a custom client-side router, intuitive drag-and-drop, interactive dashboard with sidebar drill-downs, and a polished responsive UI.
 
-![Dashboard](public/Dashboard.png)
-![Dashboard Sidebar](public/dashboard-sidebar.png)
-![Kanban Board](public/Taskboard.png)
-![Task Details](public/task-details.png)
+![Dashboard](public/dashboard-screenshot.png)
+![Dashboard Sidebar](public/dashboard-todo-sidebar.png)
+![Kanban Board](public/taskboard-screenshot.png)
+![Task Details](public/task-detail.png)
 
 | Mobile Dashboard | Mobile Tasks | Not Found Page |
 |:---:|:---:|:---:|
-| ![Mobile Dashboard](public/homepage-mobile.png) | ![Mobile Tasks](public/mobileview.png) | ![Not Found](public/mobile-NotFoundPage.png) |
+| ![Mobile Dashboard](public/homepage-phone.png) | ![Mobile Tasks](public/taskboard-phone.png) | ![Not Found](public/NotFoundPage.png) |
 
 | New Task | Edit Task |
 |:---:|:---:|
-| ![New Task](public/newtask.png) | ![Edit Task](public/edittask.png) |
+| ![New Task](public/new-task.png) | ![Edit Task](public/edit-task.png) |
 
 ![Test Suite](public/vitest-ui.png)
 
@@ -196,15 +196,6 @@ pnpm test:ui       # Vitest UI dashboard
 - **Behavior over implementation:** Tests assert user-facing behavior, not internal state
 - **Isolation:** Components tested independently with mocked dependencies
 - **Realistic scenarios:** Test cases mirror actual user workflows
-
-### Current Coverage
-
-- Component rendering and mounting
-- Zustand store mocking patterns
-- DOM assertions and query strategies
-- User interaction flows (drag-and-drop, forms)
-- Store state transitions
-- Router navigation behavior
 
 ## Key Learnings
 
