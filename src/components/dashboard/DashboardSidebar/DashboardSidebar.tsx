@@ -1,5 +1,4 @@
-import React, { useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useEffect, useState, memo } from 'react';
 import { 
   X, CheckSquare, Clock, CheckCircle2, 
   ListTodo, Flag, TrendingUp, Activity,
@@ -13,6 +12,7 @@ import { Badge } from '@/components/ui/badge/Badge';
 import { Button } from '@/components/ui/button/Button';
 import { cn } from '@/lib/utils';
 import { Task } from '@/stores/task.store';
+import { PanelProps } from '@/stores/sidebar-engine/sidebar-engine.types';
 
 const priorityColors: Record<Task['priority'], string> = {
   low: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
@@ -82,29 +82,73 @@ const filterRoutes: Record<string, string> = {
   'todo': '/tasks?filter=todo',
 };
 
-export const DashboardSidebar: React.FC = () => {
+export const DashboardSidebar: React.FC<PanelProps> = memo(({ 
+  isOpen, 
+  onClose 
+}) => {
   const { isDarkMode } = useApp();
   const { navigate } = useRouter();
   const {
-    isOpen,
     activeWidget,
     widgetData,
     closeSidebar,
   } = useDashboardSidebarStore();
   
-  const config = activeWidget ? widgetConfig[activeWidget] : null;
-  const Icon = config?.icon || Activity;
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [shouldRender, setShouldRender] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setShouldRender(true);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setIsAnimating(true);
+        });
+      });
+    } else {
+      setIsAnimating(false);
+      const timer = setTimeout(() => {
+        setShouldRender(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  // Reset on close
+  useEffect(() => {
+    if (!isOpen) {
+      closeSidebar();
+    }
+  }, [isOpen, closeSidebar]);
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeSidebar();
+      if (e.key === 'Escape') onClose();
     };
     
     if (isOpen) {
       window.addEventListener('keydown', handleEsc);
       return () => window.removeEventListener('keydown', handleEsc);
     }
-  }, [isOpen, closeSidebar]);
+  }, [isOpen, onClose]);
+
+  const config = activeWidget ? widgetConfig[activeWidget] : null;
+  const Icon = config?.icon || Activity;
+
+  const handleClose = () => {
+    closeSidebar();
+    onClose();
+  };
+
+  const handleTaskClick = (taskId: string) => {
+    navigate(`/tasks/${taskId}`);
+    handleClose();
+  };
+
+  const handleNavigate = (path: string) => {
+    navigate(path);
+    handleClose();
+  };
 
   const renderTaskList = (tasks: Task[], emptyMessage: string) => {
     if (!tasks || tasks.length === 0) {
@@ -121,10 +165,7 @@ export const DashboardSidebar: React.FC = () => {
         {tasks.map((task: Task) => (
           <button
             key={task.id}
-            onClick={() => {
-              navigate(`/tasks/${task.id}`);
-              closeSidebar();
-            }}
+            onClick={() => handleTaskClick(task.id)}
             className={cn(
               'w-full text-left p-4 rounded-xl transition-all duration-200',
               'hover:shadow-md group border',
@@ -177,16 +218,14 @@ export const DashboardSidebar: React.FC = () => {
   const renderContent = () => {
     if (!activeWidget) return null;
 
-    if (activeWidget === 'total-tasks' || activeWidget === 'in-progress' || 
-        activeWidget === 'completed' || activeWidget === 'todo') {
-      
+    // Filtered task lists
+    if (['total-tasks', 'in-progress', 'completed', 'todo'].includes(activeWidget)) {
       const currentFilterLabel = filterLabels[activeWidget] || 'tasks';
       const currentFilterRoute = filterRoutes[activeWidget] || '/tasks';
       const filteredTasksCount = widgetData.filteredTasks?.length || 0;
 
       return (
         <div className="space-y-6">
-          {/* Summary Stats */}
           <div className={cn(
             'p-4 rounded-xl',
             isDarkMode ? 'bg-gray-800/50' : 'bg-gray-50'
@@ -203,27 +242,18 @@ export const DashboardSidebar: React.FC = () => {
             </div>
           </div>
 
-          {/* Task List */}
           <div>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-500">
-                Tasks List
-              </h3>
-            </div>
-            {widgetData.filteredTasks && 
-              renderTaskList(
-                widgetData.filteredTasks,
-                `No ${currentFilterLabel} found`
-              )
-            }
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-4">
+              Tasks List
+            </h3>
+            {renderTaskList(
+              widgetData.filteredTasks || [],
+              `No ${currentFilterLabel} found`
+            )}
           </div>
 
-          {/* Action Button */}
           <Button
-            onClick={() => {
-              navigate(currentFilterRoute);
-              closeSidebar();
-            }}
+            onClick={() => handleNavigate(currentFilterRoute)}
             className="w-full flex items-center justify-center gap-2"
             variant="outline"
           >
@@ -234,6 +264,7 @@ export const DashboardSidebar: React.FC = () => {
       );
     }
 
+    // Widget-specific content
     switch (activeWidget) {
       case 'task-overview':
         return (
@@ -245,7 +276,7 @@ export const DashboardSidebar: React.FC = () => {
                 value={widgetData.totalTasks}
                 color="text-blue-600"
                 bgColor="bg-blue-50 dark:bg-blue-900/30"
-                onClick={() => navigate('/tasks')}
+                onClick={() => handleNavigate('/tasks')}
               />
               <StatDetailCard
                 icon={Clock}
@@ -253,7 +284,7 @@ export const DashboardSidebar: React.FC = () => {
                 value={widgetData.inProgressCount}
                 color="text-yellow-600"
                 bgColor="bg-yellow-50 dark:bg-yellow-900/30"
-                onClick={() => navigate('/tasks?filter=in-progress')}
+                onClick={() => handleNavigate('/tasks?filter=in-progress')}
               />
               <StatDetailCard
                 icon={CheckCircle2}
@@ -261,7 +292,7 @@ export const DashboardSidebar: React.FC = () => {
                 value={widgetData.completedCount}
                 color="text-green-600"
                 bgColor="bg-green-50 dark:bg-green-900/30"
-                onClick={() => navigate('/tasks?filter=done')}
+                onClick={() => handleNavigate('/tasks?filter=done')}
               />
               <StatDetailCard
                 icon={ListTodo}
@@ -269,7 +300,7 @@ export const DashboardSidebar: React.FC = () => {
                 value={widgetData.todoCount}
                 color="text-gray-600"
                 bgColor="bg-gray-50 dark:bg-gray-700/30"
-                onClick={() => navigate('/tasks?filter=todo')}
+                onClick={() => handleNavigate('/tasks?filter=todo')}
               />
             </div>
 
@@ -318,7 +349,7 @@ export const DashboardSidebar: React.FC = () => {
             </div>
 
             <Button
-              onClick={() => navigate('/tasks')}
+              onClick={() => handleNavigate('/tasks')}
               className="w-full flex items-center justify-center gap-2"
             >
               View All Tasks
@@ -339,10 +370,7 @@ export const DashboardSidebar: React.FC = () => {
               widgetData.recentTasks.map((task: Task) => (
                 <button
                   key={task.id}
-                  onClick={() => {
-                    navigate(`/tasks/${task.id}`);
-                    closeSidebar();
-                  }}
+                  onClick={() => handleTaskClick(task.id)}
                   className={cn(
                     'w-full text-left p-4 rounded-xl transition-all duration-200',
                     'hover:shadow-md group',
@@ -386,7 +414,7 @@ export const DashboardSidebar: React.FC = () => {
               ))
             )}
             <Button
-              onClick={() => navigate('/tasks')}
+              onClick={() => handleNavigate('/tasks')}
               variant="outline"
               className="w-full flex items-center justify-center gap-2 mt-4"
             >
@@ -441,8 +469,8 @@ export const DashboardSidebar: React.FC = () => {
                       <div className="text-2xl font-bold">{priority.count}</div>
                       <div className="text-xs text-gray-500">{percentage.toFixed(1)}%</div>
                     </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
                   </div>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
                     <div
                       className={cn(
                         'h-full rounded-full bg-gradient-to-r transition-all duration-500',
@@ -470,7 +498,7 @@ export const DashboardSidebar: React.FC = () => {
             )}
 
             <Button
-              onClick={() => navigate('/tasks')}
+              onClick={() => handleNavigate('/tasks')}
               className="w-full flex items-center justify-center gap-2"
             >
               Manage Priorities
@@ -485,80 +513,65 @@ export const DashboardSidebar: React.FC = () => {
     }
   };
 
+  if (!shouldRender) return null;
+
   return (
-    <AnimatePresence>
-      {isOpen && config && (
+    <div
+      className={cn(
+        'fixed top-0 right-0 h-full w-full max-w-lg',
+        'shadow-2xl border-l',
+        'transform transition-transform duration-300 ease-in-out',
+        isDarkMode
+          ? 'bg-gray-900 border-gray-800 text-gray-100'
+          : 'bg-white border-gray-200 text-gray-900',
+        isAnimating ? 'translate-x-0' : 'translate-x-full'
+      )}
+    >
+      {config && (
         <>
-          {/* Overlay */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
-            onClick={closeSidebar}
-          />
-          
-          {/* Sidebar */}
-          <motion.div
-            initial={{ x: '100%', opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: '100%', opacity: 0 }}
-            transition={{
-              type: 'spring',
-              damping: 25,
-              stiffness: 200,
-              mass: 0.8,
-            }}
-            className={cn(
-              'fixed top-0 right-0 h-full w-full max-w-lg z-50',
-              'shadow-2xl border-l',
-              isDarkMode
-                ? 'bg-gray-900 border-gray-800 text-gray-100'
-                : 'bg-white border-gray-200 text-gray-900'
-            )}
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b">
-              <div className="flex items-center gap-3">
-                <div className={cn(
-                  'p-2 rounded-lg',
-                  isDarkMode ? 'bg-gray-800' : 'bg-gray-100'
-                )}>
-                  <Icon size={20} />
-                </div>
-                <h2 className="text-lg font-semibold">
-                  {config.title}
-                </h2>
+          {/* Header */}
+          <div className={cn(
+            "flex items-center justify-between p-4 border-b",
+            isDarkMode ? "border-gray-800" : "border-gray-200"
+          )}>
+            <div className="flex items-center gap-3">
+              <div className={cn(
+                'p-2 rounded-lg',
+                isDarkMode ? 'bg-gray-800' : 'bg-gray-100'
+              )}>
+                <Icon size={20} />
               </div>
-              <button
-                onClick={closeSidebar}
-                className={cn(
-                  'p-1.5 rounded-lg transition-colors',
-                  isDarkMode
-                    ? 'hover:bg-gray-800 text-gray-400 hover:text-gray-200'
-                    : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
-                )}
-              >
-                <X size={20} />
-              </button>
+              <h2 className="text-lg font-semibold">
+                {config.title}
+              </h2>
             </div>
+            <button
+              onClick={handleClose}
+              className={cn(
+                'p-1.5 rounded-lg transition-colors',
+                isDarkMode
+                  ? 'hover:bg-gray-800 text-gray-400 hover:text-gray-200'
+                  : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
+              )}
+            >
+              <X size={20} />
+            </button>
+          </div>
 
-            {/* Breadcrumb */}
-            <Breadcrumb items={config.breadcrumbs} isDarkMode={isDarkMode} />
+          {/* Breadcrumb */}
+          <Breadcrumb items={config.breadcrumbs} isDarkMode={isDarkMode} />
 
-            {/* Content */}
-            <div className="overflow-y-auto h-[calc(100vh-130px)] p-6">
-              {renderContent()}
-            </div>
-          </motion.div>
+          {/* Content */}
+          <div className="overflow-y-auto h-[calc(100vh-130px)] p-6">
+            {renderContent()}
+          </div>
         </>
       )}
-    </AnimatePresence>
+    </div>
   );
-};
+});
 
-// Helper component for stat cards in sidebar
+// Helper component
 interface StatDetailCardProps {
   icon: React.ElementType;
   label: string;
@@ -568,7 +581,7 @@ interface StatDetailCardProps {
   onClick: () => void;
 }
 
-const StatDetailCard: React.FC<StatDetailCardProps> = ({ 
+const StatDetailCard: React.FC<StatDetailCardProps> = memo(({ 
   icon: Icon, label, value, color, bgColor, onClick 
 }) => (
   <button
@@ -583,4 +596,4 @@ const StatDetailCard: React.FC<StatDetailCardProps> = ({
     <div className="text-2xl font-bold">{value}</div>
     <div className="text-xs text-gray-500 mt-1">{label}</div>
   </button>
-);
+));

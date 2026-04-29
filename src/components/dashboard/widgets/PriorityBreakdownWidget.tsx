@@ -3,6 +3,8 @@ import { useTaskStore } from '@/stores/task.store';
 import { Widget } from '../Widget';
 import { Flag, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useDashboardSidebarStore } from '@/stores/dashboard-sidebar.store';
+import { useSidebarEngineStore } from '@/stores/sidebar-engine/sidebar-engine.store';
 
 const priorityConfig = {
   high: {
@@ -55,12 +57,36 @@ export const PriorityBreakdownWidget: React.FC = () => {
       Icon: config.icon,
     };
   });
+  
+  const openPrioritySidebar = () => {
+    useDashboardSidebarStore.getState().openSidebar('priority-breakdown', {
+      totalTasks: tasks.length,
+      inProgressCount: tasks.filter(t => t.status === 'in-progress').length,
+      completedCount: tasks.filter(t => t.status === 'done').length,
+      todoCount: tasks.filter(t => t.status === 'todo').length,
+      completionRate: tasks.length > 0 
+        ? Math.round((tasks.filter(t => t.status === 'done').length / tasks.length) * 100)
+        : 0,
+      recentTasks: [...tasks]
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .slice(0, 5),
+      priorityData: {
+        high: getPriorityCount('high'),
+        medium: getPriorityCount('medium'),
+        low: getPriorityCount('low'),
+      },
+      filteredTasks: [],
+      activeFilter: 'all',
+    });
+    useSidebarEngineStore.getState().open('dashboard-sidebar');
+  };
 
   return (
     <Widget 
       title="Priorities" 
       icon={<Flag size={16} />}
       className="lg:max-h-[50%]"
+      onClick={openPrioritySidebar}
     >
       <div className="space-y-3">
         {priorityData.map((item) => (

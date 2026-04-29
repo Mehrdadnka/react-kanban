@@ -5,6 +5,9 @@ import { Clock, ArrowRight } from 'lucide-react';
 import { useRouter } from '@/router';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge/Badge';
+import { useSidebarEngineStore } from '@/stores/sidebar-engine/sidebar-engine.store';
+import { useDashboardSidebarStore } from '@/stores/dashboard-sidebar.store';
+
 
 const priorityColors = {
   low: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
@@ -22,11 +25,37 @@ export const RecentTasksWidget: React.FC = () => {
       .slice(0, 4);
   }, [tasks]);
 
+  const openDashboardSidebar = () => {
+    
+    useDashboardSidebarStore.getState().openSidebar('recent-tasks', {
+      totalTasks: tasks.length,
+      inProgressCount: tasks.filter(t => t.status === 'in-progress').length,
+      completedCount: tasks.filter(t => t.status === 'done').length,
+      todoCount: tasks.filter(t => t.status === 'todo').length,
+      completionRate: tasks.length > 0 
+        ? Math.round((tasks.filter(t => t.status === 'done').length / tasks.length) * 100)
+        : 0,
+      recentTasks: [...tasks]
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .slice(0, 10),
+      priorityData: {
+        high: tasks.filter(t => t.priority === 'high').length,
+        medium: tasks.filter(t => t.priority === 'medium').length,
+        low: tasks.filter(t => t.priority === 'low').length,
+      },
+      filteredTasks: [],
+      activeFilter: 'all',
+    });
+
+    useSidebarEngineStore.getState().open('dashboard-sidebar');
+  };
+
   return (
     <Widget 
       title="Recent Tasks" 
       icon={<Clock size={16} />}
       className="lg:max-h-[60%]"
+      onClick={openDashboardSidebar} 
     >
       <div className="space-y-1.5">
         {recentTasks.length === 0 ? (
@@ -38,7 +67,10 @@ export const RecentTasksWidget: React.FC = () => {
           recentTasks.map((task) => (
             <button
               key={task.id}
-              onClick={() => navigate(`/tasks/${task.id}`)}
+              onClick={(e: React.MouseEvent) => { 
+                e.stopPropagation(); 
+                navigate(`/tasks/${task.id}`)
+              }}
               className={cn(
                 'w-full text-left p-2.5 rounded-lg transition-all duration-200',
                 'hover:bg-gray-50 dark:hover:bg-gray-700/50',

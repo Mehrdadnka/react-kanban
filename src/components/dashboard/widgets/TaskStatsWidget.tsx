@@ -5,6 +5,7 @@ import { CheckSquare, Clock, CheckCircle2, ListTodo, ArrowUpRight, TrendingUp, A
 import { cn } from '@/lib/utils';
 import { useApp } from '@/providers/AppProvider';
 import { useDashboardSidebarStore } from '@/stores/dashboard-sidebar.store';
+import { useSidebarEngineStore } from '@/stores/sidebar-engine/sidebar-engine.store';
 import type { TaskFilterType } from '@/stores/dashboard-sidebar.store';
 
 interface StatCardProps {
@@ -138,6 +139,7 @@ export const TaskStatsWidget: React.FC = () => {
       filteredTasks: filteredTasks[filter],
       activeFilter: filter,
     });
+    useSidebarEngineStore.getState().open('dashboard-sidebar');
   };
 
   return (

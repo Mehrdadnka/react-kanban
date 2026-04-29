@@ -1,4 +1,3 @@
-// src/engine/sidebar-engine.types.ts
 import React from 'react';
 
 export interface PanelConfig {
@@ -12,7 +11,6 @@ export interface PanelProps {
   panelId: string;
   isOpen: boolean;
   zIndex: number;
-  // metadata عمومی‌تر برای هر نوع داده اضافی
   metadata?: Record<string, any>;
   onClose: () => void;
   onUpdateMetadata?: (metadata: any) => void;

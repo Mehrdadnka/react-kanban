@@ -1,4 +1,3 @@
-// src/components/board/KanbanBoard.tsx
 import React from 'react';
 import { Column } from './Column';
 import { useTaskStore } from '@/stores/task.store';
