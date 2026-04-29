@@ -7,7 +7,8 @@
 ---
 
 # React Kanban Board
-A modern, high-performance Kanban board built with React 18 and TypeScript. Features a custom client-side router, intuitive drag-and-drop, interactive dashboard with sidebar drill-downs, a **Sidebar Orchestration Engine** for panel management, and a polished responsive UI.
+
+A modern, high-performance Kanban board built with React 18 and TypeScript. Features a custom client-side router, intuitive drag-and-drop, interactive dashboard with sidebar drill-downs, and a polished responsive UI.
 
 ![Dashboard](public/Dashboard.png)
 ![Dashboard Sidebar](public/dashboard-sidebar.png)
