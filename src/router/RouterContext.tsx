@@ -10,18 +10,18 @@ interface RouterContextType {
 const RouterContext = createContext<RouterContextType | undefined>(undefined);
 
 export function RouterProvider({ children }: { children: ReactNode }) {
-  const [currentPath, setCurrentPath] = useState(window.location.pathname);
-
+  const [currentPath, setCurrentPath] = useState(() => normalizePath(window.location.pathname, BASENAME));
+  const BASENAME = '/react-kanban';
+  
   const navigate = useCallback((path: string) => {
-    window.history.pushState({}, '', path);
+    window.history.pushState({}, '', `${BASENAME}${path}`);
     setCurrentPath(path);
   }, []);
 
   useEffect(() => {
     const handlePopState = () => {
-      setCurrentPath(window.location.pathname);
+      setCurrentPath(normalizePath(window.location.pathname, BASENAME));
     };
-    
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
@@ -35,6 +35,13 @@ export function RouterProvider({ children }: { children: ReactNode }) {
       {children}
     </RouterContext.Provider>
   );
+}
+
+function normalizePath(pathname: string, base: string): string {
+  if (pathname.startsWith(base)) {
+    return pathname.slice(base.length) || '/';
+  }
+  return pathname; // fallback, in case running without base
 }
 
 export function useRouter() {
