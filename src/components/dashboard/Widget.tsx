@@ -17,7 +17,8 @@ export const Widget: React.FC<WidgetProps> = ({
   children, 
   className,
   colSpan = 'third',
-  fullHeight = false
+  fullHeight = false,
+  onClick
 }) => {
   const colSpanClasses = {
     full: 'md:col-span-3',
@@ -26,13 +27,16 @@ export const Widget: React.FC<WidgetProps> = ({
   };
 
   return (
-    <div className={cn(
-      'bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700',
-      'p-4 lg:p-6 transition-all duration-200 hover:shadow-md',
-      'flex flex-col',
-      fullHeight ? 'h-full' : 'max-h-full',
-      colSpanClasses[colSpan],
-      className
+    <div
+      onClick={onClick} 
+      className={cn(
+        'bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700',
+        'p-4 lg:p-6 transition-all duration-200 hover:shadow-md',
+        'flex flex-col',
+        fullHeight ? 'h-full' : 'max-h-full',
+        colSpanClasses[colSpan],
+        onClick && 'cursor-pointer',
+        className
       )}
     >
       <div className="flex items-center gap-2 mb-3 flex-shrink-0">

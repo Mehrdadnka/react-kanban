@@ -16,6 +16,8 @@
       "@/testing/*": ["src/testing/*"],
       "@/providers/*": ["src/providers/*"],
       "@/router/*": ["src/router/*"],
+      "@/engine/*": ["src/stores/sidebar-engine/*"],
+
     },
     "target": "ES2020",
     "useDefineForClassFields": true,

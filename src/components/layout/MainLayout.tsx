@@ -1,20 +1,17 @@
 import React from 'react';
 import Sidebar from './Sidebar';
 import { ThemeProvider } from '@/providers/ThemeProvider';
+import { SidebarRegistry } from './SidebarRegistry';
 
 interface MainLayoutProps {
   children: React.ReactNode;
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-
   return (
-    // Theme
     <ThemeProvider>
       <div className="flex h-screen overflow-hidden">
-        {/* App Sidebar */}
         <Sidebar />
-        {/* Main content */}
         <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 ml-16">
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
@@ -26,6 +23,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </div>
         </main>
       </div>
+      <SidebarRegistry />
     </ThemeProvider>
   );
 };

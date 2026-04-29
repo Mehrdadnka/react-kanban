@@ -2,7 +2,6 @@ import React from 'react';
 import { TaskStatsWidget } from './widgets/TaskStatsWidget';
 import { RecentTasksWidget } from './widgets/RecentTasksWidget';
 import { PriorityBreakdownWidget } from './widgets/PriorityBreakdownWidget';
-import { DashboardSidebar } from './DashboardSidebar/DashboardSidebar';
 
 export const Dashboard: React.FC = () => {
   return (
@@ -17,7 +16,6 @@ export const Dashboard: React.FC = () => {
           <TaskStatsWidget />
         </div>
       </div>
-      <DashboardSidebar />
     </>
   );
 };

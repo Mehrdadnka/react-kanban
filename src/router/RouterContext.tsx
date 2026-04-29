@@ -1,4 +1,6 @@
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
+
+import { useSidebarEngineStore } from '@/stores/sidebar-engine/sidebar-engine.store';
 
 interface RouterContextType {
   currentPath: string;
@@ -15,10 +17,18 @@ export function RouterProvider({ children }: { children: ReactNode }) {
     setCurrentPath(path);
   }, []);
 
-  // Listen for popstate events (browser back/forward)
-  window.addEventListener('popstate', () => {
-    setCurrentPath(window.location.pathname);
-  });
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentPath(window.location.pathname);
+    };
+    
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  useEffect(() => {
+    useSidebarEngineStore.getState().closeAll();
+  }, [currentPath]);
 
   return (
     <RouterContext.Provider value={{ currentPath, navigate }}>

@@ -6,15 +6,14 @@ import * as Tooltip from '@radix-ui/react-tooltip';
 import { TooltipProvider } from '@radix-ui/react-tooltip';
 import { IconButton } from '@radix-ui/themes';
 import { cn } from '@/lib/utils';
-import { Plus } from 'lucide-react';
+import { CheckCircle2, ClipboardList, Plus, Zap } from 'lucide-react';
 import { useApp } from '@/providers/AppProvider';
-import { TaskSidebar } from './TaskSidebar/TaskSidebar';
 import { useTaskSidebarStore } from '@/stores/task-sidebar.store';
 
 const columns = [
-  { id: 'todo', title: '📋 Todo', color: 'bg-gray-100 dark:bg-gray-800' },
-  { id: 'in-progress', title: '⚡ In progress', color: 'bg-blue-100 dark:bg-blue-900' },
-  { id: 'done', title: '✅ Done', color: 'bg-green-100 dark:bg-green-900' },
+  { id: 'todo', title: 'Todo', icon: <ClipboardList />,color: 'text-blue-500' },
+  { id: 'in-progress', title: 'In progress', icon: <Zap />, color: 'text-yellow-500' },
+  { id: 'done', title: 'Done', icon: <CheckCircle2 />, color: 'text-green-500' },
 ];
 
 export const KanbanBoard: React.FC = () => {
@@ -25,19 +24,12 @@ export const KanbanBoard: React.FC = () => {
   return (
     <>
       <KanbanDndProvider columns={columns}>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-120px)]">
-          {columns.map((column) => (
-            <Column
-              key={column.id}
-              id={column.id}
-              title={column.title}
-              color={column.color}
-              tasks={tasks.filter((task) => task.status === column.id)}
-              onTaskClick={(task) => openViewSidebar(task)}
-            />
-          ))}
-          {/* Logo/Add Button Area */}
-          <div className="fixed top-4 right-4 lg:right-20 z-50 flex flex-col items-center">
+        <div className="mb-6 flex items-center justify-between w-full">
+          <h1 className="lg:text-3xl sm:text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            TaskFlow Board
+          </h1>
+          {/* Action Button */}
+          <div className="z-50 flex flex-col items-center">
             <TooltipProvider>
               <Tooltip.Root delayDuration={300}>
                 <Tooltip.Trigger asChild>
@@ -46,11 +38,8 @@ export const KanbanBoard: React.FC = () => {
                     className={cn(
                       'transition-all duration-200',
                       'hover:shadow-md group',
-                      // Consistent size across devices
                       'w-12 h-12',
-                      // Shadow for visibility
                       'shadow-md hover:shadow-lg',
-                      // Solid background
                       'bg-white dark:bg-gray-800',
                       'hover:scale-110',
                     )}
@@ -78,16 +67,21 @@ export const KanbanBoard: React.FC = () => {
             </TooltipProvider>  
           </div>
         </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-120px)]">
+          {columns.map((column) => (
+            <Column
+              key={column.id}
+              id={column.id}
+              icon={column.icon}
+              title={column.title}
+              color={column.color}
+              tasks={tasks.filter((task) => task.status === column.id)}
+              onTaskClick={(task) => openViewSidebar(task)}
+            />
+          ))}
+        </div>
       </KanbanDndProvider>
-{/* 
-      <TaskDialog
-        open={taskDialogOpen}
-        onOpenChange={(open) => {
-          if (!open) closeTaskDialog();
-        }}
-        defaultStatus={selectedColumn as any}
-      /> */}
-      <TaskSidebar />
+      {/* TaskSidebar دیگه اینجا رندر نمیشه - موتور انجامش میده */}
     </>
   );
 };

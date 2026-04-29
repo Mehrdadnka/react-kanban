@@ -1,4 +1,3 @@
-// stores/dashboard-sidebar.store.ts
 import { create } from 'zustand';
 import { Task } from './task.store';
 
@@ -30,7 +29,6 @@ interface WidgetData {
 }
 
 interface DashboardSidebarState {
-  isOpen: boolean;
   activeWidget: DashboardWidgetType | null;
   widgetData: WidgetData;
   
@@ -41,7 +39,6 @@ interface DashboardSidebarState {
 }
 
 export const useDashboardSidebarStore = create<DashboardSidebarState>((set) => ({
-  isOpen: false,
   activeWidget: null,
   widgetData: {
     totalTasks: 0,
@@ -61,7 +58,6 @@ export const useDashboardSidebarStore = create<DashboardSidebarState>((set) => (
   
   openSidebar: (widgetType, data) => {
     set({
-      isOpen: true,
       activeWidget: widgetType,
       widgetData: data,
     });
@@ -69,7 +65,6 @@ export const useDashboardSidebarStore = create<DashboardSidebarState>((set) => (
   
   closeSidebar: () => {
     set({
-      isOpen: false,
       activeWidget: null,
     });
   },

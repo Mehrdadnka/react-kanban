@@ -71,9 +71,9 @@ describe('KanbanBoard', () => {
       render(<KanbanBoard />)
       
       // Assert - Check titles
-      expect(screen.getByText('📋 Todo')).toBeInTheDocument()
-      expect(screen.getByText('⚡ In progress')).toBeInTheDocument()
-      expect(screen.getByText('✅ Done')).toBeInTheDocument()
+      expect(screen.getByText('Todo')).toBeInTheDocument()
+      expect(screen.getByText('In progress')).toBeInTheDocument()
+      expect(screen.getByText('Done')).toBeInTheDocument()
     })
 
     it('should render TaskDialog component', () => {

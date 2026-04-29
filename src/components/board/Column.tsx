@@ -12,6 +12,7 @@ interface ColumnProps {
   tasks: Task[];
   onTaskClick?: (task: Task) => void;
   color: string;
+  icon: React.ReactNode
 }
 
 export const Column: React.FC<ColumnProps> = ({
@@ -20,6 +21,7 @@ export const Column: React.FC<ColumnProps> = ({
   tasks,
   onTaskClick,
   color,
+  icon
 }) => {
   const { setNodeRef, isOver } = useDroppable({ id });
 
@@ -37,6 +39,7 @@ export const Column: React.FC<ColumnProps> = ({
                 {tasks.length}
               </span>
             </CardTitle>
+            {icon}
           </div>
         </CardHeader>
         <CardContent className="p-3 flex-1 overflow-y-auto overflow-x-hidden">

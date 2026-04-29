@@ -3,7 +3,6 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card/Card';
 import { Badge } from '@/components/ui/badge/Badge';
-import { Button } from '@/components/ui/button/Button';
 import { Eye, GripVertical, Paperclip, Trash2 } from 'lucide-react';
 import { Task } from '@/stores/task.store';
 import { cn } from '@/lib/utils';

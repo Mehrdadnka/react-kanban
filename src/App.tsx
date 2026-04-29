@@ -6,7 +6,6 @@ import { Calendar } from './router/Pages/Calendar';
 
 function App() {
   return (
-    <RouterProvider>
       <MainLayout>
         <Routes>
           <Route path="/">
@@ -20,7 +19,6 @@ function App() {
           </Route>
         </Routes>
       </MainLayout>
-    </RouterProvider>
   );
 }
 
