@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { Moon, Sun, Home, CheckSquare, Search } from 'lucide-react';
+import { Moon, Sun, Home, CheckSquare, Search, ListTodo } from 'lucide-react';
 import { useApp } from '@/providers/AppProvider';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { TooltipProvider } from '@radix-ui/react-tooltip';
@@ -22,7 +22,7 @@ const Sidebar = () => {
 
   const mainNavItems: NavItem[] = [
     { id: 'home', icon: <Home size={22} />, path: '/', label: 'Home' },
-    { id: 'tasks', icon: <CheckSquare size={22} />, path: '/tasks', label: 'Tasks' },
+    { id: 'tasks', icon: <ListTodo size={22} />, path: '/tasks', label: 'Tasks' },
   ];
 
   const handleNavigation = (path: string) => {
