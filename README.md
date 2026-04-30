@@ -241,7 +241,8 @@ src/
 │   │       ├── engine/            # Pure calculations & canvas renderer class
 │   │       ├── store/             # Zustand state bridge
 │   │       ├── components/        # Dumb UI: Stats, Canvas, Tooltip, Legend
-│   │       └── types.ts           # Shared TypeScript types & constants
+│   │       ├── constants.ts       # Shared TypeScript constants
+│   │       └── types.ts           # Shared TypeScript types
 │   ├── layout/                    # Main layout, sidebar navigation, search
 │   └── ui/                        # Reusable UI primitives (Button, Badge, etc.)
 ├── hooks/                         # Custom React hooks (useSidebarPanel)
