@@ -10,14 +10,14 @@
 
 A modern, high-performance Kanban board built with React 18 and TypeScript. Features a custom client-side router, intuitive drag-and-drop, interactive dashboard with sidebar drill-downs, and a polished responsive UI.
 
-![Dashboard](public/dashboard-screenshot.png)
-![Dashboard Sidebar](public/dashboard-todo-sidebar.png)
+![Dashboard](public/dashboard-screen.png)
+![Dashboard Sidebar](public/dashboard-sidebar.png)
 ![Kanban Board](public/taskboard-screenshot.png)
 ![Task Details](public/task-detail.png)
 
 | Mobile Dashboard | Mobile Tasks | Not Found Page |
 |:---:|:---:|:---:|
-| ![Mobile Dashboard](public/homepage-phone.png) | ![Mobile Tasks](public/taskboard-phone.png) | ![Not Found](public/NotFoundPage.png) |
+| ![Mobile Dashboard](public/dashboard-phone.png) | ![Mobile Tasks](public/taskboard-phone.png) | ![Not Found](public/NotFoundPage.png) |
 
 | New Task | Edit Task |
 |:---:|:---:|
