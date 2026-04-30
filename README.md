@@ -243,11 +243,11 @@ src/
 |   └── dashboard/                 # Dashboard features
 |       └── widgets/               # Task stats, recent tasks, priority breakdown
 │           └── activity-heatmap/  # Heatmap feature module
-│               ├── engine/            # Pure calculations & canvas renderer class
-│               ├── store/             # Zustand state bridge
-│               ├── components/        # Dumb UI: Stats, Canvas, Tooltip, Legend
-│               ├── constants.ts       # Shared TypeScript constants
-│               └── types.ts           # Shared TypeScript types
+│               ├── engine/        # Pure calculations & canvas renderer class
+│               ├── store/         # Zustand state bridge
+│               ├── components/    # Dumb UI: Stats, Canvas, Tooltip, Legend
+│               ├── constants.ts   # Shared TypeScript constants
+│               └── types.ts       # Shared TypeScript types
 |   
 ├── lib/                           # Utility functions (cn helper)
 ├── types/                         # Shared TypeScript root types
