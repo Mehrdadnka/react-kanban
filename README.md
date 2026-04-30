@@ -251,7 +251,7 @@ src/
 ├── router/                    # Custom client-side router
 │   └── Pages/                 # Route page components
 ├── stores/                    # Zustand state management
-│   ├── sidebar-engine/        # 🚀 Engine core (types, store)
+│   ├── sidebar-engine/        # Engine core (types, store)
 │   ├── task.store.ts          # Task CRUD operations
 │   ├── task-sidebar.store.ts  # Task panel state machine
 │   └── dashboard-sidebar.store.ts # Dashboard panel state
