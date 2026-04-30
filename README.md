@@ -247,6 +247,7 @@ src/
 │   └── ui/                        # Reusable UI primitives (Button, Badge, etc.)
 ├── hooks/                         # Custom React hooks (useSidebarPanel)
 ├── lib/                           # Utility functions (cn helper)
+├── types/                           # Shared TypeScript root types
 ├── providers/                     # SidebarProvider, ThemeProvider, AppProvider
 ├── router/                        # Custom client-side router
 │   └── Pages/                     # Route page components

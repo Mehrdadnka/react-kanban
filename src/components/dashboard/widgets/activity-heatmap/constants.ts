@@ -1,6 +1,5 @@
 import { ActivityLevel } from "./types";
 
-// features/activity-heatmap/constants.ts
 export const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 export const DAY_LABELS = ['', 'Mon', '', 'Wed', '', 'Fri', ''] as const;
 export const LEVELS: readonly ActivityLevel[] = [0, 1, 2, 3, 4] as const;
