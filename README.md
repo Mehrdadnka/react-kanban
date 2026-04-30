@@ -29,7 +29,8 @@ A modern, high-performance Kanban board built with React 18 and TypeScript. Feat
 
 - **Kanban Board:** Drag-and-drop tasks across "To Do", "In Progress", and "Done" columns
 - **Interactive Dashboard:** Task overview widgets with drill-down sidebar for filtered views
-- **🚀 Sidebar Orchestration Engine:** Centralized panel management with z-index stacking, overlay coordination, and priority-based minimize/restore
+- **Activity Heatmap:** 365-day GitHub-style contribution graph with canvas rendering engine and smart tooltips
+- **Sidebar Orchestration Engine:** Centralized panel management with z-index stacking, overlay coordination, and priority-based minimize/restore
 - **Quick Actions:** Floating action button for instant task creation
 - **Live Search:** Command-palette-style search with keyboard shortcut (⌘K / Ctrl+K)
 - **Dark/Light Mode:** Full theme support with system preference detection
@@ -107,6 +108,109 @@ useSidebarPanel({
 // 3. Open from anywhere
 useSidebarEngineStore.getState().open('my-panel', { metadata: 'here' });
 ```
+## Activity Heatmap Engine
+
+The heatmap engine is a **pure rendering layer** decoupled from React's lifecycle. It handles canvas drawing, pixel-precise mouse tracking, retina display scaling, theme-aware color mapping, and tooltip positioning—all through a clean separation between engine logic, Zustand state, and dumb UI components.
+
+### Architecture
+
+```
+┌──────────────────────────────────────────────────┐
+│                 ActivityHeatmap                   │
+│  ┌────────────────────────────────────────────┐  │
+│  │         HeatmapRenderer (Pure TS)          │  │
+│  │  ┌──────────────┐  ┌──────────────────┐    │  │
+│  │  │ Canvas Draw  │  │  Mouse Tracking  │    │  │
+│  │  │ - Cells      │  │  - getCanvasPos  │    │  │
+│  │  │ - Month/ Day │  │  - Cell hit test │    │  │
+│  │  │   Labels     │  │  - Hover clear   │    │  │
+│  │  └──────────────┘  └──────────────────┘    │  │
+│  │  ┌──────────────┐  ┌──────────────────┐    │  │
+│  │  │ Color Engine │  │  Tooltip Pos     │    │  │
+│  │  │ - Theme map  │  │  - Viewport edge │    │  │
+│  │  │ - Highlight  │  │    detection     │    │  │
+│  │  │ - lightenCol │  │  - Arrow dir     │    │  │
+│  │  └──────────────┘  └──────────────────┘    │  │
+│  └────────────────────────────────────────────┘  │
+│                       │                          │
+│            ┌──────────▼──────────┐               │
+│            │   HeatmapStore      │               │
+│            │   (Zustand)         │               │
+│            │   - heatmapData     │               │
+│            │   - hoveredCell     │               │
+│            │   - tooltipData     │               │
+│            │   - highlightLevel  │               │
+│            │   - calculateData() │               │
+│            └─────────────────────┘               │
+│                       │                          │
+│     ┌─────────────────┼─────────────────┐        │
+│     │                 │                 │        │
+│  ┌──▼──┐   ┌──────────▼──┐   ┌────────▼───┐    │
+│  │Stats│   │Canvas+Tooltip│   │  Legend    │    │
+│  │Dumb │   │   Dumb      │   │  Dumb      │    │
+│  └─────┘   └─────────────┘   └────────────┘    │
+└──────────────────────────────────────────────────┘
+```
+
+### Core Concepts
+
+**Data Flow:**
+Tasks → calculateHeatmapData() → HeatmapStore → Dumb Components
+↓
+HeatmapRenderer
+(reads days array,
+renders canvas)
+
+```text
+
+Canvas mouse events flow back through the renderer's callback → store → Tooltip component—React never touches the canvas internals.
+
+```
+**Framework-Agnostic Renderer:** `HeatmapRenderer` is a pure TypeScript class with zero React dependencies. It owns the `<canvas>` element, handles device pixel ratio scaling for retina displays, and draws 365 days of activity cells with rounded corners, subtle borders, and hover glow effects. All mouse event handling stays inside the renderer, reporting cell interactions through a single callback.
+
+**Zustand State Bridge:** The store acts as the single source of truth between the engine and UI. `calculateData(tasks)` runs pure computations (date mapping, activity levels, streak counting) and stores the result. UI components subscribe to only the slices they need—`HeatmapStats` reads `totalActivity/activeDays/currentStreak`, `HeatmapLegend` reads `highlightLevel`, and `HeatmapTooltip` reads `tooltipData`.
+
+**Smart Tooltip Positioning:** The tooltip calculator detects viewport boundaries and flips the tooltip above/below the cursor automatically. It also constrains horizontal position to prevent overflow, with the arrow always pointing at the hovered cell.
+
+**Atomic Dumb Components:** Each visual piece is a focused component receiving only the props it renders. No component knows about data fetching, canvas internals, or state management—they're pure functions of their props.
+
+**Performance Optimizations:**
+- `React.memo` on all dumb components with shallow prop comparison
+- `useMemo` for computed colors and legend items
+- Renderer only redraws when options actually change via `setOptions()`
+- Canvas event listeners use arrow functions to avoid rebinding
+
+### Adding the Engine to Any View
+
+```typescript
+// 1. Calculate data when tasks change
+const { heatmapData, calculateData } = useHeatmapStore();
+useEffect(() => { calculateData(tasks); }, [tasks]);
+
+// 2. Wire up cell hover to tooltip positioning
+const handleCellHover = (date, count, clientX, clientY) => {
+  if (date) {
+    const pos = calculateTooltipPosition(clientX, clientY);
+    setTooltipData({ date, count, ...pos });
+  }
+};
+
+// 3. Compose with any layout
+<HeatmapStats totalActivity={data.totalActivity} ... />
+<HeatmapCanvas onCellHover={handleCellHover} />
+<HeatmapTooltip />
+<HeatmapLegend highlightLevel={level} onHover={setLevel} />
+```
+
+### Why Separate the Engine?
+
+| Concern | Without Engine | With Engine |
+|---------|---------------|-------------|
+| **Canvas logic** | Mixed in React component (200+ lines) | Isolated `HeatmapRenderer` class |
+| **Testing** | Requires full React render | Pure functions, no DOM needed |
+| **Reusability** | Tied to one component | Drop into any view with any layout |
+| **Debugging** | Hard to isolate canvas vs state bugs | Clear boundaries: engine → store → UI |
+| **Performance** | Re-renders trigger redraws | Explicit `setOptions()` control |
 
 ## Tech Stack
 
@@ -132,6 +236,12 @@ src/
 │   ├── dashboard/             # Dashboard with interactive widgets
 │   │   ├── DashboardSidebar/  # Drill-down sidebar panel (engine-managed)
 │   │   └── widgets/           # Task stats, recent tasks, priority breakdown
+│   │       ├──
+│   │       └── activity-heatmap/ # Heatmap feature module
+│   │       ├── engine/ # Pure calculations & canvas renderer class
+│   │       ├── store/ # Zustand state bridge
+│   │       ├── components/ # Dumb UI: Stats, Canvas, Tooltip, Legend
+│   │       └── types.ts # Shared TypeScript types & constants
 │   ├── layout/                # Main layout, sidebar navigation, search
 │   └── ui/                    # Reusable UI primitives (Button, Badge, etc.)
 ├── hooks/                     # Custom React hooks (useSidebarPanel)
@@ -202,6 +312,7 @@ pnpm test:ui       # Vitest UI dashboard
 This project was a deep dive into React internals and modern front-end architecture:
 
 - **Sidebar Orchestration Engine:** Designed an event-driven panel management system with z-index stacking, priority-based minimize/restore, LIFO closing, and route-aware cleanup. Replaced Framer Motion with optimized CSS transitions for a 40%+ performance improvement.
+- **Canvas Engine Architecture:** Separated a pure TypeScript renderer from React's lifecycle, handling retina scaling, pixel-precise mouse hit testing, and theme-aware color mapping. Bridged to React via Zustand for minimal re-renders
 - **Custom Router:** Built `pushState`, `popState`, and navigation from scratch to understand client-side routing
 - **Drag & Drop:** Implemented complex DnD with `@dnd-kit`, including drag overlays and cross-column movement
 - **State Management:** Designed Zustand stores with clean separation of concerns—engine state vs panel-specific state vs domain state
