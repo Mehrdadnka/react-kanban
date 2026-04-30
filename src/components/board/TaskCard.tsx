@@ -4,7 +4,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card/Card';
 import { Badge } from '@/components/ui/badge/Badge';
 import { Eye, GripVertical, Paperclip, Trash2 } from 'lucide-react';
-import { Task } from '@/stores/task.store';
+import { Task } from '@/types/task.types';
 import { cn } from '@/lib/utils';
 import { IconButton } from '@radix-ui/themes';
 import { PriorityColors } from '../ui/PriorityColors';

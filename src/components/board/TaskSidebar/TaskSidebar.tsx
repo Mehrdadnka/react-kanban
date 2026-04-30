@@ -22,12 +22,13 @@ import {
 } from '@/components/ui/select/Select';
 import { Badge } from '@/components/ui/badge/Badge';
 import { useTaskSidebarStore } from '@/stores/task-sidebar.store';
-import { useTaskStore, Task } from '@/stores/task.store';
+import { useTaskStore } from '@/stores/task.store';
 import { useApp } from '@/providers/AppProvider';
 import { cn } from '@/lib/utils';
 import { PanelProps } from '@/stores/sidebar-engine/sidebar-engine.types';
 import { Breadcrumb } from '@/components/ui/breadcrumb/Breadcrumb';
 import { PriorityColors } from '@/components/ui/PriorityColors';
+import { Task } from '@/types/task.types';
 
 const statusLabels = {
   'todo': 'Todo',
