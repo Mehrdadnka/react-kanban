@@ -237,7 +237,7 @@ src/
 │   ├── dashboard/                 # Dashboard with interactive widgets
 │   │   ├── DashboardSidebar/      # Drill-down sidebar panel (engine-managed)
 │   │   └── widgets/               # Task stats, recent tasks, priority breakdown
-│   │       └── activity-heatmap/  # Heatmap feature module
+│   │       ├── activity-heatmap/  # Heatmap feature module
 │   │       ├── engine/            # Pure calculations & canvas renderer class
 │   │       ├── store/             # Zustand state bridge
 │   │       ├── components/        # Dumb UI: Stats, Canvas, Tooltip, Legend
