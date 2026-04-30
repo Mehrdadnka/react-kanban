@@ -7,17 +7,12 @@ import { Eye, GripVertical, Paperclip, Trash2 } from 'lucide-react';
 import { Task } from '@/stores/task.store';
 import { cn } from '@/lib/utils';
 import { IconButton } from '@radix-ui/themes';
+import { PriorityColors } from '../ui/PriorityColors';
 
 interface TaskCardProps {
   task: Task;
   onClick?: (task: Task) => void;
 }
-
-const priorityColors = {
-  low: 'bg-green-900 dark:bg-green-900 text-green-100',
-  medium: 'bg-yellow-900 dark:bg-yellow-900 text-yellow-100',
-  high: 'bg-red-900 dark:bg-red-900 text-red-100',
-};
 
 export const TaskCard: React.FC<TaskCardProps> = ({ task, onClick }) => {
   const {
@@ -85,7 +80,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onClick }) => {
           )}
         </CardHeader>
         <CardFooter className="p-4 pt-2 flex justify-between">
-          <Badge variant="secondary" className={cn("text-xs", priorityColors[task.priority])}>
+          <Badge variant="secondary" className={cn("text-xs", PriorityColors[task.priority])}>
             {task.priority}
           </Badge>
           {task.attachments && task.attachments.length > 0 && (

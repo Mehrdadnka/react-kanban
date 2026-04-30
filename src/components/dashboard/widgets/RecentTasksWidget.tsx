@@ -7,13 +7,7 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge/Badge';
 import { useSidebarEngineStore } from '@/stores/sidebar-engine/sidebar-engine.store';
 import { useDashboardSidebarStore } from '@/stores/dashboard-sidebar.store';
-
-
-const priorityColors = {
-  low: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
-  medium: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
-  high: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
-};
+import { PriorityColors } from '@/components/ui/PriorityColors';
 
 export const RecentTasksWidget: React.FC = () => {
   const tasks = useTaskStore(state => state.tasks);
@@ -93,7 +87,7 @@ export const RecentTasksWidget: React.FC = () => {
                 <div className="flex items-center gap-1.5">
                   <Badge className={cn(
                     'text-[10px] px-1.5 py-0 font-medium',
-                    priorityColors[task.priority]
+                    PriorityColors[task.priority]
                   )}>
                     {task.priority}
                   </Badge>

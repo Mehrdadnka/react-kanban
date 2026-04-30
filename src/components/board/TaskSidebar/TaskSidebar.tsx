@@ -27,12 +27,7 @@ import { useApp } from '@/providers/AppProvider';
 import { cn } from '@/lib/utils';
 import { PanelProps } from '@/stores/sidebar-engine/sidebar-engine.types';
 import { Breadcrumb } from '@/components/ui/breadcrumb/Breadcrumb';
-
-const priorityColors = {
-  low: 'bg-green-900 text-green-100',
-  medium: 'bg-yellow-900 text-yellow-100',
-  high: 'bg-red-900 text-red-100',
-};
+import { PriorityColors } from '@/components/ui/PriorityColors';
 
 const statusLabels = {
   'todo': 'Todo',
@@ -373,7 +368,7 @@ export const TaskSidebar: React.FC<PanelProps> = memo(({
                     <PriorityIcon priority={formState.priority} />
                     <Badge 
                       variant="secondary" 
-                      className={cn("text-xs capitalize", priorityColors[formState.priority])}
+                      className={cn("text-xs capitalize", PriorityColors[formState.priority])}
                     >
                       {formState.priority}
                     </Badge>
@@ -414,7 +409,7 @@ export const TaskSidebar: React.FC<PanelProps> = memo(({
                         )}
                     >
                       <div className="flex items-center gap-2">
-                        <ArrowDown size={16} className="text-green-500" />
+                        {/* <ArrowDown size={16} className="text-green-500" /> */}
                         Low
                       </div>
                     </SelectItem>
@@ -428,7 +423,7 @@ export const TaskSidebar: React.FC<PanelProps> = memo(({
                         )}
                     >
                       <div className="flex items-center gap-2">
-                        <Minus size={16} className="text-yellow-500" />
+                        {/* <Minus size={16} className="text-yellow-500" /> */}
                         Medium
                       </div>
                     </SelectItem>
@@ -442,7 +437,7 @@ export const TaskSidebar: React.FC<PanelProps> = memo(({
                         )}
                     >
                       <div className="flex items-center gap-2">
-                        <ArrowUp size={16} className="text-red-500" />
+                        {/* <ArrowUp size={16} className="text-red-500" /> */}
                         High
                       </div>
                     </SelectItem>

@@ -15,12 +15,7 @@ import { Button } from '@/components/ui/button/Button';
 import { cn } from '@/lib/utils';
 import { Task } from '@/stores/task.store';
 import { PanelProps } from '@/stores/sidebar-engine/sidebar-engine.types';
-
-const priorityColors: Record<Task['priority'], string> = {
-  low: 'bg-green-900 text-green-100 dark:bg-green-900 dark:text-green-100',
-  medium: 'bg-yellow-900 text-yellow-100 dark:bg-yellow-900 dark:text-yellow-100',
-  high: 'bg-red-900 text-red-100 dark:bg-red-900 dark:text-red-100',
-};
+import { PriorityColors } from '@/components/ui/PriorityColors';
 
 const statusLabels: Record<Task['status'], string> = {
   'todo': 'To Do',
@@ -196,7 +191,7 @@ export const DashboardSidebar: React.FC<PanelProps> = memo(({
                   </p>
                 )}
                 <div className="flex items-center gap-2 flex-wrap">
-                  <Badge className={cn('text-xs', priorityColors[task.priority])}>
+                  <Badge variant='secondary' className={cn('text-xs capitalize', PriorityColors[task.priority])}>
                     {task.priority}
                   </Badge>
                   <span className="text-xs text-gray-400">
@@ -396,7 +391,7 @@ export const DashboardSidebar: React.FC<PanelProps> = memo(({
                         </p>
                       )}
                       <div className="flex items-center gap-2">
-                        <Badge className={cn('text-xs', priorityColors[task.priority])}>
+                        <Badge className={cn('text-xs', PriorityColors[task.priority])}>
                           {task.priority}
                         </Badge>
                         <span className="text-xs text-gray-400">
