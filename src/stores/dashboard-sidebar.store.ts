@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Task } from './task.store';
+import { Task } from '@/types/task.types';
 
 export type DashboardWidgetType = 
   | 'task-overview'

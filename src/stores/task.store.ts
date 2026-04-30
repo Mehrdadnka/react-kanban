@@ -1,17 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
-
-export interface Task {
-  updatedAt: string | number | Date;
-  id: string;
-  title: string;
-  description?: string;
-  status: 'todo' | 'in-progress' | 'done';
-  priority: 'low' | 'medium' | 'high';
-  createdAt: Date;
-  attachments?: { name: string; url: string }[];
-}
+import { Task } from '@/types/task.types';
 
 interface TaskStore {
   tasks: Task[];

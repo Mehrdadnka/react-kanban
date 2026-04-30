@@ -178,8 +178,8 @@ export const TaskStatsWidget: React.FC = () => {
   </div>
   
   {/* Heatmap - scrollable container */}
-  <div className="flex-1 min-h-0 overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 -mx-1 px-1">
-    <div>
+  <div className="flex-1 min-h-0  flex justify-center overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 -mx-1 px-1">
+    <div className=' flex justify-center'>
       <ActivityHeatmap />
     </div>
   </div>

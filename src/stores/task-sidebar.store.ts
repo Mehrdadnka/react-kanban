@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Task } from './task.store';
+import { Task } from '@/types/task.types';
 import { useSidebarEngineStore } from '@/stores/sidebar-engine/sidebar-engine.store';
 
 export type SidebarMode = 'create' | 'view' | 'edit';

@@ -13,7 +13,7 @@ import { Breadcrumb } from '@/components/ui/breadcrumb/Breadcrumb';
 import { Badge } from '@/components/ui/badge/Badge';
 import { Button } from '@/components/ui/button/Button';
 import { cn } from '@/lib/utils';
-import { Task } from '@/stores/task.store';
+import { Task } from '@/types/task.types'
 import { PanelProps } from '@/stores/sidebar-engine/sidebar-engine.types';
 import { PriorityColors } from '@/components/ui/PriorityColors';
 
