@@ -163,7 +163,8 @@ renders canvas)
 
 ```text
 
-Canvas mouse events flow back through the renderer's callback → store → Tooltip component—React never touches the canvas internals.
+Canvas mouse events flow back through the renderer's callback → store → Tooltip
+component—React never touches the canvas internals.
 
 ```
 **Framework-Agnostic Renderer:** `HeatmapRenderer` is a pure TypeScript class with zero React dependencies. It owns the `<canvas>` element, handles device pixel ratio scaling for retina displays, and draws 365 days of activity cells with rounded corners, subtle borders, and hover glow effects. All mouse event handling stays inside the renderer, reporting cell interactions through a single callback.
