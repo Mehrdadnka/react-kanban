@@ -85,12 +85,11 @@ export const PriorityBreakdownWidget: React.FC = () => {
     <Widget 
       title="Priorities" 
       icon={<Flag size={16} />}
-      className="h-80"
       onClick={openPrioritySidebar}
     >
-      <div className="space-y-3">
+      <div className="space-y-3 h-[calc(50vh-160px)] flex flex-col items-start justify-between">
         {priorityData.map((item) => (
-          <div key={item.key} className="space-y-2">
+          <div key={item.key} className="space-y-2 w-full">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <item.Icon size={16} className={item.textColor} />
@@ -121,10 +120,10 @@ export const PriorityBreakdownWidget: React.FC = () => {
         
         {highCount > 0 && (
           <div className={cn(
-            'mt-3 p-3 rounded-lg border-l-4 border-red-500',
+            'mt-3 p-3 w-full rounded-lg border-l-4 border-red-500',
             'bg-red-50 dark:bg-red-900/20'
           )}>
-            <div className="flex items-center gap-2 text-sm">
+            <div className="w-full flex items-center gap-2 text-sm">
               <AlertTriangle size={14} className="text-red-500" />
               <span className="font-medium text-red-700 dark:text-red-300">
                 {highCount} high priority task{highCount > 1 ? 's' : ''} need{highCount === 1 ? 's' : ''} attention

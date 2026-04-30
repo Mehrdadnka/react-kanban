@@ -48,10 +48,9 @@ export const RecentTasksWidget: React.FC = () => {
     <Widget 
       title="Recent Tasks" 
       icon={<Clock size={16} />}
-      className="h-80"
       onClick={openDashboardSidebar} 
     >
-      <div className="space-y-1.5">
+      <div className="space-y-1.5 h-[calc(50vh-160px)]">
         {recentTasks.length === 0 ? (
           <div className="text-center py-6 text-gray-400 dark:text-gray-500">
             <Clock size={24} className="mx-auto mb-2 opacity-50" />

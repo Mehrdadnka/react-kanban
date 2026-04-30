@@ -1,12 +1,13 @@
 import React from 'react';
 import { useTaskStore } from '@/stores/task.store';
 import { Widget } from '../Widget';
-import { CheckSquare, Clock, CheckCircle2, ListTodo, ClipboardList, ArrowUpRight, TrendingUp, Activity, Zap } from 'lucide-react';
+import { CheckCircle2, ListTodo, ClipboardList, ArrowUpRight, TrendingUp, Activity, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useApp } from '@/providers/AppProvider';
 import { useDashboardSidebarStore } from '@/stores/dashboard-sidebar.store';
 import { useSidebarEngineStore } from '@/stores/sidebar-engine/sidebar-engine.store';
 import type { TaskFilterType } from '@/stores/dashboard-sidebar.store';
+import { ActivityHeatmap } from './ActivityHeatmap';
 
 interface StatCardProps {
   icon: React.ElementType;
@@ -148,7 +149,7 @@ export const TaskStatsWidget: React.FC = () => {
       icon={<ClipboardList size={16} />}
       fullHeight
     >
-      <div className="flex flex-col h-full gap-4 overflow-x-hidden">
+      <div className="flex flex-col h-[calc(100vh-180px)] sm:h-[calc(100vh-200px)] lg:h-[calc(100vh-220px)] gap-3 sm:gap-4 overflow-hidden">
         {/* Stats Grid */}
         <div className="grid grid-cols-2 gap-3">
           {stats.map((stat, index) => (
@@ -167,46 +168,36 @@ export const TaskStatsWidget: React.FC = () => {
         </div>
         
         {/* Progress Section */}
-        <div className="flex-1 rounded-xl bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-4 border border-blue-100 dark:border-blue-800">
-          <div className="flex items-center gap-2 mb-3">
-            <Activity size={18} className="text-blue-600 dark:text-blue-400" />
-            <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-300">
-              Progress Overview
-            </h4>
-          </div>
-          
-          <div className="space-y-3">
-            <div>
-              <div className="flex justify-between text-sm mb-2">
-                <span className="text-gray-600 dark:text-gray-400">Completion Rate</span>
-                <span className="font-semibold text-blue-600 dark:text-blue-400">{completionRate}%</span>
-              </div>
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
-                <div 
-                  className="h-full rounded-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-500"
-                  style={{ width: `${completionRate}%` }}
-                />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-3 mt-4">
-              <div className="text-center p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg">
-                <TrendingUp size={16} className="mx-auto mb-1 text-green-500" />
-                <div className="text-xs text-gray-500">Completed</div>
-                <div className="text-lg font-bold text-green-600">
-                  {tasks.filter(t => t.status === 'done').length}
-                </div>
-              </div>
-              <div className="text-center p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg">
-                <Zap size={16} className="mx-auto mb-1 text-yellow-500" />
-                <div className="text-xs text-gray-500">Active</div>
-                <div className="text-lg font-bold text-yellow-600">
-                  {tasks.filter(t => t.status === 'in-progress').length}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+    <div className="flex-1 rounded-xl bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-3 sm:p-4 border border-blue-100 dark:border-blue-800 min-h-0 overflow-hidden flex flex-col">
+  {/* Header */}
+  <div className="flex w-full items-center gap-2 mb-3 sm:mb-4 flex-shrink-0">
+    <Activity size={16} className="text-blue-600 dark:text-blue-400 sm:size-[18px]" />
+    <h4 className="text-xs sm:text-sm font-semibold text-blue-900 dark:text-blue-300">
+      Activity Overview
+    </h4>
+  </div>
+  
+  {/* Heatmap - scrollable container */}
+  <div className="flex-1 min-h-0 overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 -mx-1 px-1">
+    <div>
+      <ActivityHeatmap />
+    </div>
+  </div>
+  
+  {/* Completion Rate - fixed at bottom */}
+  <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-blue-100 dark:border-blue-800 flex-shrink-0">
+    <div className="flex justify-between text-xs sm:text-sm mb-1.5 sm:mb-2">
+      <span className="text-gray-600 dark:text-gray-400">Completion Rate</span>
+      <span className="font-semibold text-blue-600 dark:text-blue-400">{completionRate}%</span>
+    </div>
+    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 sm:h-2.5 overflow-hidden">
+      <div 
+        className="h-full rounded-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-500"
+        style={{ width: `${completionRate}%` }}
+      />
+    </div>
+  </div>
+</div>
       </div>
     </Widget>
   );

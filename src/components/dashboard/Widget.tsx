@@ -32,8 +32,7 @@ export const Widget: React.FC<WidgetProps> = ({
       className={cn(
         'bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700',
         'p-4 lg:p-6 transition-all duration-200 hover:shadow-md',
-        'flex flex-col',
-        fullHeight ? 'h-full' : 'max-h-full',
+        'flex flex-col h-auto',
         colSpanClasses[colSpan],
         onClick && 'cursor-pointer',
         className
