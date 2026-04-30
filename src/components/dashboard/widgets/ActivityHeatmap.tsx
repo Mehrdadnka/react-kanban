@@ -1,4 +1,4 @@
-import React, { useMemo, useState, memo, useCallback } from 'react';
+import React, { useMemo, useState, memo, useCallback, useEffect, useRef } from 'react';
 import { useTaskStore } from '@/stores/task.store';
 import { cn } from '@/lib/utils';
 import { useApp } from '@/providers/AppProvider';
@@ -26,7 +26,14 @@ const CELL_SIZE = 10;
 const CELL_GAP = 2;
 const CELL_UNIT = CELL_SIZE + CELL_GAP;
 
-// Helper functions (hoisted outside component)
+const CANVAS_WIDTH = 53 * CELL_UNIT + 30; // 53 weeks + padding
+const CANVAS_HEIGHT = 7 * CELL_UNIT + 25; // 7 days + labels
+
+const MONTH_LABEL_Y = 10;
+const GRID_OFFSET_X = 28;
+const GRID_OFFSET_Y = 20;
+
+// Helper functions
 const getDateString = (date: Date): string => date.toISOString().split('T')[0];
 
 const formatTooltipDate = (dateStr: string): string => {
@@ -50,22 +57,330 @@ const getActivityLevel = (count: number): 0 | 1 | 2 | 3 | 4 => {
 // Color schemes
 const COLORS = {
   dark: [
-    'bg-[#1a2332]',
-    'bg-[#0d3b66]',
-    'bg-[#1a56db]',
-    'bg-[#06b6d4]',
-    'bg-[#22d3ee]',
+    '#1a2332',
+    '#0d3b66',
+    '#1a56db',
+    '#06b6d4',
+    '#22d3ee',
   ],
   light: [
-    'bg-[#f0f9ff]',
-    'bg-[#bae6fd]',
-    'bg-[#7dd3fc]',
-    'bg-[#a5b4fc]',
-    'bg-[#6366f1]',
+    '#f0f9ff',
+    '#bae6fd',
+    '#7dd3fc',
+    '#a5b4fc',
+    '#6366f1',
   ],
 } as const;
 
-// Memoized sub-components
+// Helper function to calculate optimal tooltip position
+interface TooltipPosition {
+  x: number;
+  y: number;
+  arrowDirection: 'up' | 'down';
+}
+
+const calculateTooltipPosition = (
+  clientX: number,
+  clientY: number,
+  tooltipWidth: number = 150, // approximate width
+  tooltipHeight: number = 50, // approximate height
+  offset: number = 12
+): TooltipPosition => {
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+  
+  // Default: show above cursor
+  let x = clientX;
+  let y = clientY - tooltipHeight - offset;
+  let arrowDirection: 'up' | 'down' = 'up';
+  
+  // If tooltip would go above viewport, show below cursor
+  if (y < 10) {
+    y = clientY + offset;
+    arrowDirection = 'down';
+  }
+  
+  // If tooltip would go below viewport, show above cursor
+  if (y + tooltipHeight > viewportHeight - 10) {
+    y = clientY - tooltipHeight - offset;
+    arrowDirection = 'up';
+  }
+  
+  // Horizontal adjustment
+  // Center tooltip on cursor by default
+  x = x - tooltipWidth / 2;
+  
+  // If tooltip would go off right edge
+  if (x + tooltipWidth > viewportWidth - 10) {
+    x = viewportWidth - tooltipWidth - 10;
+  }
+  
+  // If tooltip would go off left edge
+  if (x < 10) {
+    x = 10;
+  }
+  
+  // Calculate arrow position relative to tooltip
+  const arrowX = clientX - x; // Position arrow directly under cursor
+  
+  return { x, y, arrowDirection };
+};
+
+// Canvas Renderer with precise mouse tracking
+class CanvasHeatmapRenderer {
+  private canvas: HTMLCanvasElement;
+  private ctx: CanvasRenderingContext2D;
+  private days: DayActivity[] = [];
+  private highlightLevel: number | null = null;
+  private isDarkMode: boolean = false;
+  private hoveredDate: string | null = null;
+  private onCellHover: ((date: string | null, count: number, clientX: number, clientY: number) => void) | null = null;
+
+  constructor(canvas: HTMLCanvasElement) {
+    this.canvas = canvas;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Could not get canvas context');
+    this.ctx = ctx;
+    this.setupEventListeners();
+  }
+
+  private setupEventListeners() {
+    this.canvas.addEventListener('mousemove', this.handleMouseMove.bind(this));
+    this.canvas.addEventListener('mouseleave', this.handleMouseLeave.bind(this));
+  }
+
+  private getCanvasPosition(clientX: number, clientY: number) {
+    const rect = this.canvas.getBoundingClientRect();
+    
+    // Calculate scale between canvas actual size and display size
+    const scaleX = CANVAS_WIDTH / rect.width;
+    const scaleY = CANVAS_HEIGHT / rect.height;
+    
+    // Convert client coordinates to canvas coordinates
+    const canvasX = (clientX - rect.left) * scaleX;
+    const canvasY = (clientY - rect.top) * scaleY;
+    
+    return { x: canvasX, y: canvasY };
+  }
+
+  private handleMouseMove(e: MouseEvent) {
+    const { x, y } = this.getCanvasPosition(e.clientX, e.clientY);
+    
+    // Check if within grid bounds
+    if (x < GRID_OFFSET_X || y < GRID_OFFSET_Y) {
+      this.clearHover();
+      return;
+    }
+
+    const weekIndex = Math.floor((x - GRID_OFFSET_X) / CELL_UNIT);
+    const dayIndex = Math.floor((y - GRID_OFFSET_Y) / CELL_UNIT);
+
+    // Check bounds
+    if (
+      weekIndex < 0 || 
+      dayIndex < 0 || 
+      dayIndex >= 7 ||
+      x > GRID_OFFSET_X + (weekIndex + 1) * CELL_UNIT ||
+      y > GRID_OFFSET_Y + (dayIndex + 1) * CELL_UNIT
+    ) {
+      this.clearHover();
+      return;
+    }
+
+    const dayArrayIndex = weekIndex * 7 + dayIndex;
+    
+    if (dayArrayIndex >= 0 && dayArrayIndex < this.days.length) {
+      const day = this.days[dayArrayIndex];
+      
+      // Only update if hovered date changed
+      if (this.hoveredDate !== day.date) {
+        this.hoveredDate = day.date;
+        this.onCellHover?.(day.date, day.count, e.clientX, e.clientY);
+        this.drawHeatmap(this.days);
+        this.canvas.style.cursor = 'pointer';
+      }
+    } else {
+      this.clearHover();
+    }
+  }
+
+  private handleMouseLeave() {
+    this.clearHover();
+  }
+
+  private clearHover() {
+    if (this.hoveredDate !== null) {
+      this.hoveredDate = null;
+      this.onCellHover?.(null, 0, 0, 0);
+      this.drawHeatmap(this.days);
+      this.canvas.style.cursor = 'default';
+    }
+  }
+
+  setDarkMode(isDark: boolean) {
+    this.isDarkMode = isDark;
+    this.drawHeatmap(this.days);
+  }
+
+  setHighlightLevel(level: number | null) {
+    this.highlightLevel = level;
+    this.drawHeatmap(this.days);
+  }
+
+  setOnCellHover(callback: (date: string | null, count: number, clientX: number, clientY: number) => void) {
+    this.onCellHover = callback;
+  }
+
+  private getColor(level: number, isHighlighted: boolean = false): string {
+    const colors = this.isDarkMode ? COLORS.dark : COLORS.light;
+    let color = colors[level] || colors[0];
+    
+    if (isHighlighted) {
+      // Lighten the color for highlight effect
+      return this.lightenColor(color, 30);
+    }
+    
+    return color;
+  }
+
+  private lightenColor(hex: string, amount: number): string {
+    const num = parseInt(hex.replace('#', ''), 16);
+    const r = Math.min(255, (num >> 16) + amount);
+    const g = Math.min(255, ((num >> 8) & 0x00FF) + amount);
+    const b = Math.min(255, (num & 0x0000FF) + amount);
+    return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
+  }
+
+  drawHeatmap(days: DayActivity[]) {
+    this.days = days;
+    
+    // Setup canvas with device pixel ratio
+    const dpr = window.devicePixelRatio || 1;
+    this.canvas.width = CANVAS_WIDTH * dpr;
+    this.canvas.height = CANVAS_HEIGHT * dpr;
+    this.canvas.style.width = `${CANVAS_WIDTH}px`;
+    this.canvas.style.height = `${CANVAS_HEIGHT}px`;
+    
+    // Reset transform and scale for retina displays
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    
+    // Clear canvas
+    this.ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    // Draw month labels
+    this.drawMonthLabels();
+    
+    // Draw day labels
+    this.drawDayLabels();
+    
+    // Draw grid cells
+    this.drawCells();
+  }
+
+  private drawMonthLabels() {
+    let lastMonth = -1;
+    const weeks = Math.ceil(this.days.length / 7);
+    
+    this.ctx.fillStyle = this.isDarkMode ? '#9ca3af' : '#6b7280';
+    this.ctx.font = '10px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif';
+    this.ctx.textAlign = 'left';
+    this.ctx.textBaseline = 'top';
+    
+    for (let weekIndex = 0; weekIndex < weeks; weekIndex++) {
+      const dayIndex = weekIndex * 7;
+      if (dayIndex < this.days.length) {
+        const date = new Date(this.days[dayIndex].date);
+        const month = date.getMonth();
+        
+        if (month !== lastMonth) {
+          const x = GRID_OFFSET_X + weekIndex * CELL_UNIT;
+          this.ctx.fillText(MONTHS[month], x, MONTH_LABEL_Y);
+          lastMonth = month;
+        }
+      }
+    }
+  }
+
+  private drawDayLabels() {
+    this.ctx.fillStyle = this.isDarkMode ? '#9ca3af' : '#6b7280';
+    this.ctx.font = '10px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif';
+    this.ctx.textAlign = 'right';
+    this.ctx.textBaseline = 'middle';
+    
+    [1, 3, 5].forEach(dayIndex => {
+      const y = GRID_OFFSET_Y + dayIndex * CELL_UNIT + CELL_SIZE / 2;
+      this.ctx.fillText(DAY_LABELS[dayIndex], GRID_OFFSET_X - 4, y);
+    });
+  }
+
+  private drawCells() {
+    this.days.forEach((day, index) => {
+      const weekIndex = Math.floor(index / 7);
+      const dayIndex = index % 7;
+      const x = GRID_OFFSET_X + weekIndex * CELL_UNIT;
+      const y = GRID_OFFSET_Y + dayIndex * CELL_UNIT;
+
+      const isHovered = day.date === this.hoveredDate;
+      const isHighlighted = 
+        (this.highlightLevel !== null && this.highlightLevel === day.level && day.count > 0) || 
+        isHovered;
+
+      // Draw cell
+      this.ctx.fillStyle = this.getColor(day.level, isHighlighted);
+      this.drawRoundedRect(x, y, CELL_SIZE, CELL_SIZE, 3);
+      this.ctx.fill();
+
+      // Draw subtle border for active cells
+      if (day.level > 0) {
+        this.ctx.strokeStyle = isHighlighted 
+          ? 'rgba(255, 255, 255, 0.4)' 
+          : 'rgba(0, 0, 0, 0.1)';
+        this.ctx.lineWidth = 0.5;
+        this.drawRoundedRect(x, y, CELL_SIZE, CELL_SIZE, 3);
+        this.ctx.stroke();
+      }
+
+      // Draw hover glow effect
+      if (isHovered) {
+        this.ctx.shadowColor = this.isDarkMode 
+          ? 'rgba(255, 255, 255, 0.3)' 
+          : 'rgba(0, 0, 0, 0.2)';
+        this.ctx.shadowBlur = 4;
+        this.ctx.strokeStyle = this.isDarkMode 
+          ? 'rgba(255, 255, 255, 0.5)' 
+          : 'rgba(0, 0, 0, 0.3)';
+        this.ctx.lineWidth = 1;
+        this.drawRoundedRect(x, y, CELL_SIZE, CELL_SIZE, 3);
+        this.ctx.stroke();
+        
+        // Reset shadow
+        this.ctx.shadowColor = 'transparent';
+        this.ctx.shadowBlur = 0;
+      }
+    });
+  }
+
+  private drawRoundedRect(x: number, y: number, w: number, h: number, r: number) {
+    this.ctx.beginPath();
+    this.ctx.moveTo(x + r, y);
+    this.ctx.lineTo(x + w - r, y);
+    this.ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    this.ctx.lineTo(x + w, y + h - r);
+    this.ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    this.ctx.lineTo(x + r, y + h);
+    this.ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    this.ctx.lineTo(x, y + r);
+    this.ctx.quadraticCurveTo(x, y, x + r, y);
+    this.ctx.closePath();
+  }
+
+  destroy() {
+    this.canvas.removeEventListener('mousemove', this.handleMouseMove);
+    this.canvas.removeEventListener('mouseleave', this.handleMouseLeave);
+  }
+}
+
+// Legend Component
 const LegendItem = memo<{
   level: number;
   color: string;
@@ -79,9 +394,9 @@ const LegendItem = memo<{
     <div
       className={cn(
         'w-[10px] h-[10px] rounded-[3px] cursor-pointer transition-all duration-200',
-        color,
-        isActive && 'opacity-80 scale-110'
+        isActive && 'ring-2 ring-offset-1 ring-gray-400 dark:ring-gray-500'
       )}
+      style={{ backgroundColor: color }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     />
@@ -89,111 +404,55 @@ const LegendItem = memo<{
 });
 LegendItem.displayName = 'LegendItem';
 
-const DayCell = memo<{
-  day: DayActivity;
-  isHighlighted: boolean;
-  cellColor: string;
-  isDarkMode: boolean;
-}>(({ day, isHighlighted, cellColor, isDarkMode }) => {
-  const tooltipContent = useMemo(() => (
-    <div className="text-center">
-      <div className="font-semibold">
-        {day.count} {day.count === 1 ? 'activity' : 'activities'}
-      </div>
-      <div className="text-[10px] opacity-75">
-        {formatTooltipDate(day.date)}
-      </div>
-    </div>
-  ), [day.count, day.date]);
-
-  return (
-    <Tooltip.Root delayDuration={100}>
-      <Tooltip.Trigger asChild>
-        <div
-          className={cn(
-            'w-[10px] h-[10px] rounded-[3px] cursor-pointer transition-colors duration-200',
-            cellColor,
-            isHighlighted && 'opacity-80',
-            !isHighlighted && 'hover:opacity-70'
-          )}
-        />
-      </Tooltip.Trigger>
-      <Tooltip.Portal>
-        <Tooltip.Content
-          side="top"
-          sideOffset={5}
-          className={cn(
-            'rounded-lg px-3 py-1.5 text-xs font-medium border z-[9999]',
-            isDarkMode
-              ? 'bg-gray-800 border-gray-700 text-gray-200'
-              : 'bg-white border-gray-200 text-gray-700'
-          )}
-        >
-          {tooltipContent}
-          <Tooltip.Arrow className={isDarkMode ? 'fill-gray-800' : 'fill-white'} />
-        </Tooltip.Content>
-      </Tooltip.Portal>
-    </Tooltip.Root>
-  );
-});
-DayCell.displayName = 'DayCell';
-
-const MonthLabels = memo<{ months: MonthData[] }>(({ months }) => (
-  <div className="flex" style={{ marginLeft: '20px' }}>
-    {months.map((month, index) => {
-      if (index === 0) return null;
-      
-      const prevWeekIndex = months[index - 1].weekIndex;
-      const currentWeekIndex = month.weekIndex;
-      const marginLeft = index === 1
-        ? currentWeekIndex * CELL_UNIT
-        : (currentWeekIndex - prevWeekIndex - 1.4) * CELL_UNIT;
-      
-      return (
-        <span
-          key={month.label}
-          className="text-[10px] text-gray-500 dark:text-gray-400"
-          style={{ marginLeft: `${marginLeft}px` }}
-        >
-          {month.label}
-        </span>
-      );
-    })}
-  </div>
-));
-MonthLabels.displayName = 'MonthLabels';
-
-// Day labels component
-const DayLabels = memo(() => (
-  <div className="flex flex-col gap-[2px] mr-[4px] pt-0">
-    {Array.from({ length: 7 }).map((_, i) => (
-      <div
-        key={i}
-        className="text-[10px] text-gray-500 dark:text-gray-400 flex items-center"
-        style={{
-          height: `${CELL_SIZE}px`,
-          visibility: [1, 3, 5].includes(i) ? 'visible' : 'hidden',
-        }}
-      >
-        {DAY_LABELS[i]}
-      </div>
-    ))}
-  </div>
-));
-DayLabels.displayName = 'DayLabels';
-
-// Main component
+// Main Component
 export const ActivityHeatmap: React.FC = () => {
   const tasks = useTaskStore(state => state.tasks);
   const { isDarkMode } = useApp();
   const [highlightLevel, setHighlightLevel] = useState<number | null>(null);
+  const [tooltipData, setTooltipData] = useState<{ 
+    date: string; 
+    count: number;
+    x: number;
+    y: number;
+    arrowX: number;
+    arrowDirection: 'up' | 'down';
+  } | null>(null);
+  
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const rendererRef = useRef<CanvasHeatmapRenderer | null>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
 
   const handleLegendHover = useCallback((level: number | null) => {
     setHighlightLevel(level);
   }, []);
 
+  const handleCellHover = useCallback((
+    date: string | null, 
+    count: number, 
+    clientX: number, 
+    clientY: number
+  ) => {
+    if (date) {
+      // Calculate optimal position
+      const tooltipWidth = tooltipRef.current?.offsetWidth || 150;
+      const tooltipHeight = tooltipRef.current?.offsetHeight || 50;
+      const pos = calculateTooltipPosition(clientX, clientY, tooltipWidth, tooltipHeight);
+      
+      setTooltipData({ 
+        date, 
+        count,
+        x: pos.x,
+        y: pos.y,
+        arrowX: clientX - pos.x,
+        arrowDirection: pos.arrowDirection,
+      });
+    } else {
+      setTooltipData(null);
+    }
+  }, []);
+
   // Compute heatmap data
-  const { weeks, months, totalActivity, activeDays, currentStreak } = useMemo(() => {
+  const { totalActivity, activeDays, currentStreak, days } = useMemo(() => {
     const today = new Date();
     today.setHours(23, 59, 59, 999);
 
@@ -202,11 +461,9 @@ export const ActivityHeatmap: React.FC = () => {
     const dayOfWeek = startDate.getDay();
     startDate.setDate(startDate.getDate() - dayOfWeek);
 
-    // Build day-by-day activity data
     const days: DayActivity[] = [];
     const currentDate = new Date(startDate);
 
-    // Pre-compute task dates for faster lookup
     const taskDateMap = new Map<string, number>();
     tasks.forEach(task => {
       const taskDate = getDateString(new Date(task.createdAt));
@@ -233,30 +490,6 @@ export const ActivityHeatmap: React.FC = () => {
       currentDate.setDate(currentDate.getDate() + 1);
     }
 
-    // Group days into weeks
-    const weeks: DayActivity[][] = [];
-    for (let i = 0; i < days.length; i += 7) {
-      weeks.push(days.slice(i, i + 7));
-    }
-
-    // Calculate month labels
-    const monthsData: MonthData[] = [];
-    weeks.forEach((week, index) => {
-      const firstDay = week[0];
-      if (!firstDay) return;
-      
-      const date = new Date(firstDay.date);
-      const prevWeek = weeks[index - 1];
-      
-      if (!prevWeek || new Date(prevWeek[0].date).getMonth() !== date.getMonth()) {
-        monthsData.push({
-          label: MONTHS[date.getMonth()],
-          weekIndex: index,
-        });
-      }
-    });
-
-    // Calculate statistics
     const totalActivity = days.reduce((sum, day) => sum + day.count, 0);
     const activeDays = days.filter(d => d.count > 0).length;
     
@@ -267,17 +500,53 @@ export const ActivityHeatmap: React.FC = () => {
     }
 
     return {
-      weeks,
-      months: monthsData,
       totalActivity,
       activeDays,
       currentStreak: streak,
+      days,
     };
   }, [tasks]);
 
-  // Memoize color getter
-  const colors = useMemo(() => isDarkMode ? COLORS.dark : COLORS.light, [isDarkMode]);
-  const getCellColor = useCallback((level: number): string => colors[level], [colors]);
+  // Initialize Canvas renderer
+  useEffect(() => {
+    if (!canvasRef.current) return;
+
+    const renderer = new CanvasHeatmapRenderer(canvasRef.current);
+    renderer.setOnCellHover(handleCellHover);
+    rendererRef.current = renderer;
+
+    return () => {
+      renderer.destroy();
+    };
+  }, []); // Only initialize once
+
+  // Update heatmap when data changes
+  useEffect(() => {
+    if (rendererRef.current) {
+      rendererRef.current.drawHeatmap(days);
+    }
+  }, [days]);
+
+  // Update dark mode
+  useEffect(() => {
+    if (rendererRef.current) {
+      rendererRef.current.setDarkMode(isDarkMode);
+    }
+  }, [isDarkMode]);
+
+  // Update highlight
+  useEffect(() => {
+    if (rendererRef.current) {
+      rendererRef.current.setHighlightLevel(highlightLevel);
+    }
+  }, [highlightLevel]);
+
+  // Color getter for legend
+  const cellColors = useMemo(() => 
+    isDarkMode ? COLORS.dark : COLORS.light
+  , [isDarkMode]);
+
+  const getCellColor = useCallback((level: number): string => cellColors[level], [cellColors]);
 
   return (
     <Tooltip.Provider>
@@ -305,35 +574,88 @@ export const ActivityHeatmap: React.FC = () => {
           </div>
         </div>
 
-        {/* Heatmap Container */}
-        <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
-          <div className="flex justify-center min-w-max">
-            <div className="flex flex-col gap-0">
-              {/* Month Labels */}
-              <MonthLabels months={months} />
-
-              {/* Grid with day labels */}
-              <div className="flex">
-                <DayLabels />
-
-                {/* Activity Cells */}
-                <div className="flex gap-[2px]">
-                  {weeks.map((week, weekIndex) => (
-                    <div key={weekIndex} className="flex flex-col gap-[2px]">
-                      {week.map((day) => (
-                        <DayCell
-                          key={day.date}
-                          day={day}
-                          isHighlighted={highlightLevel === day.level && day.count > 0}
-                          cellColor={getCellColor(day.level)}
-                          isDarkMode={isDarkMode}
-                        />
-                      ))}
+        {/* Canvas Container */}
+        <div 
+          className="overflow-x-auto scrollbar-thin flex flex-col items-center scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600"
+        >
+          <div className="relative" style={{ 
+            width: CANVAS_WIDTH, 
+            height: CANVAS_HEIGHT,
+            minWidth: CANVAS_WIDTH 
+          }}>
+            <canvas
+              ref={canvasRef}
+              style={{
+                width: CANVAS_WIDTH,
+                height: CANVAS_HEIGHT,
+                display: 'block',
+              }}
+            />
+            
+            {/* Smart Tooltip */}
+            {tooltipData && (
+              <div
+                ref={tooltipRef}
+                className="fixed z-[9999] pointer-events-none"
+                style={{
+                  left: tooltipData.x,
+                  top: tooltipData.y,
+                  opacity: 1,
+                  transition: 'opacity 150ms ease-in-out',
+                }}
+              >
+                <div className="relative">
+                  {/* Tooltip Arrow - Top */}
+                  {tooltipData.arrowDirection === 'down' && (
+                    <div 
+                      className={cn(
+                        'absolute w-2 h-2 rotate-45',
+                        isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200',
+                        'border-t border-l'
+                      )}
+                      style={{ 
+                        left: tooltipData.arrowX - 4,
+                        top: -4,
+                      }}
+                    />
+                  )}
+                  
+                  {/* Tooltip Content */}
+                  <div
+                    className={cn(
+                      'rounded-lg px-3 py-1.5 text-xs font-medium border shadow-lg whitespace-nowrap',
+                      isDarkMode
+                        ? 'bg-gray-800 border-gray-700 text-gray-200'
+                        : 'bg-white border-gray-200 text-gray-700 shadow-gray-200/50'
+                    )}
+                  >
+                    <div className="text-center">
+                      <div className="font-semibold">
+                        {tooltipData.count} {tooltipData.count === 1 ? 'activity' : 'activities'}
+                      </div>
+                      <div className="text-[10px] opacity-75">
+                        {formatTooltipDate(tooltipData.date)}
+                      </div>
                     </div>
-                  ))}
+                  </div>
+                  
+                  {/* Tooltip Arrow - Bottom */}
+                  {tooltipData.arrowDirection === 'up' && (
+                    <div 
+                      className={cn(
+                        'absolute w-2 h-2 rotate-45',
+                        isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200',
+                        'border-b border-r'
+                      )}
+                      style={{ 
+                        left: tooltipData.arrowX - 4,
+                        bottom: -4,
+                      }}
+                    />
+                  )}
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 
