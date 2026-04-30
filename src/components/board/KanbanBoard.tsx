@@ -81,7 +81,6 @@ export const KanbanBoard: React.FC = () => {
           ))}
         </div>
       </KanbanDndProvider>
-      {/* TaskSidebar دیگه اینجا رندر نمیشه - موتور انجامش میده */}
     </>
   );
 };

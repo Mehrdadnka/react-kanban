@@ -44,7 +44,7 @@ export const Widget: React.FC<WidgetProps> = ({
           {title}
         </h3>
       </div>
-      <div className="flex-1 min-h-0 overflow-auto">
+      <div className="flex-1 min-h-0 overflow-hidden">
         {children}
       </div>
     </div>

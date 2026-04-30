@@ -151,7 +151,6 @@ export const DashboardSidebar: React.FC<PanelProps> = memo(({
     if (!tasks || tasks.length === 0) {
       return (
         <div className="text-center py-12 text-gray-400">
-          {/* < size={32} className="mx-auto mb-3 opacity-50" /> */}
           <p>{emptyMessage}</p>
         </div>
       );

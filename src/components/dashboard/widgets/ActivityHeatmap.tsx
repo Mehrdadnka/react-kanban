@@ -21,7 +21,7 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 const DAY_LABELS = ['', 'Mon', '', 'Wed', '', 'Fri', ''] as const;
 const LEVELS = [0, 1, 2, 3, 4] as const;
 
-const TOTAL_DAYS = 364;
+const TOTAL_DAYS = 365;
 const CELL_SIZE = 10;
 const CELL_GAP = 2;
 const CELL_UNIT = CELL_SIZE + CELL_GAP;
@@ -139,7 +139,7 @@ const DayCell = memo<{
 DayCell.displayName = 'DayCell';
 
 const MonthLabels = memo<{ months: MonthData[] }>(({ months }) => (
-  <div className="flex" style={{ marginLeft: '28px' }}>
+  <div className="flex" style={{ marginLeft: '20px' }}>
     {months.map((month, index) => {
       if (index === 0) return null;
       
@@ -147,7 +147,7 @@ const MonthLabels = memo<{ months: MonthData[] }>(({ months }) => (
       const currentWeekIndex = month.weekIndex;
       const marginLeft = index === 1
         ? currentWeekIndex * CELL_UNIT
-        : (currentWeekIndex - prevWeekIndex - 1) * CELL_UNIT;
+        : (currentWeekIndex - prevWeekIndex - 1.4) * CELL_UNIT;
       
       return (
         <span
