@@ -235,17 +235,20 @@ src/
 │   │   ├── TaskSidebar/           # Task detail/edit/create sidebar panel
 │   │   └── __test__/              # Board component tests
 │   ├── dashboard/                 # Dashboard with interactive widgets
-│   │   ├── DashboardSidebar/      # Drill-down sidebar panel (engine-managed)
-│   │   └── widgets/               # Task stats, recent tasks, priority breakdown
-│   │       ├── activity-heatmap/  # Heatmap feature module
-│   │       ├── engine/            # Pure calculations & canvas renderer class
-│   │       ├── store/             # Zustand state bridge
-│   │       ├── components/        # Dumb UI: Stats, Canvas, Tooltip, Legend
-│   │       ├── constants.ts       # Shared TypeScript constants
-│   │       └── types.ts           # Shared TypeScript types
+│   │   └── DashboardSidebar/      # Drill-down sidebar panel (engine-managed)
 │   ├── layout/                    # Main layout, sidebar navigation, search
 │   └── ui/                        # Reusable UI primitives (Button, Badge, etc.)
 ├── hooks/                         # Custom React hooks (useSidebarPanel)
+├── features/
+|   └── dashboard/                 # Dashboard features
+|       └── widgets/               # Task stats, recent tasks, priority breakdown
+│           └── activity-heatmap/  # Heatmap feature module
+│               ├── engine/            # Pure calculations & canvas renderer class
+│               ├── store/             # Zustand state bridge
+│               ├── components/        # Dumb UI: Stats, Canvas, Tooltip, Legend
+│               ├── constants.ts       # Shared TypeScript constants
+│               └── types.ts           # Shared TypeScript types
+|   
 ├── lib/                           # Utility functions (cn helper)
 ├── types/                         # Shared TypeScript root types
 ├── providers/                     # SidebarProvider, ThemeProvider, AppProvider
