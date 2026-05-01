@@ -74,32 +74,34 @@ export const useSidebarEngineStore = create<EngineStoreState>((set, get) => ({
     });
   },
 
-  close: (id: string) => {
-    set((state) => {
-      const panel = state.panels[id];
-      if (!panel) return state;
+close: (id: string) => {
+  set((state) => {
+    const panel = state.panels[id];
+    if (!panel) return state;
 
-      const newStack = state.stack.filter(panelId => panelId !== id);
+    const newStack = state.stack.filter(panelId => panelId !== id);
+    const updatedPanels = { ...state.panels };
+    updatedPanels[id] = { ...panel, isOpen: false, isMinimized: false };
 
-      const updatedPanels = { ...state.panels };
-      const restoredPanels: string[] = [];
-      Object.entries(updatedPanels).forEach(([pId, p]) => {
-        if (p.isMinimized && p.config.priority > panel.config.priority) {
-          updatedPanels[pId] = { ...p, isMinimized: false };
-          restoredPanels.push(pId);
-        }
-      });
-      const finalStack = [...newStack, ...restoredPanels];
-
-      return {
-        panels: {
-          ...updatedPanels,
-          [id]: { ...panel, isOpen: false, isMinimized: false },
-        },
-        stack: finalStack,
-      };
+    const restoredPanels: string[] = [];
+    Object.entries(updatedPanels).forEach(([pId, p]) => {
+      if (p.isMinimized) {
+        const highestZIndex = Math.max(0, ...Object.values(updatedPanels).map(panel => panel.zIndex));
+        const newZIndex = highestZIndex + Z_INDEX_STEP;
+        
+        updatedPanels[pId] = { ...p, isMinimized: false, zIndex: newZIndex };
+        restoredPanels.push(pId);
+      }
     });
-  },
+    
+    const finalStack = [...newStack, ...restoredPanels];
+
+    return {
+      panels: updatedPanels,
+      stack: finalStack,
+    };
+  });
+},
 
   closeTop: () => {
     const { stack } = get();
