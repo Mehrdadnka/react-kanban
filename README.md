@@ -116,7 +116,7 @@ A **reusable atomic component library** that standardizes all sidebar panel UIs 
 ### Architecture
 
 ```
-┌──────────────────────────────────────────┐
+┌───────────────────────────────────────────┐
 │          Sidebar Panels (Logic)           │
 │  ┌────────────┐  ┌──────────────────┐     │
 │  │ TaskSidebar│  │ DashboardSidebar │     │
@@ -141,7 +141,7 @@ A **reusable atomic component library** that standardizes all sidebar panel UIs 
 │  │  │   Info    │  │ - PriorityList │  │  │
 │  │  └───────────┘  └────────────────┘  │  │
 │  └─────────────────────────────────────┘  │
-└──────────────────────────────────────────┘
+└───────────────────────────────────────────┘
 ```
 
 ### Core Components (11 atomic pieces)
