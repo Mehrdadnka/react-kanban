@@ -1,66 +1,67 @@
-import React, { useEffect, useState, memo } from 'react';
+// src/components/dashboard/DashboardSidebar/DashboardSidebar.tsx
+import React, { memo } from 'react';
 import { 
-  X, CheckSquare, Clock, CheckCircle2, 
+  CheckSquare, Clock, CheckCircle2, 
   ListTodo, Flag, TrendingUp, Activity,
-  ArrowRight, AlertTriangle, ExternalLink,
+  ArrowRight, AlertTriangle,
   ClipboardList,
   Zap
 } from 'lucide-react';
 import { useDashboardSidebarStore, DashboardWidgetType } from '@/stores/dashboard-sidebar.store';
 import { useApp } from '@/providers/AppProvider';
 import { useRouter } from '@/router';
-import { Breadcrumb } from '@/components/ui/breadcrumb/Breadcrumb';
-import { Badge } from '@/components/ui/badge/Badge';
 import { Button } from '@/components/ui/button/Button';
 import { cn } from '@/lib/utils';
-import { Task } from '@/types/task.types'
 import { PanelProps } from '@/stores/sidebar-engine/sidebar-engine.types';
-import { PriorityColors } from '@/components/ui/PriorityColors';
+import { BreadcrumbItem } from '@/stores/task-sidebar.store';
 
-const statusLabels: Record<Task['status'], string> = {
-  'todo': 'To Do',
-  'in-progress': 'In Progress',
-  'done': 'Done',
-};
+// UI Engine - All standardized components
+import { SidebarShell } from '@/components/sidebar-ui-engine/SidebarShell';
+import { SidebarTaskCard } from '@/components/sidebar-ui-engine/SidebarTaskCard';
+import { SidebarStatsCard } from '@/components/sidebar-ui-engine/SidebarStatsCard';
+import { SidebarProgressBar } from '@/components/sidebar-ui-engine/SidebarProgressBar';
+import { SidebarPriorityList } from '@/components/sidebar-ui-engine/SidebarPriorityList';
+
+// ============ Config ============
 
 const widgetConfig: Record<DashboardWidgetType, {
   title: string;
-  icon: React.ElementType;
-  breadcrumbs: { label: string; onClick?: () => void }[];
+  icon: React.ReactNode;
+  breadcrumbs: BreadcrumbItem[];
 }> = {
   'task-overview': {
     title: 'Task Overview',
-    icon: CheckSquare,
+    icon: <CheckSquare size={20} />,
     breadcrumbs: [{ label: 'Dashboard' }, { label: 'Task Overview' }],
   },
   'total-tasks': {
     title: 'All Tasks',
-    icon: ListTodo,
+    icon: <ListTodo size={20} />,
     breadcrumbs: [{ label: 'Dashboard' }, { label: 'Task Overview' }, { label: 'All Tasks' }],
   },
   'in-progress': {
     title: 'Tasks In Progress',
-    icon: Zap,
+    icon: <Zap size={20} />,
     breadcrumbs: [{ label: 'Dashboard' }, { label: 'Task Overview' }, { label: 'In Progress' }],
   },
   'completed': {
     title: 'Completed Tasks',
-    icon: CheckCircle2,
+    icon: <CheckCircle2 size={20} />,
     breadcrumbs: [{ label: 'Dashboard' }, { label: 'Task Overview' }, { label: 'Completed' }],
   },
   'todo': {
     title: 'Todo Tasks',
-    icon: ClipboardList,
+    icon: <ClipboardList size={20} />,
     breadcrumbs: [{ label: 'Dashboard' }, { label: 'Task Overview' }, { label: 'Todo' }],
   },
   'recent-tasks': {
     title: 'Recent Tasks',
-    icon: Clock,
+    icon: <Clock size={20} />,
     breadcrumbs: [{ label: 'Dashboard' }, { label: 'Recent Tasks' }],
   },
   'priority-breakdown': {
     title: 'Priority Breakdown',
-    icon: Flag,
+    icon: <Flag size={20} />,
     breadcrumbs: [{ label: 'Dashboard' }, { label: 'Priorities' }],
   },
 };
@@ -79,58 +80,250 @@ const filterRoutes: Record<string, string> = {
   'todo': '/tasks?filter=todo',
 };
 
-export const DashboardSidebar: React.FC<PanelProps> = memo(({ 
-  isOpen, 
-  onClose 
-}) => {
+// ============ Components ============
+
+const TaskOverviewContent: React.FC<{
+  widgetData: any;
+  isDarkMode: boolean;
+  onNavigate: (path: string) => void;
+}> = ({ widgetData, isDarkMode, onNavigate }) => (
+  <div className="space-y-6">
+    {/* Stats Cards */}
+    <div className="grid grid-cols-2 gap-4">
+      <SidebarStatsCard
+        icon={ListTodo}
+        label="Total Tasks"
+        value={widgetData.totalTasks}
+        color="text-blue-600"
+        bgColor="bg-blue-50 dark:bg-blue-900/30"
+        onClick={() => onNavigate('/tasks')}
+      />
+      <SidebarStatsCard
+        icon={Zap}
+        label="In Progress"
+        value={widgetData.inProgressCount}
+        color="text-yellow-600"
+        bgColor="bg-yellow-50 dark:bg-yellow-900/30"
+        onClick={() => onNavigate('/tasks?filter=in-progress')}
+      />
+      <SidebarStatsCard
+        icon={CheckCircle2}
+        label="Completed"
+        value={widgetData.completedCount}
+        color="text-green-600"
+        bgColor="bg-green-50 dark:bg-green-900/30"
+        onClick={() => onNavigate('/tasks?filter=done')}
+      />
+      <SidebarStatsCard
+        icon={ListTodo}
+        label="Todo"
+        value={widgetData.todoCount}
+        color="text-gray-600"
+        bgColor="bg-gray-50 dark:bg-gray-700/30"
+        onClick={() => onNavigate('/tasks?filter=todo')}
+      />
+    </div>
+
+    {/* Progress Section */}
+    <div className={cn(
+      'p-4 rounded-xl',
+      isDarkMode ? 'bg-gray-800/50' : 'bg-gradient-to-br from-blue-50 to-purple-50'
+    )}>
+      <div className="flex items-center gap-2 mb-4">
+        <Activity size={18} className="text-blue-600" />
+        <h3 className="font-semibold">Progress Overview</h3>
+      </div>
+
+      <SidebarProgressBar
+        label="Completion Rate"
+        value={widgetData.completionRate}
+        color="from-blue-500 to-purple-500"
+        className="mb-4"
+      />
+
+      <div className="grid grid-cols-2 gap-3">
+        <div className={cn(
+          'text-center p-3 rounded-lg',
+          isDarkMode ? 'bg-gray-700/50' : 'bg-white/50'
+        )}>
+          <TrendingUp size={16} className="mx-auto mb-1 text-green-500" />
+          <div className="text-xs">Completed</div>
+          <div className="text-lg font-bold text-green-600">{widgetData.completedCount}</div>
+        </div>
+        <div className={cn(
+          'text-center p-3 rounded-lg',
+          isDarkMode ? 'bg-gray-700/50' : 'bg-white/50'
+        )}>
+          <Zap size={16} className="mx-auto mb-1 text-yellow-500" />
+          <div className="text-xs">Active</div>
+          <div className="text-lg font-bold text-yellow-600">{widgetData.inProgressCount}</div>
+        </div>
+      </div>
+    </div>
+
+    <Button onClick={() => onNavigate('/tasks')} className="w-full flex items-center justify-center gap-2">
+      View All Tasks <ArrowRight size={16} />
+    </Button>
+  </div>
+);
+
+const RecentTasksContent: React.FC<{
+  tasks: any[];
+  isDarkMode: boolean;
+  onTaskClick: (taskId: string) => void;
+  onNavigate: (path: string) => void;
+}> = ({ tasks, onTaskClick, onNavigate }) => (
+  <div className="space-y-3">
+    {tasks.length === 0 ? (
+      <div className="text-center py-8 text-gray-400">
+        <Clock size={32} className="mx-auto mb-3 opacity-50" />
+        <p>No recent tasks</p>
+      </div>
+    ) : (
+      tasks.map((task) => (
+        <SidebarTaskCard
+          key={task.id}
+          task={task}
+          onClick={onTaskClick}
+          variant="compact"
+        />
+      ))
+    )}
+    <Button onClick={() => onNavigate('/tasks')} variant="outline" className="w-full flex items-center justify-center gap-2 mt-4">
+      View All Tasks <ArrowRight size={16} />
+    </Button>
+  </div>
+);
+
+const PriorityBreakdownContent: React.FC<{
+  widgetData: any;
+  isDarkMode: boolean;
+  onNavigate: (path: string) => void;
+}> = ({ widgetData, isDarkMode, onNavigate }) => (
+  <div className="space-y-6">
+    <SidebarPriorityList
+      items={[
+        {
+          key: 'high',
+          label: 'High Priority',
+          count: widgetData.priorityData.high,
+          total: widgetData.totalTasks,
+          color: 'from-red-500 to-red-600',
+          textColor: 'text-red-600',
+          icon: AlertTriangle,
+        },
+        {
+          key: 'medium',
+          label: 'Medium Priority',
+          count: widgetData.priorityData.medium,
+          total: widgetData.totalTasks,
+          color: 'from-yellow-500 to-yellow-600',
+          textColor: 'text-yellow-600',
+          icon: Flag,
+        },
+        {
+          key: 'low',
+          label: 'Low Priority',
+          count: widgetData.priorityData.low,
+          total: widgetData.totalTasks,
+          color: 'from-green-500 to-green-600',
+          textColor: 'text-green-600',
+          icon: Flag,
+        },
+      ]}
+    />
+
+    {widgetData.priorityData.high > 0 && (
+      <div className={cn(
+        'p-4 rounded-lg border-l-4 border-red-500',
+        isDarkMode ? 'bg-red-900/20' : 'bg-red-50'
+      )}>
+        <div className="flex items-center gap-2">
+          <AlertTriangle size={16} className="text-red-500" />
+          <span className="font-medium text-red-700 dark:text-red-300">
+            {widgetData.priorityData.high} high priority task{widgetData.priorityData.high !== 1 ? 's' : ''} need{widgetData.priorityData.high === 1 ? 's' : ''} attention
+          </span>
+        </div>
+      </div>
+    )}
+
+    <Button onClick={() => onNavigate('/tasks')} className="w-full flex items-center justify-center gap-2">
+      Manage Priorities <ArrowRight size={16} />
+    </Button>
+  </div>
+);
+
+const FilteredTaskListContent: React.FC<{
+  activeWidget: string;
+  widgetData: any;
+  isDarkMode: boolean;
+  onTaskClick: (taskId: string) => void;
+  onNavigate: (path: string) => void;
+}> = ({ activeWidget, widgetData, isDarkMode, onTaskClick, onNavigate }) => {
+  const currentFilterLabel = filterLabels[activeWidget] || 'tasks';
+  const currentFilterRoute = filterRoutes[activeWidget] || '/tasks';
+  const filteredTasksCount = widgetData.filteredTasks?.length || 0;
+
+  return (
+    <div className="space-y-6">
+      {/* Summary Card */}
+      <div className={cn('p-4 rounded-xl', isDarkMode ? 'bg-gray-800/50' : 'bg-gray-50')}>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-semibold text-lg">
+            {filteredTasksCount} {currentFilterLabel}
+          </h3>
+        </div>
+        <SidebarProgressBar
+          label="Completion Rate"
+          value={widgetData.completionRate}
+          color="from-blue-500 to-purple-500"
+        >
+          <span className="text-xs text-gray-500">Total: {widgetData.totalTasks}</span>
+        </SidebarProgressBar>
+      </div>
+
+      {/* Tasks List */}
+      <div>
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-4">
+          Tasks List
+        </h3>
+        {filteredTasksCount === 0 ? (
+          <div className="text-center py-12 text-gray-400">
+            <p>No {currentFilterLabel} found</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {widgetData.filteredTasks?.map((task: any) => (
+              <SidebarTaskCard
+                key={task.id}
+                task={task}
+                onClick={onTaskClick}
+                variant="detailed"
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      <Button
+        onClick={() => onNavigate(currentFilterRoute)}
+        className="w-full flex items-center justify-center gap-2"
+        variant="outline"
+      >
+        View in Board <ArrowRight size={16} />
+      </Button>
+    </div>
+  );
+};
+
+// ============ Main Component ============
+
+export const DashboardSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose }) => {
   const { isDarkMode } = useApp();
   const { navigate } = useRouter();
-  const {
-    activeWidget,
-    widgetData,
-    closeSidebar,
-  } = useDashboardSidebarStore();
-  
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [shouldRender, setShouldRender] = useState(false);
-
-  useEffect(() => {
-    if (isOpen) {
-      setShouldRender(true);
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setIsAnimating(true);
-        });
-      });
-    } else {
-      setIsAnimating(false);
-      const timer = setTimeout(() => {
-        setShouldRender(false);
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen]);
-
-  // Reset on close
-  useEffect(() => {
-    if (!isOpen) {
-      closeSidebar();
-    }
-  }, [isOpen, closeSidebar]);
-
-  useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    
-    if (isOpen) {
-      window.addEventListener('keydown', handleEsc);
-      return () => window.removeEventListener('keydown', handleEsc);
-    }
-  }, [isOpen, onClose]);
+  const { activeWidget, widgetData, closeSidebar } = useDashboardSidebarStore();
 
   const config = activeWidget ? widgetConfig[activeWidget] : null;
-  const Icon = config?.icon || Activity;
 
   const handleClose = () => {
     closeSidebar();
@@ -147,449 +340,72 @@ export const DashboardSidebar: React.FC<PanelProps> = memo(({
     handleClose();
   };
 
-  const renderTaskList = (tasks: Task[], emptyMessage: string) => {
-    if (!tasks || tasks.length === 0) {
-      return (
-        <div className="text-center py-12 text-gray-400">
-          <p>{emptyMessage}</p>
-        </div>
-      );
-    }
-
-    return (
-      <div className="space-y-2">
-        {tasks.map((task: Task) => (
-          <button
-            key={task.id}
-            onClick={() => handleTaskClick(task.id)}
-            className={cn(
-              'w-full text-left p-4 rounded-xl transition-all duration-200',
-              'hover:shadow-md group border',
-              isDarkMode
-                ? 'bg-gray-800/50 hover:bg-gray-700/50 border-gray-700 hover:border-gray-600'
-                : 'bg-gray-50 hover:bg-gray-100 border-gray-100 hover:border-gray-200'
-            )}
-          >
-            <div className="flex items-start gap-3">
-              <div className={cn(
-                'w-2 h-2 rounded-full mt-2 flex-shrink-0',
-                task.status === 'done' ? 'bg-green-500' :
-                task.status === 'in-progress' ? 'bg-blue-500' : 'bg-gray-400'
-              )} />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <h4 className="font-medium truncate">{task.title}</h4>
-                  <ExternalLink 
-                    size={14} 
-                    className="opacity-0 group-hover:opacity-100 transition-all flex-shrink-0 mt-1 text-gray-400" 
-                  />
-                </div>
-                {task.description && (
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-2 line-clamp-2">
-                    {task.description}
-                  </p>
-                )}
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Badge variant='secondary' className={cn('text-xs capitalize', PriorityColors[task.priority])}>
-                    {task.priority}
-                  </Badge>
-                  <span className="text-xs text-gray-400">
-                    {statusLabels[task.status]}
-                  </span>
-                  <span className="text-xs text-gray-400">
-                    {new Date(task.createdAt).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                    })}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </button>
-        ))}
-      </div>
-    );
-  };
+  // Reset on close
+  React.useEffect(() => {
+    if (!isOpen) closeSidebar();
+  }, [isOpen, closeSidebar]);
 
   const renderContent = () => {
     if (!activeWidget) return null;
 
     // Filtered task lists
     if (['total-tasks', 'in-progress', 'completed', 'todo'].includes(activeWidget)) {
-      const currentFilterLabel = filterLabels[activeWidget] || 'tasks';
-      const currentFilterRoute = filterRoutes[activeWidget] || '/tasks';
-      const filteredTasksCount = widgetData.filteredTasks?.length || 0;
-
       return (
-        <div className="space-y-6">
-          <div className={cn(
-            'p-4 rounded-xl',
-            isDarkMode ? 'bg-gray-800/50' : 'bg-gray-50'
-          )}>
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-semibold text-lg">
-                {filteredTasksCount} {currentFilterLabel}
-              </h3>
-            </div>
-            <div className="flex gap-4 text-sm text-gray-500">
-              <span>Total: {widgetData.totalTasks}</span>
-              <span>•</span>
-              <span>Completion Rate: {widgetData.completionRate}%</span>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-4">
-              Tasks List
-            </h3>
-            {renderTaskList(
-              widgetData.filteredTasks || [],
-              `No ${currentFilterLabel} found`
-            )}
-          </div>
-
-          <Button
-            onClick={() => handleNavigate(currentFilterRoute)}
-            className="w-full flex items-center justify-center gap-2"
-            variant="outline"
-          >
-            View in Board
-            <ExternalLink size={16} />
-          </Button>
-        </div>
+        <FilteredTaskListContent
+          activeWidget={activeWidget}
+          widgetData={widgetData}
+          isDarkMode={isDarkMode}
+          onTaskClick={handleTaskClick}
+          onNavigate={handleNavigate}
+        />
       );
     }
 
-    // Widget-specific content
     switch (activeWidget) {
       case 'task-overview':
         return (
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <StatDetailCard
-                icon={ListTodo}
-                label="Total Tasks"
-                value={widgetData.totalTasks}
-                color="text-blue-600"
-                bgColor="bg-blue-50 dark:bg-blue-900/30"
-                onClick={() => handleNavigate('/tasks')}
-              />
-              <StatDetailCard
-                icon={Zap}
-                label="In Progress"
-                value={widgetData.inProgressCount}
-                color="text-yellow-600"
-                bgColor="bg-yellow-50 dark:bg-yellow-900/30"
-                onClick={() => handleNavigate('/tasks?filter=in-progress')}
-              />
-              <StatDetailCard
-                icon={CheckCircle2}
-                label="Completed"
-                value={widgetData.completedCount}
-                color="text-green-600"
-                bgColor="bg-green-50 dark:bg-green-900/30"
-                onClick={() => handleNavigate('/tasks?filter=done')}
-              />
-              <StatDetailCard
-                icon={ListTodo}
-                label="Todo"
-                value={widgetData.todoCount}
-                color="text-gray-600"
-                bgColor="bg-gray-50 dark:bg-gray-700/30"
-                onClick={() => handleNavigate('/tasks?filter=todo')}
-              />
-            </div>
-
-            <div className={cn(
-              'p-4 rounded-xl',
-              isDarkMode ? 'bg-gray-800/50' : 'bg-gradient-to-br from-blue-50 to-purple-50'
-            )}>
-              <div className="flex items-center gap-2 mb-4">
-                <Activity size={18} className="text-blue-600" />
-                <h3 className="font-semibold">Progress Overview</h3>
-              </div>
-              
-              <div className="space-y-4">
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span>Completion Rate</span>
-                    <span className="font-semibold text-blue-600">{widgetData.completionRate}%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
-                    <div 
-                      className="h-full rounded-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-500"
-                      style={{ width: `${widgetData.completionRate}%` }}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className={cn(
-                    'text-center p-3 rounded-lg',
-                    isDarkMode ? 'bg-gray-700/50' : 'bg-white/50'
-                  )}>
-                    <TrendingUp size={16} className="mx-auto mb-1 text-green-500" />
-                    <div className="text-xs">Completed</div>
-                    <div className="text-lg font-bold text-green-600">{widgetData.completedCount}</div>
-                  </div>
-                  <div className={cn(
-                    'text-center p-3 rounded-lg',
-                    isDarkMode ? 'bg-gray-700/50' : 'bg-white/50'
-                  )}>
-                    <Zap size={16} className="mx-auto mb-1 text-yellow-500" />
-                    <div className="text-xs">Active</div>
-                    <div className="text-lg font-bold text-yellow-600">{widgetData.inProgressCount}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <Button
-              onClick={() => handleNavigate('/tasks')}
-              className="w-full flex items-center justify-center gap-2"
-            >
-              View All Tasks
-              <ArrowRight size={16} />
-            </Button>
-          </div>
+          <TaskOverviewContent
+            widgetData={widgetData}
+            isDarkMode={isDarkMode}
+            onNavigate={handleNavigate}
+          />
         );
 
       case 'recent-tasks':
         return (
-          <div className="space-y-3">
-            {widgetData.recentTasks.length === 0 ? (
-              <div className="text-center py-8 text-gray-400">
-                <Clock size={32} className="mx-auto mb-3 opacity-50" />
-                <p>No recent tasks</p>
-              </div>
-            ) : (
-              widgetData.recentTasks.map((task: Task) => (
-                <button
-                  key={task.id}
-                  onClick={() => handleTaskClick(task.id)}
-                  className={cn(
-                    'w-full text-left p-4 rounded-xl transition-all duration-200',
-                    'hover:shadow-md group',
-                    isDarkMode
-                      ? 'bg-gray-800/50 hover:bg-gray-700/50'
-                      : 'bg-gray-50 hover:bg-gray-100'
-                  )}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className={cn(
-                      'w-2 h-2 rounded-full mt-2 flex-shrink-0',
-                      task.status === 'done' ? 'bg-green-500' :
-                      task.status === 'in-progress' ? 'bg-blue-500' : 'bg-gray-400'
-                    )} />
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium mb-2 truncate">{task.title}</h4>
-                      {task.description && (
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                          {task.description.slice(0, 100)}
-                          {task.description.length > 100 ? '...' : ''}
-                        </p>
-                      )}
-                      <div className="flex items-center gap-2">
-                        <Badge className={cn('text-xs', PriorityColors[task.priority])}>
-                          {task.priority}
-                        </Badge>
-                        <span className="text-xs text-gray-400">
-                          {new Date(task.createdAt).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                          })}
-                        </span>
-                      </div>
-                    </div>
-                    <ArrowRight 
-                      size={16} 
-                      className="opacity-0 group-hover:opacity-100 transition-all mt-2 flex-shrink-0" 
-                    />
-                  </div>
-                </button>
-              ))
-            )}
-            <Button
-              onClick={() => handleNavigate('/tasks')}
-              variant="outline"
-              className="w-full flex items-center justify-center gap-2 mt-4"
-            >
-              View All Tasks
-              <ArrowRight size={16} />
-            </Button>
-          </div>
+          <RecentTasksContent
+            tasks={widgetData.recentTasks}
+            isDarkMode={isDarkMode}
+            onTaskClick={handleTaskClick}
+            onNavigate={handleNavigate}
+          />
         );
 
-      case 'priority-breakdown': {
-        const total = widgetData.totalTasks;
-        const priorities = [
-          { 
-            key: 'high' as const, 
-            label: 'High Priority', 
-            count: widgetData.priorityData.high,
-            color: 'from-red-500 to-red-600',
-            textColor: 'text-red-600',
-            Icon: AlertTriangle,
-          },
-          { 
-            key: 'medium' as const, 
-            label: 'Medium Priority', 
-            count: widgetData.priorityData.medium,
-            color: 'from-yellow-500 to-yellow-600',
-            textColor: 'text-yellow-600',
-            Icon: Flag,
-          },
-          { 
-            key: 'low' as const, 
-            label: 'Low Priority', 
-            count: widgetData.priorityData.low,
-            color: 'from-green-500 to-green-600',
-            textColor: 'text-green-600',
-            Icon: Flag,
-          },
-        ];
-
+      case 'priority-breakdown':
         return (
-          <div className="space-y-6">
-            {priorities.map((priority) => {
-              const percentage = total > 0 ? (priority.count / total) * 100 : 0;
-              
-              return (
-                <div key={priority.key} className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <priority.Icon size={20} className={priority.textColor} />
-                      <span className="font-medium">{priority.label}</span>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-bold">{priority.count}</div>
-                      <div className="text-xs text-gray-500">{percentage.toFixed(1)}%</div>
-                    </div>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
-                    <div
-                      className={cn(
-                        'h-full rounded-full bg-gradient-to-r transition-all duration-500',
-                        priority.color
-                      )}
-                      style={{ width: `${Math.max(percentage, 2)}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-
-            {widgetData.priorityData.high > 0 && (
-              <div className={cn(
-                'p-4 rounded-lg border-l-4 border-red-500',
-                isDarkMode ? 'bg-red-900/20' : 'bg-red-50'
-              )}>
-                <div className="flex items-center gap-2">
-                  <AlertTriangle size={16} className="text-red-500" />
-                  <span className="font-medium text-red-700 dark:text-red-300">
-                    {widgetData.priorityData.high} high priority task{widgetData.priorityData.high !== 1 ? 's' : ''} need{widgetData.priorityData.high === 1 ? 's' : ''} attention
-                  </span>
-                </div>
-              </div>
-            )}
-
-            <Button
-              onClick={() => handleNavigate('/tasks')}
-              className="w-full flex items-center justify-center gap-2"
-            >
-              Manage Priorities
-              <ArrowRight size={16} />
-            </Button>
-          </div>
+          <PriorityBreakdownContent
+            widgetData={widgetData}
+            isDarkMode={isDarkMode}
+            onNavigate={handleNavigate}
+          />
         );
-      }
 
       default:
         return null;
     }
   };
 
-  if (!shouldRender) return null;
-
   return (
-    <div
-      className={cn(
-        'fixed top-0 right-0 h-full w-full max-w-lg',
-        'shadow-2xl border-l',
-        'transform transition-transform duration-300 ease-in-out',
-        isDarkMode
-          ? 'bg-gray-900 border-gray-800 text-gray-100'
-          : 'bg-white border-gray-200 text-gray-900',
-        isAnimating ? 'translate-x-0' : 'translate-x-full'
-      )}
+    <SidebarShell
+      isOpen={isOpen}
+      onClose={handleClose}
+      title={config?.title || ''}
+      icon={config?.icon}
+      breadcrumbs={config?.breadcrumbs}
     >
-      {config && (
-        <>
-          {/* Header */}
-          <div className={cn(
-            "flex items-center justify-between p-4 border-b",
-            isDarkMode ? "border-gray-800" : "border-gray-200"
-          )}>
-            <div className="flex items-center gap-3">
-              <div className={cn(
-                'p-2 rounded-lg',
-                isDarkMode ? 'bg-gray-800' : 'bg-gray-100'
-              )}>
-                <Icon size={20} />
-              </div>
-              <h2 className="text-lg font-semibold">
-                {config.title}
-              </h2>
-            </div>
-            <button
-              onClick={handleClose}
-              className={cn(
-                'p-1.5 rounded-lg transition-colors',
-                isDarkMode
-                  ? 'hover:bg-gray-800 text-gray-400 hover:text-gray-200'
-                  : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
-              )}
-            >
-              <X size={20} />
-            </button>
-          </div>
-
-          {/* Breadcrumb */}
-          <Breadcrumb items={config.breadcrumbs} isDarkMode={isDarkMode} />
-
-          {/* Content */}
-          <div className="overflow-y-auto h-[calc(100vh-130px)] p-6">
-            {renderContent()}
-          </div>
-        </>
-      )}
-    </div>
+      {renderContent()}
+    </SidebarShell>
   );
 });
 
-// Helper component
-interface StatDetailCardProps {
-  icon: React.ElementType;
-  label: string;
-  value: number;
-  color: string;
-  bgColor: string;
-  onClick: () => void;
-}
-
-const StatDetailCard: React.FC<StatDetailCardProps> = memo(({ 
-  icon: Icon, label, value, color, bgColor, onClick 
-}) => (
-  <button
-    onClick={onClick}
-    className={cn(
-      'p-4 rounded-xl transition-all duration-200 hover:shadow-md text-left',
-      'border border-transparent hover:border-gray-200 dark:hover:border-gray-700',
-      bgColor
-    )}
-  >
-    <Icon size={20} className={cn(color, 'mb-2')} />
-    <div className="text-2xl font-bold">{value}</div>
-    <div className="text-xs text-gray-500 mt-1">{label}</div>
-  </button>
-));
+DashboardSidebar.displayName = 'DashboardSidebar';

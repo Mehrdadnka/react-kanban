@@ -1,0 +1,12 @@
+// src/components/sidebar-ui-engine/index.ts
+export { SidebarShell } from './SidebarShell';
+export { SidebarInput } from './SidebarInput';
+export { SidebarTextarea } from './SidebarTextarea';
+export { SidebarSelect } from './SidebarSelect';
+export { SidebarActionBar, SidebarActionLeft, SidebarActionRight } from './SidebarActionBar';
+export { SidebarConfirmDialog } from './SidebarConfirmDialog';
+export { SidebarMetaInfo } from './SidebarMetaInfo';
+export { SidebarTaskCard } from './SidebarTaskCard';
+export { SidebarStatsCard } from './SidebarStatsCard';
+export { SidebarProgressBar } from './SidebarProgressBar';
+export { SidebarPriorityList } from './SidebarPriorityList';

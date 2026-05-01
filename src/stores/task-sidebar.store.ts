@@ -4,7 +4,7 @@ import { useSidebarEngineStore } from '@/stores/sidebar-engine/sidebar-engine.st
 
 export type SidebarMode = 'create' | 'view' | 'edit';
 
-interface BreadcrumbItem {
+export interface BreadcrumbItem {
   label: string;
   onClick?: () => void;
 }
