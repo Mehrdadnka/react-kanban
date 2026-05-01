@@ -1,4 +1,3 @@
-// src/components/sidebar-ui-engine/SidebarTaskCard.tsx
 import React from 'react';
 import { ExternalLink, ArrowRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge/Badge';

@@ -1,4 +1,3 @@
-// src/components/sidebar-ui-engine/index.ts
 export { SidebarShell } from './SidebarShell';
 export { SidebarInput } from './SidebarInput';
 export { SidebarTextarea } from './SidebarTextarea';

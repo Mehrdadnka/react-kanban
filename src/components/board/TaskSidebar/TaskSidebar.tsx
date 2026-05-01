@@ -1,4 +1,3 @@
-// src/components/board/TaskSidebar/TaskSidebar.tsx
 import React, { useEffect, useRef, useState, memo } from 'react';
 import { 
   Save, Edit3, Trash2, Calendar, Clock, 

@@ -1,4 +1,3 @@
-// src/components/dashboard/DashboardSidebar/DashboardSidebar.tsx
 import React, { memo } from 'react';
 import { 
   CheckSquare, Clock, CheckCircle2, 

@@ -1,4 +1,3 @@
-// features/activity-heatmap/engine/heatmap-calculations.ts
 import { DayActivity, HeatmapData, ActivityLevel } from '../types';
 import { TOTAL_DAYS } from '../constants';
 import { Task } from '@/types/task.types';

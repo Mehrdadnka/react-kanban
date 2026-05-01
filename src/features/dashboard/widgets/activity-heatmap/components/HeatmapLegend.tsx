@@ -1,4 +1,3 @@
-// features/activity-heatmap/components/HeatmapLegend.tsx
 import React, { useCallback, useMemo, memo } from 'react';
 import { cn } from '@/lib/utils';
 import { COLORS, LEVELS } from '../constants';

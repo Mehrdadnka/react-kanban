@@ -1,4 +1,3 @@
-// src/components/sidebar-engine/SidebarSelect.tsx
 import React from 'react';
 import {
   Select,

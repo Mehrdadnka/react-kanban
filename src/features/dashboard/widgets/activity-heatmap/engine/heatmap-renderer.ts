@@ -1,4 +1,3 @@
-// features/activity-heatmap/engine/heatmap-renderer.ts
 import { DayActivity, RenderOptions } from '../types';
 import {
   COLORS,

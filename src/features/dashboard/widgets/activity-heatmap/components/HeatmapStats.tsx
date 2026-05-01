@@ -1,4 +1,3 @@
-// features/activity-heatmap/components/HeatmapStats.tsx
 import React from 'react';
 
 interface HeatmapStatsProps {

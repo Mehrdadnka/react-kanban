@@ -1,4 +1,3 @@
-// features/activity-heatmap/store/heatmap.store.ts
 import { create } from 'zustand';
 import { HeatmapData, TooltipData, ActivityLevel } from '../types';
 import { calculateHeatmapData } from '../engine/heatmap-calculations';

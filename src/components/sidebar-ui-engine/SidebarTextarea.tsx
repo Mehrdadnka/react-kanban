@@ -1,4 +1,3 @@
-// src/components/sidebar-engine/SidebarTextarea.tsx
 import React from 'react';
 import { Textarea } from '@/components/ui/textarea/Textarea';
 import { Label } from '@/components/ui/label/Label';

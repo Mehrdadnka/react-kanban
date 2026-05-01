@@ -1,4 +1,3 @@
-// features/activity-heatmap/components/HeatmapCanvas.tsx
 import React, { useRef, useEffect } from 'react';
 import { HeatmapRenderer } from '../engine/heatmap-renderer';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../constants';

@@ -1,4 +1,3 @@
-// features/activity-heatmap/engine/tooltip-position.ts
 interface TooltipPosition {
   x: number;
   y: number;

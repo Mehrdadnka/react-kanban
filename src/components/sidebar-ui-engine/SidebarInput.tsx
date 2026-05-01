@@ -1,4 +1,3 @@
-// src/components/sidebar-ui-engine/SidebarInput.tsx
 import React from 'react';
 import { Input } from '@/components/ui/input/Input';
 import { Label } from '@/components/ui/label/Label';

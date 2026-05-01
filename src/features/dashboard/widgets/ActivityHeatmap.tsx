@@ -1,4 +1,3 @@
-// features/activity-heatmap/ActivityHeatmap.tsx
 import React, { useCallback, useEffect } from 'react';
 import { useTaskStore } from '@/stores/task.store';
 import { useHeatmapStore } from './activity-heatmap/store/heatmap.store';
@@ -49,7 +48,6 @@ export const ActivityHeatmap: React.FC = () => {
     }
   }, [setTooltipData, setHoveredCell]);
 
-  // این callback تایپ درست داره: (level: ActivityLevel | null) => void
   const handleLegendHover = useCallback((level: ActivityLevel | null) => {
     setHighlightLevel(level);
   }, [setHighlightLevel]);

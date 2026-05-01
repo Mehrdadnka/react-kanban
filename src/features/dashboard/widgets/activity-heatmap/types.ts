@@ -1,4 +1,3 @@
-// features/activity-heatmap/types.ts
 export interface DayActivity {
   date: string;
   count: number;
