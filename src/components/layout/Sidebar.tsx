@@ -11,6 +11,7 @@ import { useRouter } from '@/router';
 import { useSearchSidebarStore } from '@/stores/sidebar-engine/search-sidebar.store';
 import { useSidebarEngineStore } from '@/stores/sidebar-engine/sidebar-engine.store';
 import { useShallow } from 'zustand/react/shallow';
+import { Separator } from '../ui/separator/Separator';
 
 const panelMeta: Record<string, { icon: React.ReactNode; label: string }> = {
   'task-sidebar': {
@@ -121,56 +122,14 @@ const Sidebar = () => {
               </Tooltip.Root>
             );
           })}
-
-          <Tooltip.Root delayDuration={300}>
-            <Tooltip.Trigger asChild>
-              <button
-                onClick={handleSearchClick}
-                className={cn(
-                  'w-10 h-10 rounded-xl flex items-center justify-center mt-1',
-                  'transition-all duration-200 relative group',
-                  isSearchOpen
-                    ? isDarkMode
-                      ? 'bg-gray-800 text-blue-400 shadow-lg'
-                      : 'bg-blue-50 text-blue-600 shadow-md'
-                    : isSearchMinimized
-                      ? isDarkMode
-                        ? 'text-gray-500 bg-gray-800/30 ring-1 ring-gray-700'  // minimize
-                        : 'text-gray-400 bg-gray-100/50 ring-1 ring-gray-200'
-                      : isDarkMode
-                        ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'  
-                        : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'
-                )}
-              >
-                <Search size={22} />
-              </button>
-            </Tooltip.Trigger>
-            <Tooltip.Portal>
-              <Tooltip.Content
-                side="right" sideOffset={10}
-                className={cn(
-                  'rounded-lg px-3 py-1.5 text-sm font-medium shadow-lg border z-[9999]',
-                  isDarkMode
-                    ? 'bg-gray-800 border-gray-700 text-gray-200'
-                    : 'bg-white border-gray-200 text-gray-700'
-                )}
-              >
-                {isSearchMinimized ? 'Search (Minimized)' : isSearchOpen ? 'Close Search' : 'Search'}
-                <Tooltip.Arrow className={isDarkMode ? 'fill-gray-800' : 'fill-white'} />
-              </Tooltip.Content>
-            </Tooltip.Portal>
-          </Tooltip.Root>
         </nav>
+        
+        <Separator isDarkMode={isDarkMode} className='w-10 mx-auto' size='2' />
 
         {/* Minimized Panels Section */}
         {minimizedPanelIds.filter(id => id !== 'search-sidebar').length > 0 && (
-          <>
-            <div className={cn(
-              'w-8 h-px mx-auto my-2',
-              isDarkMode ? 'bg-gray-700' : 'bg-gray-200'
-            )} />
-            
-            <div className="flex flex-col items-center gap-1">
+          <>            
+            <div className="flex flex-col items-center gap-2 mt-4">
               {minimizedPanelIds
                 .filter(id => id !== 'search-sidebar') 
                 .map((panelId) => {
@@ -216,10 +175,50 @@ const Sidebar = () => {
         )}
 
         <div className="flex-1" />
+        <div className="mx-auto gap-2 mb-4">
+          <Tooltip.Root delayDuration={300}>
+            <Tooltip.Trigger asChild>
+              <button
+                onClick={handleSearchClick}
+                className={cn(
+                  'w-10 h-10 rounded-xl flex items-center justify-center mt-1',
+                  'transition-all duration-200 relative group',
+                  isSearchOpen
+                    ? isDarkMode
+                      ? 'bg-gray-800 text-blue-400 shadow-lg'
+                      : 'bg-blue-50 text-blue-600 shadow-md'
+                    : isSearchMinimized
+                      ? isDarkMode
+                        ? 'text-gray-500 bg-gray-800/30 ring-1 ring-gray-700'  // minimize
+                        : 'text-gray-400 bg-gray-100/50 ring-1 ring-gray-200'
+                      : isDarkMode
+                        ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'  
+                        : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'
+                )}
+              >
+                <Search size={22} />
+              </button>
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content
+                side="right" sideOffset={10}
+                className={cn(
+                  'rounded-lg px-3 py-1.5 text-sm font-medium shadow-lg border z-[9999]',
+                  isDarkMode
+                    ? 'bg-gray-800 border-gray-700 text-gray-200'
+                    : 'bg-white border-gray-200 text-gray-700'
+                )}
+              >
+                {isSearchMinimized ? 'Search (Minimized)' : isSearchOpen ? 'Close Search' : 'Search'}
+                <Tooltip.Arrow className={isDarkMode ? 'fill-gray-800' : 'fill-white'} />
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          </Tooltip.Root>
+        </div>
+
+        <Separator isDarkMode={isDarkMode} className='w-10 mx-auto' size='2' />
 
         {/* Theme toggle */}
-        <div className={cn('w-8 h-px mx-auto my-2', isDarkMode ? 'bg-gray-700' : 'bg-gray-200')} />
-
         <Tooltip.Root delayDuration={300}>
           <Tooltip.Trigger asChild>
             <button
