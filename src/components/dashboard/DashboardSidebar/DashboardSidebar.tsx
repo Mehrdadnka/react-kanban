@@ -317,7 +317,7 @@ const FilteredTaskListContent: React.FC<{
 
 // ============ Main Component ============
 
-export const DashboardSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose }) => {
+export const DashboardSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose, panelId }) => {
   const { isDarkMode } = useApp();
   const { navigate } = useRouter();
   const { activeWidget, widgetData, closeSidebar } = useDashboardSidebarStore();
@@ -339,10 +339,6 @@ export const DashboardSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose })
     handleClose();
   };
 
-  // Reset on close
-  React.useEffect(() => {
-    if (!isOpen) closeSidebar();
-  }, [isOpen, closeSidebar]);
 
   const renderContent = () => {
     if (!activeWidget) return null;
@@ -398,6 +394,7 @@ export const DashboardSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose })
     <SidebarShell
       isOpen={isOpen}
       onClose={handleClose}
+      panelId={panelId} 
       title={config?.title || ''}
       icon={config?.icon}
       breadcrumbs={config?.breadcrumbs}

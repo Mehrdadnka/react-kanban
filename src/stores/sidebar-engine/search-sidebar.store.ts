@@ -1,4 +1,3 @@
-// src/stores/search-sidebar.store.ts
 import { create } from 'zustand';
 import { Task } from '@/types/task.types';
 import { useSidebarEngineStore } from '@/stores/sidebar-engine/sidebar-engine.store';
@@ -13,6 +12,7 @@ interface SearchSidebarState {
   search: (query: string, tasks: Task[]) => void;
   openSearch: () => void;
   closeSearch: () => void;
+  minimizeSearch: () => void;
   clearSearch: () => void;
 }
 
@@ -52,6 +52,11 @@ export const useSearchSidebarStore = create<SearchSidebarState>((set, get) => ({
     const engine = useSidebarEngineStore.getState();
     engine.close('search-sidebar');
     set({ query: '', results: [] });
+  },
+  
+  minimizeSearch: () => {
+    const engine = useSidebarEngineStore.getState();
+    engine.minimize('search-sidebar');
   },
   
   clearSearch: () => set({ query: '', results: [] }),

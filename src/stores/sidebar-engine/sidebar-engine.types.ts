@@ -30,6 +30,7 @@ export interface ISidebarEngine {
   unregister: (id: string) => void;
   open: (id: string, metadata?: Record<string, any>) => void;
   close: (id: string) => void;
+  minimize: (id: string) => void;
   closeTop: () => void;
   closeAll: () => void;
   getPanelState: (id: string) => PanelState | undefined;

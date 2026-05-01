@@ -1,8 +1,8 @@
 import React from 'react';
 import { TaskSidebar } from '@/components/board/TaskSidebar/TaskSidebar';
 import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar/DashboardSidebar';
+import { SearchSidebar } from '@/components/search/SearchSidebar/SearchSidebar';
 import { useSidebarPanel } from '@/hooks/useSidebarPanel';
-import { SearchSidebar } from '../search/SearchSidebar/SearchSidebar';
 
 const TaskSidebarRegistrar: React.FC = () => {
   useSidebarPanel({

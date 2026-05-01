@@ -6,32 +6,34 @@ const PanelRenderer: React.FC = memo(() => {
   const panels = useSidebarEngineStore(state => state.panels);
   const closeTop = useSidebarEngineStore(state => state.closeTop);
 
-  const openPanels = Object.values(panels).filter(p => p.isOpen);
-  const topPanelZIndex = openPanels.length > 0 
-    ? Math.max(...openPanels.map(p => p.zIndex)) 
+  const visiblePanels = Object.values(panels).filter(p => p.isOpen && !p.isMinimized);
+  const allOpenPanels = Object.values(panels).filter(p => p.isOpen); 
+  
+  const topPanelZIndex = visiblePanels.length > 0 
+    ? Math.max(...visiblePanels.map(p => p.zIndex)) 
     : 0;
 
   return (
     <>
-        {openPanels.length > 0 && (
-          <div
-            key="engine-overlay"
-            style={{ zIndex: topPanelZIndex - 100, marginLeft: '4rem' }}
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm"
-            onClick={closeTop}
-            aria-hidden="true"
-          />
-        )}
+      {visiblePanels.length > 0 && (
+        <div
+          key="engine-overlay"
+          style={{ zIndex: topPanelZIndex - 100, marginLeft: '4rem' }}
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm"
+          onClick={closeTop}
+          aria-hidden="true"
+        />
+      )}
 
-      {/* Rendering all open panels */}
-      {openPanels.map((panel) => {
+      {allOpenPanels.map((panel) => {
         const PanelComponent = panel.config.component;
+        const isVisible = panel.isOpen && !panel.isMinimized;
         
         return createPortal(
           <PanelComponent
             key={panel.config.id}
             panelId={panel.config.id}
-            isOpen={panel.isOpen && !panel.isMinimized}
+            isOpen={isVisible} 
             zIndex={panel.zIndex}
             metadata={panel.metadata}
             onClose={() => useSidebarEngineStore.getState().close(panel.config.id)}

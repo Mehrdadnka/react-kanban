@@ -12,23 +12,17 @@ interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { openSearch } = useSearchSidebarStore();
 
-  // ⌘K / Ctrl+K shortcut
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // چک کردن Ctrl+K (Windows/Linux) یا ⌘K (Mac)
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault(); // ✅ اول preventDefault
-        
-        // باز کردن search sidebar
+        e.preventDefault();
         openSearch();
       }
       
-      // Escape برای بستن
       if (e.key === 'Escape') {
         const engine = useSidebarEngineStore.getState();
         const topPanel = engine.stack[engine.stack.length - 1];
         
-        // فقط اگه search-sidebar باز باشه، ببندش
         if (topPanel === 'search-sidebar') {
           e.preventDefault();
           engine.close('search-sidebar');
@@ -38,7 +32,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [openSearch]); // openSearch dependency رو یادت نره
+  }, [openSearch]); // openSearch dependency 
 
   return (
     <ThemeProvider>

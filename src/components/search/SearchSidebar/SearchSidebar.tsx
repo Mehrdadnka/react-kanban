@@ -4,15 +4,13 @@ import { PanelProps } from '@/stores/sidebar-engine/sidebar-engine.types';
 import { useTaskStore } from '@/stores/task.store';
 import { useTaskSidebarStore } from '@/stores/task-sidebar.store';
 import { useRouter } from '@/router';
-import { cn } from '@/lib/utils';
 
-// Sidebar UI Engine - Components
 import { SidebarShell } from '@/components/sidebar-ui-engine/SidebarShell';
 import { SidebarTaskCard } from '@/components/sidebar-ui-engine/SidebarTaskCard';
 import { SidebarInput } from '@/components/sidebar-ui-engine/SidebarInput';
 import { useSearchSidebarStore } from '@/stores/sidebar-engine/search-sidebar.store';
 
-export const SearchSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose }) => {
+export const SearchSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose, panelId }) => {
   const { query, results, setQuery, search, closeSearch } = useSearchSidebarStore();
   const { tasks } = useTaskStore();
   const { navigate } = useRouter();
@@ -34,7 +32,7 @@ export const SearchSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose }) =>
   const handleTaskClick = (taskId: string) => {
     const task = tasks.find(t => t.id === taskId);
     if (task) {
-      closeSearch();
+      onClose();
       openViewSidebar(task);
     }
   };
@@ -45,11 +43,10 @@ export const SearchSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose }) =>
   };
 
   const handleClose = () => {
-    closeSearch();
+    closeSearch(); 
     onClose();
   };
 
-  // Group results by status
   const groupedResults = results.reduce((acc, task) => {
     if (!acc[task.status]) acc[task.status] = [];
     acc[task.status].push(task);
@@ -66,12 +63,12 @@ export const SearchSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose }) =>
     <SidebarShell
       isOpen={isOpen}
       onClose={handleClose}
+      panelId={panelId}
       title="Search Tasks"
       icon={<Search size={20} />}
       breadcrumbs={[{ label: 'Search' }]}
     >
       <div className="space-y-6">
-        {/* Search Input */}
         <SidebarInput
           id="search-query"
           label="Search"
@@ -81,7 +78,6 @@ export const SearchSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose }) =>
           inputRef={inputRef}
         />
 
-        {/* Results */}
         {query.trim() === '' ? (
           <div className="text-center py-12">
             <Search size={48} className="mx-auto mb-4 opacity-20" />
@@ -102,7 +98,6 @@ export const SearchSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose }) =>
           </div>
         ) : (
           <div className="space-y-6">
-            {/* Results count */}
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-500">
                 {results.length} task{results.length !== 1 ? 's' : ''} found
@@ -117,7 +112,6 @@ export const SearchSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose }) =>
               )}
             </div>
 
-            {/* Grouped Results */}
             {Object.entries(groupedResults).map(([status, statusTasks]) => (
               <div key={status}>
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3">
@@ -138,7 +132,6 @@ export const SearchSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose }) =>
           </div>
         )}
 
-        {/* Keyboard shortcuts */}
         {query.trim() !== '' && (
           <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
             <div className="flex items-center gap-4 text-xs text-gray-400">

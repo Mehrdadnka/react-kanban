@@ -79,7 +79,7 @@ const ViewField: React.FC<{ label: string; icon?: React.ReactNode; value: React.
 
 // ---------- Main Component ----------
 
-export const TaskSidebar: React.FC<PanelProps> = memo(({ zIndex, onClose, isOpen: panelIsOpen }) => {
+export const TaskSidebar: React.FC<PanelProps> = memo(({ zIndex, onClose, isOpen: panelIsOpen, panelId }) => {
   const { isDarkMode } = useApp();
   const { addTask, updateTask, deleteTask } = useTaskStore();
   const {
@@ -172,7 +172,8 @@ export const TaskSidebar: React.FC<PanelProps> = memo(({ zIndex, onClose, isOpen
     <SidebarShell 
       isOpen={panelIsOpen} 
       zIndex={zIndex} 
-      onClose={handleClose} 
+      onClose={handleClose}
+      panelId={panelId}  
       title={title} 
       breadcrumbs={breadcrumbs}
     >
