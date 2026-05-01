@@ -1,0 +1,11 @@
+html, body, #root, #storybook-root {
+  height: auto !important;
+  min-height: auto !important;
+}
+
+#storybook-root {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
