@@ -231,34 +231,47 @@ const handleCellHover = (date, count, clientX, clientY) => {
 src/
 ├── assets/                        # Static assets
 ├── components/
+│   ├── sidebar-ui-engine/         # Reusable atomic sidebar UI engine
+│   │   ├── SidebarShell.tsx       # Universal sidebar container (animation, ESC, header)
+│   │   ├── SidebarInput.tsx       # Standardized input field
+│   │   ├── SidebarTextarea.tsx    # Standardized textarea field
+│   │   ├── SidebarSelect.tsx      # Standardized select dropdown
+│   │   ├── SidebarActionBar.tsx   # Action bar (Left/Right groups)
+│   │   ├── SidebarConfirmDialog.tsx # Delete/confirm dialog
+│   │   ├── SidebarMetaInfo.tsx    # Meta info display (view mode)
+│   │   ├── SidebarTaskCard.tsx    # Task card (compact/detailed variants)
+│   │   ├── SidebarStatsCard.tsx   # Stats card with icon & value
+│   │   ├── SidebarProgressBar.tsx # Progress bar with label
+│   │   ├── SidebarPriorityList.tsx # Priority breakdown list
+│   │   └── index.ts              # Barrel exports
 │   ├── board/                     # Kanban board, columns, task cards
-│   │   ├── TaskSidebar/           # Task detail/edit/create sidebar panel
+│   │   ├── TaskSidebar/           # Task detail/edit/create sidebar (logic only)
 │   │   └── __test__/              # Board component tests
 │   ├── dashboard/                 # Dashboard with interactive widgets
-│   │   └── DashboardSidebar/      # Drill-down sidebar panel (engine-managed)
+│   │   └── DashboardSidebar/      # Drill-down sidebar (logic only, uses sidebar-ui-engine)
 │   ├── layout/                    # Main layout, sidebar navigation, search
-│   └── ui/                        # Reusable UI primitives (Button, Badge, etc.)
+│   └── ui/                        # Reusable UI primitives (Button, Badge, Breadcrumb, etc.)
 ├── hooks/                         # Custom React hooks (useSidebarPanel)
 ├── features/
-|   └── dashboard/                 # Dashboard features
-|       └── widgets/               # Task stats, recent tasks, priority breakdown
+│   └── dashboard/                 # Dashboard features
+│       └── widgets/               # Task stats, recent tasks, priority breakdown
 │           └── activity-heatmap/  # Heatmap feature module
 │               ├── engine/        # Pure calculations & canvas renderer class
 │               ├── store/         # Zustand state bridge
 │               ├── components/    # Dumb UI: Stats, Canvas, Tooltip, Legend
 │               ├── constants.ts   # Shared TypeScript constants
 │               └── types.ts       # Shared TypeScript types
-|   
 ├── lib/                           # Utility functions (cn helper)
 ├── types/                         # Shared TypeScript root types
+│   └── sidebar.types.ts           # BreadcrumbItem & shared sidebar types
 ├── providers/                     # SidebarProvider, ThemeProvider, AppProvider
 ├── router/                        # Custom client-side router
 │   └── Pages/                     # Route page components
 ├── stores/                        # Zustand state management
-│   ├── sidebar-engine/            # Engine core (types, store)
+│   ├── sidebar-engine/            # Engine core (types, store) - panel management
 │   ├── task.store.ts              # Task CRUD operations
-│   ├── task-sidebar.store.ts      # Task panel state machine
-│   └── dashboard-sidebar.store.ts # Dashboard panel state
+│   ├── task-sidebar.store.ts      # Task panel state machine (logic only)
+│   └── dashboard-sidebar.store.ts # Dashboard panel state (logic only)
 └── test/                          # Test setup and configuration
 ```
 
