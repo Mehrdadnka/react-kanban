@@ -4,11 +4,14 @@ import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar/Dashbo
 import { SearchSidebar } from '@/components/search/SearchSidebar/SearchSidebar';
 import { useSidebarPanel } from '@/hooks/useSidebarPanel';
 
+const SIDEBAR_POSITION = 'left';
+
 const TaskSidebarRegistrar: React.FC = () => {
   useSidebarPanel({
     id: 'task-sidebar',
     component: TaskSidebar,
     priority: 10,
+    position: SIDEBAR_POSITION,
   });
   return null;
 };
@@ -18,6 +21,7 @@ const DashboardSidebarRegistrar: React.FC = () => {
     id: 'dashboard-sidebar',
     component: DashboardSidebar,
     priority: 5,
+    position: SIDEBAR_POSITION,
   });
   return null;
 };
@@ -27,6 +31,7 @@ const SearchSidebarRegistrar: React.FC = () => {
     id: 'search-sidebar',
     component: SearchSidebar,
     priority: 15,
+    position: SIDEBAR_POSITION,
   });
   return null;
 };

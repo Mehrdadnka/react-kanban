@@ -23,6 +23,7 @@ import { SidebarSelect } from '@/components/sidebar-ui-engine/SidebarSelect';
 import { SidebarActionBar, SidebarActionLeft, SidebarActionRight } from '@/components/sidebar-ui-engine/SidebarActionBar';
 import { SidebarConfirmDialog } from '@/components/sidebar-ui-engine/SidebarConfirmDialog';
 import { SidebarMetaInfo } from '@/components/sidebar-ui-engine/SidebarMetaInfo';
+import { usePanelPosition } from '@/stores/sidebar-engine/sidebar-engine.store';
 
 // ---------- Local Helpers ----------
 
@@ -86,6 +87,7 @@ export const TaskSidebar: React.FC<PanelProps> = memo(({ zIndex, onClose, isOpen
     mode, selectedTask, formState, breadcrumbs,
     closeSidebar, updateFormField, openEditSidebar,
   } = useTaskSidebarStore();
+  const position = usePanelPosition(panelId); 
   
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -176,6 +178,7 @@ export const TaskSidebar: React.FC<PanelProps> = memo(({ zIndex, onClose, isOpen
       panelId={panelId}  
       title={title} 
       breadcrumbs={breadcrumbs}
+      position={position}
     >
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Title Input */}

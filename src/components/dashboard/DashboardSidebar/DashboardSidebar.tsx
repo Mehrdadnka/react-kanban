@@ -20,6 +20,7 @@ import { SidebarTaskCard } from '@/components/sidebar-ui-engine/SidebarTaskCard'
 import { SidebarStatsCard } from '@/components/sidebar-ui-engine/SidebarStatsCard';
 import { SidebarProgressBar } from '@/components/sidebar-ui-engine/SidebarProgressBar';
 import { SidebarPriorityList } from '@/components/sidebar-ui-engine/SidebarPriorityList';
+import { usePanelPosition } from '@/stores/sidebar-engine/sidebar-engine.store';
 
 // ============ Config ============
 
@@ -324,6 +325,9 @@ export const DashboardSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose, p
 
   const config = activeWidget ? widgetConfig[activeWidget] : null;
 
+  const position = usePanelPosition(panelId); 
+  
+
   const handleClose = () => {
     closeSidebar();
     onClose();
@@ -393,6 +397,7 @@ export const DashboardSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose, p
   return (
     <SidebarShell
       isOpen={isOpen}
+      position={position}
       onClose={handleClose}
       panelId={panelId} 
       title={config?.title || ''}

@@ -1,8 +1,11 @@
 import React from 'react';
 
+export type PanelPosition = 'left' | 'right' | 'overlay';
+
 export interface PanelConfig {
   id: string;
   component: React.ComponentType<PanelProps>; 
+  position?: PanelPosition;
   priority: number;
   initialProps?: Record<string, any>; 
 }

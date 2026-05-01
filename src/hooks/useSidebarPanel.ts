@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useSidebarEngineStore } from '../stores/sidebar-engine/sidebar-engine.store';
-import { PanelConfig, PanelProps } from '../stores/sidebar-engine/sidebar-engine.types';
+import { PanelConfig } from '../stores/sidebar-engine/sidebar-engine.types';
 
 export const useSidebarPanel = (config: PanelConfig) => {
   const { register, unregister, open, close, isPanelOpen, getPanelState } = useSidebarEngineStore();

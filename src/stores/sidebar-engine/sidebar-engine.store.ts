@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { PanelConfig, PanelState, ISidebarEngine } from './sidebar-engine.types';
+import { PanelConfig, PanelState, ISidebarEngine, PanelPosition } from './sidebar-engine.types';
 
 const BASE_Z_INDEX = 1000;
 const Z_INDEX_STEP = 10;
@@ -193,3 +193,9 @@ export const useOpenPanelIds = () =>
       .filter(p => p.isOpen)
       .map(p => p.config.id)
   );
+
+export const usePanelPosition = (panelId?: string): PanelPosition => 
+  useSidebarEngineStore(state => {
+    if (!panelId) return 'left';
+    return state.panels[panelId]?.config.position || 'left';
+  });

@@ -9,6 +9,7 @@ import { SidebarShell } from '@/components/sidebar-ui-engine/SidebarShell';
 import { SidebarTaskCard } from '@/components/sidebar-ui-engine/SidebarTaskCard';
 import { SidebarInput } from '@/components/sidebar-ui-engine/SidebarInput';
 import { useSearchSidebarStore } from '@/stores/sidebar-engine/search-sidebar.store';
+import { usePanelPosition } from '@/stores/sidebar-engine/sidebar-engine.store';
 
 export const SearchSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose, panelId }) => {
   const { query, results, setQuery, search, closeSearch } = useSearchSidebarStore();
@@ -16,6 +17,8 @@ export const SearchSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose, pane
   const { navigate } = useRouter();
   const { openViewSidebar } = useTaskSidebarStore();
   const inputRef = useRef<HTMLInputElement>(null);
+  const position = usePanelPosition(panelId); 
+  
 
   // Focus on open
   useEffect(() => {
@@ -62,6 +65,7 @@ export const SearchSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose, pane
   return (
     <SidebarShell
       isOpen={isOpen}
+      position={position}
       onClose={handleClose}
       panelId={panelId}
       title="Search Tasks"

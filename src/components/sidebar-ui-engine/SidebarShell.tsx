@@ -6,6 +6,7 @@ import { BreadcrumbItem } from '@/types/sidebar.types';
 import { Breadcrumb } from '@/components/ui/breadcrumb/Breadcrumb';
 import { useSidebarEngineStore } from '@/stores/sidebar-engine/sidebar-engine.store';
 import { IconButton } from '@radix-ui/themes';
+import { PanelPosition } from '@/stores/sidebar-engine/sidebar-engine.types';
 
 interface SidebarShellProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ interface SidebarShellProps {
   breadcrumbs?: BreadcrumbItem[];
   children: React.ReactNode;
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl';
+  position?: PanelPosition;
 }
 
 const maxWidthClasses = {
@@ -25,6 +27,27 @@ const maxWidthClasses = {
   md: 'max-w-md',
   lg: 'max-w-lg',
   xl: 'max-w-xl',
+};
+
+const positionClasses: Record<PanelPosition, string> = {
+  left: 'left-0 ml-16',
+  right: 'right-0',
+  overlay: 'left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 h-auto max-h-[80vh] rounded-xl',
+};
+
+const positionAnimation: Record<PanelPosition, { open: string; closed: string }> = {
+  left: {
+    open: 'translate-x-0',
+    closed: '-translate-x-[200vw]',
+  },
+  right: {
+    open: 'translate-x-0',
+    closed: 'translate-x-[200vw]', 
+  },
+  overlay: {
+    open: 'opacity-100 scale-100',
+    closed: 'opacity-0 scale-95',
+  },
 };
 
 export const SidebarShell: React.FC<SidebarShellProps> = memo(({
@@ -38,6 +61,7 @@ export const SidebarShell: React.FC<SidebarShellProps> = memo(({
   breadcrumbs,
   children,
   maxWidth = 'lg',
+  position = 'overlay'
 }) => {
   const { isDarkMode } = useApp();
   const [isAnimating, setIsAnimating] = useState(false);
@@ -52,12 +76,6 @@ export const SidebarShell: React.FC<SidebarShellProps> = memo(({
       useSidebarEngineStore.getState().minimize(panelId);
     }
   }, [panelId]);
-
-  React.useEffect(() => {
-    return () => {
-      // cleanup when component unmounts
-    };
-  }, []);
 
   // Animation lifecycle
   useEffect(() => {
@@ -94,24 +112,33 @@ export const SidebarShell: React.FC<SidebarShellProps> = memo(({
 
   if (!shouldRender && !isMinimized) return null;
 
+  const anim = positionAnimation[position];
+  const isOverlay = position === 'overlay';
+
   return (
     <div
       className={cn(
         'fixed top-0 right-0 h-full w-full',
+        isOverlay && 'h-auto max-h-[80vh]',
         maxWidthClasses[maxWidth],
         'shadow-2xl border-l',
         'transform transition-transform duration-300 ease-in-out',
         isDarkMode
           ? 'bg-gray-900 border-gray-800 text-gray-100'
           : 'bg-white border-gray-200 text-gray-900',
-        isAnimating ? 'translate-x-0' : 'translate-x-full'
+        positionClasses[position],
+        isAnimating ? anim.open : anim.closed,
+        isOverlay && 'rounded-xl border',
+        isOverlay && isDarkMode ? 'border-gray-800' : '',
+        isOverlay && !isDarkMode ? 'border-gray-200' : '',
       )}
       style={{ pointerEvents: isAnimating ? 'auto' : 'none', zIndex }}
     >
       {/* Header */}
       <div className={cn(
         "flex items-center justify-between p-4 border-b",
-        isDarkMode ? "border-gray-800" : "border-gray-200"
+        isDarkMode ? "border-gray-800" : "border-gray-200",
+        isOverlay && "rounded-t-xl"
       )}>
         <div className="flex items-center gap-3">
           {icon && (
