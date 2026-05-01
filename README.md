@@ -326,7 +326,7 @@ src/
 │   │   ├── SidebarStatsCard.tsx   # Stats card with icon & value
 │   │   ├── SidebarProgressBar.tsx # Progress bar with label
 │   │   ├── SidebarPriorityList.tsx # Priority breakdown list
-│   │   └── index.ts              # Barrel exports
+│   │   └── index.ts               # Barrel exports
 │   ├── board/                     # Kanban board, columns, task cards
 │   │   ├── TaskSidebar/           # Task detail/edit/create sidebar (logic only)
 │   │   └── __test__/              # Board component tests
