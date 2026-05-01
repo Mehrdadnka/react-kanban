@@ -336,14 +336,13 @@ src/
 │   └── ui/                        # Reusable UI primitives (Button, Badge, Breadcrumb, etc.)
 ├── hooks/                         # Custom React hooks (useSidebarPanel)
 ├── features/
-│   └── dashboard/                 # Dashboard features
-│       └── widgets/               # Task stats, recent tasks, priority breakdown
-│           └── activity-heatmap/  # Heatmap feature module
-│               ├── engine/        # Pure calculations & canvas renderer class
-│               ├── store/         # Zustand state bridge
-│               ├── components/    # Dumb UI: Stats, Canvas, Tooltip, Legend
-│               ├── constants.ts   # Shared TypeScript constants
-│               └── types.ts       # Shared TypeScript types
+│   └── widgets/                   # Task stats, recent tasks, priority breakdown
+│       └── activity-heatmap/      # Heatmap feature module
+│           ├── engine/            # Pure calculations & canvas renderer class
+│           ├── store/             # Zustand state bridge
+│           ├── components/        # Dumb UI: Stats, Canvas, Tooltip, Legend
+│           ├── constants.ts       # Shared TypeScript constants
+│           └── types.ts           # Shared TypeScript types
 ├── lib/                           # Utility functions (cn helper)
 ├── types/                         # Shared TypeScript root types
 │   └── sidebar.types.ts           # BreadcrumbItem & shared sidebar types
