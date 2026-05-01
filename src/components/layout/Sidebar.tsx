@@ -5,7 +5,7 @@ import { useApp } from '@/providers/AppProvider';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { TooltipProvider } from '@radix-ui/react-tooltip';
 import { useRouter } from '@/router';
-import { SearchDialog } from './SearchDialog';
+import { useSearchSidebarStore } from '@/stores/sidebar-engine/search-sidebar.store';
 
 interface NavItem {
   id: string;
@@ -18,7 +18,7 @@ interface NavItem {
 const Sidebar = () => {
   const { isDarkMode, toggleDarkMode, time } = useApp();
   const { navigate, currentPath } = useRouter();
-  const [searchOpen, setSearchOpen] = useState(false);
+  const { openSearch } = useSearchSidebarStore();
 
   const mainNavItems: NavItem[] = [
     { id: 'home', icon: <Home size={22} />, path: '/', label: 'Home' },
@@ -93,7 +93,7 @@ const Sidebar = () => {
             <Tooltip.Root delayDuration={300}>
               <Tooltip.Trigger asChild>
                 <button
-                  onClick={() => setSearchOpen(true)}
+                  onClick={openSearch}
                   className={cn(
                     'w-10 h-10 rounded-xl flex items-center justify-center mt-1',
                     isDarkMode
@@ -185,9 +185,6 @@ const Sidebar = () => {
           </div>
         </aside>
       </TooltipProvider>
-
-      {/* Search Dialog - Rendered outside aside */}
-      <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
     </>
   );
 };

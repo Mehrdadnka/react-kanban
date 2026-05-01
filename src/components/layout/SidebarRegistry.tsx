@@ -2,6 +2,7 @@ import React from 'react';
 import { TaskSidebar } from '@/components/board/TaskSidebar/TaskSidebar';
 import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar/DashboardSidebar';
 import { useSidebarPanel } from '@/hooks/useSidebarPanel';
+import { SearchSidebar } from '../search/SearchSidebar/SearchSidebar';
 
 const TaskSidebarRegistrar: React.FC = () => {
   useSidebarPanel({
@@ -21,11 +22,21 @@ const DashboardSidebarRegistrar: React.FC = () => {
   return null;
 };
 
+const SearchSidebarRegistrar: React.FC = () => {
+  useSidebarPanel({
+    id: 'search-sidebar',
+    component: SearchSidebar,
+    priority: 15,
+  });
+  return null;
+};
+
 export const SidebarRegistry: React.FC = () => {
   return (
     <>
       <TaskSidebarRegistrar />
       <DashboardSidebarRegistrar />
+      <SearchSidebarRegistrar />
     </>
   );
 };
