@@ -44,8 +44,11 @@ export const useSearchSidebarStore = create<SearchSidebarState>((set, get) => ({
   
   openSearch: () => {
     const engine = useSidebarEngineStore.getState();
+    const panel = engine.getPanelState('search-sidebar');
+
     engine.open('search-sidebar');
-    set({ query: '', results: [] });
+    
+    if (!panel?.isMinimized) set({ query: '', results: [] });
   },
   
   closeSearch: () => {

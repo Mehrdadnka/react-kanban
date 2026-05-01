@@ -52,7 +52,7 @@ const Sidebar = () => {
     if (isSearchOpen) {
       useSidebarEngineStore.getState().minimize('search-sidebar');
     } else if (isSearchMinimized) {
-      useSidebarEngineStore.getState().open('search-sidebar');
+      openSearch();
     } else {
       openSearch();
     }

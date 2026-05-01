@@ -162,6 +162,26 @@ export const useSidebarEngineStore = create<EngineStoreState>((set, get) => ({
       };
     });
   },
+
+  closeAllVisible: () => {
+    set((state) => {
+      const updatedPanels = { ...state.panels };
+      Object.keys(updatedPanels).forEach(id => {
+        if (updatedPanels[id].isOpen && !updatedPanels[id].isMinimized) {
+          updatedPanels[id] = {
+            ...updatedPanels[id],
+            isOpen: false,
+            isMinimized: false,
+          };
+        }
+      });
+      
+      return {
+        panels: updatedPanels,
+        stack: [],
+      };
+    });
+  },
 }));
 
 export const usePanelIds = () => 

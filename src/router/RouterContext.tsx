@@ -27,7 +27,7 @@ export function RouterProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    useSidebarEngineStore.getState().closeAll();
+    useSidebarEngineStore.getState().closeAllVisible();
   }, [currentPath]);
 
   return (
