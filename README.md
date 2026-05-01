@@ -108,6 +108,89 @@ useSidebarPanel({
 // 3. Open from anywhere
 useSidebarEngineStore.getState().open('my-panel', { metadata: 'here' });
 ```
+
+## Sidebar UI Engine
+
+A **reusable atomic component library** that standardizes all sidebar panel UIs across the application. Built on the principle of "dumb UI, smart stores"—panels become pure logic while the engine handles all visual consistency.
+
+### Architecture
+
+```
+┌──────────────────────────────────────────┐
+│          Sidebar Panels (Logic)           │
+│  ┌────────────┐  ┌──────────────────┐     │
+│  │ TaskSidebar│  │ DashboardSidebar │     │
+│  │ (form,     │  │ (stats, lists,   │     │
+│  │  CRUD)     │  │  navigation)     │     │
+│  └─────┬──────┘  └────────┬─────────┘     │
+│        │                  │               │
+│        └────────┬─────────┘               │
+│                 ▼                         │
+│  ┌─────────────────────────────────────┐  │
+│  │       Sidebar UI Engine             │  │
+│  │  ┌───────────┐  ┌────────────────┐  │  │
+│  │  │ Container │  │ Form Elements  │  │  │
+│  │  │ - Shell   │  │ - Input        │  │  │
+│  │  │ - Action  │  │ - Textarea     │  │  │
+│  │  │   Bar     │  │ - Select       │  │  │
+│  │  ├───────────┤  ├────────────────┤  │  │
+│  │  │ Feedback  │  │ Data Display   │  │  │
+│  │  │ - Confirm │  │ - TaskCard     │  │  │
+│  │  │   Dialog  │  │ - StatsCard    │  │  │
+│  │  │ - Meta    │  │ - ProgressBar  │  │  │
+│  │  │   Info    │  │ - PriorityList │  │  │
+│  │  └───────────┘  └────────────────┘  │  │
+│  └─────────────────────────────────────┘  │
+└──────────────────────────────────────────┘
+```
+
+### Core Components (11 atomic pieces)
+
+| Category | Component | Purpose |
+|----------|-----------|---------|
+| **Container** | `SidebarShell` | Universal wrapper: slide animation, ESC key, overlay, breadcrumbs, dark/light theme |
+| | `SidebarActionBar` | Footer with `ActionLeft`/`ActionRight` groups for button placement |
+| **Form** | `SidebarInput` | Text input with view/edit mode, dark mode, auto-focus support |
+| | `SidebarTextarea` | Multi-line input with disabled state styling |
+| | `SidebarSelect` | Dropdown with icon options, theme-aware styling |
+| **Data Display** | `SidebarTaskCard` | Task card in two variants: `compact` (widgets) and `detailed` (lists) |
+| | `SidebarStatsCard` | Metric card with icon, value, hover effect, and navigation arrow |
+| | `SidebarProgressBar` | Animated progress bar with label, percentage, and optional children |
+| | `SidebarPriorityList` | Priority breakdown with icons, counts, percentages, and color-coded bars |
+| **Feedback** | `SidebarConfirmDialog` | Two-step delete confirmation with destructive/warning variants |
+| | `SidebarMetaInfo` | Key-value metadata display for view mode (dates, status, etc.) |
+
+### Why a Separate UI Engine?
+
+| Without Engine | With Engine |
+|----------------|-------------|
+| Each panel copies animation, ESC, overlay logic | `SidebarShell` handles it once |
+| Dark mode classes scattered across panels | Single `isDarkMode` source in each component |
+| Inconsistent spacing, typography, hover states | Standardized via atomic components |
+| 200+ lines of duplicated task card code | One `SidebarTaskCard` with variant prop |
+| Adding a new panel = copy-paste entire sidebar | Adding a new panel = compose from existing atoms |
+
+### Example: Building a New Panel
+
+```tsx
+// CalendarSidebar.tsx - built in minutes with existing atoms
+const CalendarSidebar: React.FC<PanelProps> = ({ isOpen, onClose, event }) => (
+  <SidebarShell isOpen={isOpen} onClose={onClose} title={event.title} icon={<Calendar />}>
+    <SidebarMetaInfo items={[
+      { icon: <Clock />, label: 'Date', value: event.date },
+      { icon: <MapPin />, label: 'Location', value: event.location },
+    ]} />
+    <SidebarActionBar>
+      <SidebarActionRight>
+        <Button>Edit</Button>
+      </SidebarActionRight>
+    </SidebarActionBar>
+  </SidebarShell>
+);
+```
+
+**Result:** 90% less boilerplate per new panel, 100% consistent UI, zero duplicated animation/theme logic.
+
 ## Activity Heatmap Engine
 
 The heatmap engine is a **pure rendering layer** decoupled from React's lifecycle. It handles canvas drawing, pixel-precise mouse tracking, retina display scaling, theme-aware color mapping, and tooltip positioning—all through a clean separation between engine logic, Zustand state, and dumb UI components.
