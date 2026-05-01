@@ -31,7 +31,7 @@ export const SidebarActionBar: React.FC<SidebarActionBarProps> = ({ children, cl
 };
 
 export const SidebarActionLeft: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="flex gap-2">{children}</div>
+  <div className="flex gap-2 w-full">{children}</div>
 );
 
 export const SidebarActionRight: React.FC<{ children: React.ReactNode }> = ({ children }) => (
