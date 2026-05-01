@@ -1,7 +1,7 @@
 import React from 'react';
-import { TaskStatsWidget } from '../../features/dashboard/widgets/TaskStatsWidget';
-import { RecentTasksWidget } from '../../features/dashboard/widgets/RecentTasksWidget';
-import { PriorityBreakdownWidget } from '../../features/dashboard/widgets/PriorityBreakdownWidget';
+import { TaskStatsWidget } from '@/features/widgets/TaskStatsWidget';
+import { RecentTasksWidget } from '@/features/widgets/RecentTasksWidget';
+import { PriorityBreakdownWidget } from '@/features/widgets/PriorityBreakdownWidget';
 
 export const Dashboard: React.FC = () => {
   return (
