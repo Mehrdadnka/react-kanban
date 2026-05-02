@@ -24,7 +24,6 @@ const PanelRenderer: React.FC = memo(() => {
           style={{ zIndex: topPanelZIndex - 100, marginLeft: isTopOverlay ? '0' : '4rem', }}
           className={cn(
             "fixed inset-0 bg-black/20 backdrop-blur-sm",
-            // ✅ overlay تیره‌تر برای focus بیشتر
             isTopOverlay && "bg-black/50"
           )}
           onClick={closeTop}
