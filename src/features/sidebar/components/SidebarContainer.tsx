@@ -1,11 +1,10 @@
-// src/features/sidebar/components/SidebarContainer.tsx
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { useApp } from '@/providers/AppProvider';
 import { useSidebar } from './SidebarProvider';
 import { HamburgerMenu } from './HamburgerMenu';
 import * as Dialog from '@radix-ui/react-dialog';
-import { X } from 'lucide-react';
+import { CollapseIcon } from './CollapseIcon';
 
 interface SidebarContainerProps {
   children: (variant: 'icon-only' | 'full') => React.ReactNode;
@@ -63,7 +62,7 @@ export const SidebarContainer: React.FC<SidebarContainerProps> = ({ children }) 
                     : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
                 )}
               >
-                <X size={20} />
+                <CollapseIcon size={20} />
               </button>
             </Dialog.Close>
             {sidebarContent('full')}
