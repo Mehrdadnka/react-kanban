@@ -5,12 +5,13 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button/Button';
 import { Badge } from '@/components/ui/badge/Badge';
-import { useTaskSidebarStore } from '@/stores/task-sidebar.store';
+import { useTaskSidebarStore } from '@/stores/sidebar-engine/task-sidebar.store';
 import { useTaskStore } from '@/stores/task.store';
 import { cn } from '@/lib/utils';
 import { PanelProps } from '@/stores/sidebar-engine/sidebar-engine.types';
 import { PriorityColors } from '@/components/ui/PriorityColors';
 import { Task } from '@/types/task.types';
+import { usePanelIcon, usePanelIconComponent } from '@/hooks/usePanelIcon';
 
 // Need useApp for ViewField
 import { useApp } from '@/providers/AppProvider';
@@ -87,6 +88,7 @@ export const TaskSidebar: React.FC<PanelProps> = memo(({ zIndex, onClose, isOpen
     mode, selectedTask, formState, breadcrumbs,
     closeSidebar, updateFormField, openEditSidebar,
   } = useTaskSidebarStore();
+  const icon = usePanelIconComponent(panelId);
   const position = usePanelPosition(panelId); 
   
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -175,6 +177,7 @@ export const TaskSidebar: React.FC<PanelProps> = memo(({ zIndex, onClose, isOpen
       isOpen={panelIsOpen} 
       zIndex={zIndex} 
       onClose={handleClose}
+      icon={icon}
       panelId={panelId}  
       title={title} 
       breadcrumbs={breadcrumbs}

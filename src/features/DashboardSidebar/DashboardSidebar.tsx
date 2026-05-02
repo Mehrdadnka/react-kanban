@@ -1,6 +1,6 @@
-import React, { memo } from 'react';
+import React, { memo, useMemo } from 'react';
 
-import { useDashboardSidebarStore } from '@/stores/dashboard-sidebar.store';
+import { useDashboardSidebarStore } from '@/stores/sidebar-engine/dashboard-sidebar.store';
 import { useApp } from '@/providers/AppProvider';
 import { useRouter } from '@/router';
 import { PanelProps } from '@/stores/sidebar-engine/sidebar-engine.types';
@@ -16,6 +16,7 @@ import TaskOverviewContent from './components/TaskOverviewContent';
 import RecentTasksContent from './components/RecentTasksContent';
 import PriorityBreakdownContent from './components/PriorityBreakdownContent';
 import FilteredTaskListContent from './components/FilteredTaskListContent';
+import { WIDGET_ICONS } from '@/config/panel-icons.config';
 
 // ============ Main Content ============
 export const DashboardSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose, panelId }) => {
@@ -24,8 +25,36 @@ export const DashboardSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose, p
   const { activeWidget, widgetData, closeSidebar } = useDashboardSidebarStore();
 
   const config = activeWidget ? widgetConfig[activeWidget] : null;
-  const icon = usePanelIconComponent(panelId);
   const position = usePanelPosition(panelId); 
+
+  const icon = useMemo(() => {
+
+    if (!activeWidget) {
+      const panelIcon = WIDGET_ICONS['dashboard-sidebar' as keyof typeof WIDGET_ICONS];
+      if (panelIcon) {
+        const Icon = panelIcon.icon;
+        return <Icon size={20} />;
+      }
+      return null;
+    }
+    
+    const widgetIcon = WIDGET_ICONS[activeWidget as keyof typeof WIDGET_ICONS];
+  
+    if (widgetIcon) {
+      const Icon = widgetIcon.icon;
+      return <Icon size={20} />;
+    }
+    
+    return null;
+  }, [activeWidget]);
+
+  const title = useMemo(() => {
+    if (config) return config.title;
+    
+    // Fallback
+    const panelIcon = WIDGET_ICONS['dashboard-sidebar' as keyof typeof WIDGET_ICONS];
+    return panelIcon?.label || 'Dashboard';
+  }, [config]);
   
 
   const handleClose = () => {
@@ -100,7 +129,7 @@ export const DashboardSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose, p
       position={position}
       onClose={handleClose}
       panelId={panelId} 
-      title={config?.title || ''}
+      title={title}
       icon={icon}
       breadcrumbs={config?.breadcrumbs}
     >

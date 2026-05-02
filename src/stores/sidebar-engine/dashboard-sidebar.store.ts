@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { Task } from '@/types/task.types';
+import { useSidebarEngineStore } from './sidebar-engine.store';
 
 export type DashboardWidgetType = 
   | 'task-overview'
@@ -61,6 +62,8 @@ export const useDashboardSidebarStore = create<DashboardSidebarState>((set) => (
       activeWidget: widgetType,
       widgetData: data,
     });
+    const engine = useSidebarEngineStore.getState();
+    engine.open('dashboard-sidebar', { activeWidget: widgetType });
   },
   
   closeSidebar: () => {

@@ -3,8 +3,9 @@ import { useTaskStore } from '@/stores/task.store';
 import { Widget } from '../Widget';
 import { Flag, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useDashboardSidebarStore } from '@/stores/dashboard-sidebar.store';
+import { useDashboardSidebarStore } from '@/stores/sidebar-engine/dashboard-sidebar.store';
 import { useSidebarEngineStore } from '@/stores/sidebar-engine/sidebar-engine.store';
+import { WIDGET_ICONS } from '@/config/panel-icons.config';
 
 const priorityConfig = {
   high: {
@@ -38,6 +39,10 @@ const priorityConfig = {
 
 export const PriorityBreakdownWidget: React.FC = () => {
   const tasks = useTaskStore(state => state.tasks);
+
+  const widgetConfig = WIDGET_ICONS['priority-breakdown'];
+  const Icon = widgetConfig.icon;
+  const label = widgetConfig.label;
   
   const getPriorityCount = (priority: 'high' | 'medium' | 'low') => 
     tasks.filter(t => t.priority === priority).length;
@@ -83,8 +88,8 @@ export const PriorityBreakdownWidget: React.FC = () => {
 
   return (
     <Widget 
-      title="Priorities" 
-      icon={<Flag size={16} />}
+      title={label}
+      icon={<Icon size={16} />}
       onClick={openPrioritySidebar}
     >
       <div className="space-y-3 h-[calc(50vh-160px)] flex flex-col items-start justify-between">

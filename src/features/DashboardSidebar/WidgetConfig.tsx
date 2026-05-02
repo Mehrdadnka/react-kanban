@@ -1,5 +1,5 @@
 import { WIDGET_ICONS } from '@/config/panel-icons.config';
-import { DashboardWidgetType } from '@/stores/dashboard-sidebar.store';
+import { DashboardWidgetType } from '@/stores/sidebar-engine/dashboard-sidebar.store';
 import { BreadcrumbItem } from '@/types/sidebar.types';
 
 export const widgetConfig: Record<DashboardWidgetType, {

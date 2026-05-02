@@ -8,7 +8,7 @@ import { IconButton } from '@radix-ui/themes';
 import { cn } from '@/lib/utils';
 import { CheckCircle2, ClipboardList, Plus, Zap } from 'lucide-react';
 import { useApp } from '@/providers/AppProvider';
-import { useTaskSidebarStore } from '@/stores/task-sidebar.store';
+import { useTaskSidebarStore } from '@/stores/sidebar-engine/task-sidebar.store';
 
 const columns = [
   { id: 'todo', title: 'Todo', icon: <ClipboardList />,color: 'text-blue-500' },

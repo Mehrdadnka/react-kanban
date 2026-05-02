@@ -1,9 +1,6 @@
 import React, { useCallback } from 'react';
 import { cn } from '@/lib/utils';
-import { 
-  Moon, Sun, Home, Search, ListTodo, 
-  CheckSquare, LayoutDashboard, Minus 
-} from 'lucide-react';
+import { Moon, Sun, Search } from 'lucide-react';
 import { useApp } from '@/providers/AppProvider';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { TooltipProvider } from '@radix-ui/react-tooltip';
@@ -12,26 +9,13 @@ import { useSearchSidebarStore } from '@/stores/sidebar-engine/search-sidebar.st
 import { useSidebarEngineStore } from '@/stores/sidebar-engine/sidebar-engine.store';
 import { useShallow } from 'zustand/react/shallow';
 import { Separator } from '../ui/separator/Separator';
-
-const panelMeta: Record<string, { icon: React.ReactNode; label: string }> = {
-  'task-sidebar': {
-    icon: <CheckSquare size={20} />,
-    label: 'Task Panel',
-  },
-  'dashboard-sidebar': {
-    icon: <LayoutDashboard size={20} />,
-    label: 'Dashboard',
-  },
-  'search-sidebar': {
-    icon: <Search size={20} />,
-    label: 'Search',
-  },
-};
+import { PANEL_ICONS, NAV_ICONS, WIDGET_ICONS } from '@/config/panel-icons.config';
+import type { LucideIcon } from 'lucide-react';
 
 const Sidebar = () => {
   const { isDarkMode, toggleDarkMode, time } = useApp();
   const { navigate, currentPath } = useRouter();
-  const { openSearch, closeSearch } = useSearchSidebarStore();
+  const { openSearch } = useSearchSidebarStore();
   
   const searchPanelState = useSidebarEngineStore(
     useShallow((state) => state.panels['search-sidebar'])
@@ -59,10 +43,9 @@ const Sidebar = () => {
     }
   }, [isSearchOpen, isSearchMinimized, openSearch]);
 
-  const mainNavItems = [
-    { id: 'home', icon: <Home size={22} />, path: '/', label: 'Home' },
-    { id: 'tasks', icon: <ListTodo size={22} />, path: '/tasks', label: 'Tasks' },
-  ];
+  
+  const searchConfig = PANEL_ICONS['search-sidebar'];
+  const SearchIcon = searchConfig.icon;
 
   const handleNavigation = (path: string) => {
     if (path) navigate(path);
@@ -81,15 +64,17 @@ const Sidebar = () => {
       >
         {/* Main Navigation */}
         <nav className="flex flex-col items-center gap-1 py-4">
-          {mainNavItems.map((item) => {
-            const isActive = currentPath === item.path ||
-              (item.path !== '/' && currentPath.startsWith(item.path as string));
+          {Object.entries(NAV_ICONS).map(([id, config]) => {
+            const Icon = config.icon;
+            const path = id === 'home' ? '/' : `/${id}`;
+            const isActive = currentPath === path ||
+              (path !== '/' && currentPath.startsWith(path));
 
             return (
-              <Tooltip.Root key={item.id} delayDuration={300}>
+              <Tooltip.Root key={id} delayDuration={300}>
                 <Tooltip.Trigger asChild>
                   <button
-                    onClick={() => handleNavigation(item.path as string)}
+                    onClick={() => handleNavigation(path)}
                     className={cn(
                       'w-10 h-10 rounded-xl flex items-center justify-center',
                       'transition-all duration-200 relative group',
@@ -102,7 +87,7 @@ const Sidebar = () => {
                         : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'
                     )}
                   >
-                    {item.icon}
+                    <Icon size={22} />
                   </button>
                 </Tooltip.Trigger>
                 <Tooltip.Portal>
@@ -115,7 +100,7 @@ const Sidebar = () => {
                         : 'bg-white border-gray-200 text-gray-700'
                     )}
                   >
-                    {item.label}
+                    {config.label}
                     <Tooltip.Arrow className={isDarkMode ? 'fill-gray-800' : 'fill-white'} />
                   </Tooltip.Content>
                 </Tooltip.Portal>
@@ -124,64 +109,80 @@ const Sidebar = () => {
           })}
         </nav>
         
-        <Separator isDarkMode={isDarkMode} className='w-10 mx-auto' size='2' />
 
-        {/* Minimized Panels Section */}
-        {minimizedPanelIds.filter(id => id !== 'search-sidebar').length > 0 && (
-          <>            
-            <div className="flex flex-col items-center gap-2 mt-4">
-              {minimizedPanelIds
-                .filter(id => id !== 'search-sidebar') 
-                .map((panelId) => {
-                  const meta = panelMeta[panelId];
-                  if (!meta) return null;
-                  
-                  return (
-                    <Tooltip.Root key={panelId} delayDuration={300}>
-                      <Tooltip.Trigger asChild>
-                        <button
-                          onClick={() => restorePanel(panelId)}
-                          className={cn(
-                            'w-10 h-10 rounded-xl flex items-center justify-center',
-                            'transition-all duration-200 relative group',
-                            isDarkMode
-                              ? 'text-gray-500 hover:text-gray-200 hover:bg-gray-800 bg-gray-800/30 ring-1 ring-gray-700'
-                              : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100 bg-gray-100/50 ring-1 ring-gray-200'
-                          )}
-                        >
-                          {meta.icon}
-                      
-                        </button>
-                      </Tooltip.Trigger>
-                      <Tooltip.Portal>
-                        <Tooltip.Content
-                          side="right" sideOffset={10}
-                          className={cn(
-                            'rounded-lg px-3 py-1.5 text-sm font-medium shadow-lg border z-[9999]',
-                            isDarkMode
-                              ? 'bg-gray-800 border-gray-700 text-gray-200'
-                              : 'bg-white border-gray-200 text-gray-700'
-                          )}
-                        >
-                          {meta.label} (Minimized)
-                          <Tooltip.Arrow className={isDarkMode ? 'fill-gray-800' : 'fill-white'} />
-                        </Tooltip.Content>
-                      </Tooltip.Portal>
-                    </Tooltip.Root>
-                  );
-                })}
-            </div>
-          </>
-        )}
+{/* Minimized Panels Section */}
+{minimizedPanelIds.filter(id => id !== 'search-sidebar').length > 0 && (
+  <>            
+    <Separator isDarkMode={isDarkMode} className='w-10 mx-auto' size='2' />
+    <div className="flex flex-col items-center gap-2 mt-4">
+      {minimizedPanelIds
+        .filter(id => id !== 'search-sidebar') 
+        .map((panelId) => {
+          // ✅ گرفتن metadata برای dashboard-sidebar
+          const panel = useSidebarEngineStore.getState().getPanelState(panelId);
+          let icon: LucideIcon;
+          let label: string;
+          
+          if (panelId === 'dashboard-sidebar' && panel?.metadata?.activeWidget) {
+            const widgetConfig = WIDGET_ICONS[panel.metadata.activeWidget as string];
+            icon = widgetConfig?.icon || PANEL_ICONS[panelId]?.icon;
+            label = widgetConfig?.label || PANEL_ICONS[panelId]?.label;
+          } else {
+            const baseConfig = PANEL_ICONS[panelId];
+            if (!baseConfig) return null;
+            icon = baseConfig.icon;
+            label = baseConfig.label;
+          }
+          
+          const Icon = icon;
+          
+          return (
+            <Tooltip.Root key={panelId} delayDuration={300}>
+              <Tooltip.Trigger asChild>
+                <button
+                  onClick={() => restorePanel(panelId)}
+                  className={cn(
+                    'w-10 h-10 rounded-xl flex items-center justify-center',
+                    'transition-all duration-200 relative group',
+                    isDarkMode
+                      ? 'text-gray-500 hover:text-gray-200 hover:bg-gray-800 bg-gray-800/30 ring-1 ring-gray-700'
+                      : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100 bg-gray-100/50 ring-1 ring-gray-200'
+                  )}
+                >
+                  <Icon size={20} />
+                </button>
+              </Tooltip.Trigger>
+              <Tooltip.Portal>
+                <Tooltip.Content
+                  side="right" sideOffset={10}
+                  className={cn(
+                    'rounded-lg px-3 py-1.5 text-sm font-medium shadow-lg border z-[9999]',
+                    isDarkMode
+                      ? 'bg-gray-800 border-gray-700 text-gray-200'
+                      : 'bg-white border-gray-200 text-gray-700'
+                  )}
+                >
+                  {label} (Minimized)
+                  <Tooltip.Arrow className={isDarkMode ? 'fill-gray-800' : 'fill-white'} />
+                </Tooltip.Content>
+              </Tooltip.Portal>
+            </Tooltip.Root>
+          );
+        })}
+    </div>
+  </>
+)}
 
         <div className="flex-1" />
+        
+        {/* Search Button */}
         <div className="mx-auto gap-2 mb-4">
           <Tooltip.Root delayDuration={300}>
             <Tooltip.Trigger asChild>
               <button
                 onClick={handleSearchClick}
                 className={cn(
-                  'w-10 h-10 rounded-xl flex items-center justify-center mt-1',
+                  'w-10 h-10 rounded-xl flex items-center justify-center',
                   'transition-all duration-200 relative group',
                   isSearchOpen
                     ? isDarkMode
@@ -189,14 +190,14 @@ const Sidebar = () => {
                       : 'bg-blue-50 text-blue-600 shadow-md'
                     : isSearchMinimized
                       ? isDarkMode
-                        ? 'text-gray-500 bg-gray-800/30 ring-1 ring-gray-700'  // minimize
+                        ? 'text-gray-500 bg-gray-800/30 ring-1 ring-gray-700'
                         : 'text-gray-400 bg-gray-100/50 ring-1 ring-gray-200'
                       : isDarkMode
                         ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'  
                         : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'
                 )}
               >
-                <Search size={22} />
+                <SearchIcon size={22} />
               </button>
             </Tooltip.Trigger>
             <Tooltip.Portal>
@@ -209,7 +210,7 @@ const Sidebar = () => {
                     : 'bg-white border-gray-200 text-gray-700'
                 )}
               >
-                {isSearchMinimized ? 'Search (Minimized)' : isSearchOpen ? 'Close Search' : 'Search'}
+                {isSearchMinimized ? `${searchConfig.label} (Minimized)` : isSearchOpen ? `Close ${searchConfig.label}` : searchConfig.label}
                 <Tooltip.Arrow className={isDarkMode ? 'fill-gray-800' : 'fill-white'} />
               </Tooltip.Content>
             </Tooltip.Portal>

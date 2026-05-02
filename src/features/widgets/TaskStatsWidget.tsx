@@ -4,10 +4,11 @@ import { Widget } from '../Widget';
 import { CheckCircle2, ListTodo, ClipboardList, ArrowUpRight, TrendingUp, Activity, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useApp } from '@/providers/AppProvider';
-import { useDashboardSidebarStore } from '@/stores/dashboard-sidebar.store';
+import { useDashboardSidebarStore } from '@/stores/sidebar-engine/dashboard-sidebar.store';
 import { useSidebarEngineStore } from '@/stores/sidebar-engine/sidebar-engine.store';
-import type { TaskFilterType } from '@/stores/dashboard-sidebar.store';
+import type { TaskFilterType } from '@/stores/sidebar-engine/dashboard-sidebar.store';
 import { ActivityHeatmap } from './ActivityHeatmap';
+import { WIDGET_ICONS } from '@/config/panel-icons.config';
 
 interface StatCardProps {
   icon: React.ElementType;
@@ -65,6 +66,10 @@ export const TaskStatsWidget: React.FC = () => {
   const tasks = useTaskStore(state => state.tasks);
   const { isDarkMode } = useApp();
   const { openSidebar } = useDashboardSidebarStore();
+
+  const widgetConfig = WIDGET_ICONS['task-overview'];
+  const Icon = widgetConfig.icon;
+  const label = widgetConfig.label;
 
   const filteredTasks = {
     all: tasks,
@@ -145,8 +150,8 @@ export const TaskStatsWidget: React.FC = () => {
 
   return (
     <Widget 
-      title="Task Overview" 
-      icon={<ClipboardList size={16} />}
+      title={label}
+      icon={<Icon size={16} />}
       fullHeight
     >
       <div className="flex flex-col h-[calc(100vh-180px)] sm:h-[calc(100vh-200px)] lg:h-[calc(100vh-220px)] gap-3 sm:gap-4 overflow-hidden">

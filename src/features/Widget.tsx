@@ -2,6 +2,7 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 
 interface WidgetProps {
+  widgetId?: string; 
   title: string;
   icon?: React.ReactNode;
   children: React.ReactNode;

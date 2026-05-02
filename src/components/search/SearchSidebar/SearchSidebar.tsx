@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, memo } from 'react';
-import { Search, X, ArrowRight, Clock } from 'lucide-react';
+import { Search, X, ArrowRight } from 'lucide-react';
 import { PanelProps } from '@/stores/sidebar-engine/sidebar-engine.types';
 import { useTaskStore } from '@/stores/task.store';
-import { useTaskSidebarStore } from '@/stores/task-sidebar.store';
+import { useTaskSidebarStore } from '@/stores/sidebar-engine/task-sidebar.store';
 import { useRouter } from '@/router';
 
 import { SidebarShell } from '@/components/sidebar-ui-engine/SidebarShell';
@@ -10,6 +10,7 @@ import { SidebarTaskCard } from '@/components/sidebar-ui-engine/SidebarTaskCard'
 import { SidebarInput } from '@/components/sidebar-ui-engine/SidebarInput';
 import { useSearchSidebarStore } from '@/stores/sidebar-engine/search-sidebar.store';
 import { usePanelPosition } from '@/stores/sidebar-engine/sidebar-engine.store';
+import { usePanelIconComponent } from '@/hooks/usePanelIcon';
 
 export const SearchSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose, panelId }) => {
   const { query, results, setQuery, search, closeSearch } = useSearchSidebarStore();
@@ -17,6 +18,7 @@ export const SearchSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose, pane
   const { navigate } = useRouter();
   const { openViewSidebar } = useTaskSidebarStore();
   const inputRef = useRef<HTMLInputElement>(null);
+  const icon = usePanelIconComponent(panelId);
   const position = usePanelPosition(panelId); 
   
 
@@ -69,7 +71,7 @@ export const SearchSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose, pane
       onClose={handleClose}
       panelId={panelId}
       title="Search Tasks"
-      icon={<Search size={20} />}
+      icon={icon}
       breadcrumbs={[{ label: 'Search' }]}
     >
       <div className="space-y-6">

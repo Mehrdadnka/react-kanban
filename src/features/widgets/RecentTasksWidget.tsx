@@ -6,12 +6,17 @@ import { useRouter } from '@/router';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge/Badge';
 import { useSidebarEngineStore } from '@/stores/sidebar-engine/sidebar-engine.store';
-import { useDashboardSidebarStore } from '@/stores/dashboard-sidebar.store';
+import { useDashboardSidebarStore } from '@/stores/sidebar-engine/dashboard-sidebar.store';
 import { PriorityColors } from '@/components/ui/PriorityColors';
+import { WIDGET_ICONS } from '@/config/panel-icons.config';
 
 export const RecentTasksWidget: React.FC = () => {
   const tasks = useTaskStore(state => state.tasks);
   const { navigate } = useRouter();
+
+  const widgetConfig = WIDGET_ICONS['recent-tasks'];
+  const Icon = widgetConfig.icon;
+  const label = widgetConfig.label;
 
   const recentTasks = useMemo(() => {
     return [...tasks]
@@ -46,8 +51,8 @@ export const RecentTasksWidget: React.FC = () => {
 
   return (
     <Widget 
-      title="Recent Tasks" 
-      icon={<Clock size={16} />}
+      title={label} 
+      icon={<Icon size={16} />}
       onClick={openDashboardSidebar} 
     >
       <div className="space-y-1.5 h-[calc(50vh-160px)]">
