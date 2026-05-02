@@ -199,76 +199,122 @@ All panels share a unified, responsive action button architecture:
 
 The `PanelActions` composer handles responsive switching automatically, ensuring consistent interaction patterns across all panels.
 
----
-
 ## Sidebar UI Engine
 
-A **reusable atomic component library** that standardizes all sidebar panel UIs across the application. Built on the principle of "dumb UI, smart stores"—panels become pure logic orchestrators while the engine handles all visual consistency.
+A **reusable atomic component library** that standardizes all sidebar panel UIs across the application. Built on the principle of "dumb UI, smart stores"—panels become pure logic orchestrators while the engine handles all visual consistency, animations, dark mode, and responsive behavior.
 
 ### Architecture
 
 ```
-┌───────────────────────────────────────────┐
-│          Sidebar Panels (Logic)           │
-│  ┌────────────┐  ┌──────────────────┐     │
-│  │ TaskSidebar│  │ DashboardSidebar │     │
-│  │ (form,     │  │ (stats, lists,   │     │
-│  │  CRUD)     │  │  navigation)     │     │
-│  └─────┬──────┘  └────────┬─────────┘     │
-│        │                  │               │
-│        └────────┬─────────┘               │
-│                 ▼                         │
-│  ┌─────────────────────────────────────┐  │
-│  │       Sidebar UI Engine             │  │
-│  │  ┌───────────┐  ┌────────────────┐  │  │
-│  │  │ Container │  │ Form Elements  │  │  │
-│  │  │ - Shell   │  │ - Input        │  │  │
-│  │  │ - Action  │  │ - Textarea     │  │  │
-│  │  │   Bar     │  │ - Select       │  │  │
-│  │  ├───────────┤  ├────────────────┤  │  │
-│  │  │ Feedback  │  │ Data Display   │  │  │
-│  │  │ - Confirm │  │ - TaskCard     │  │  │
-│  │  │   Dialog  │  │ - StatsCard    │  │  │
-│  │  │ - Meta    │  │ - ProgressBar  │  │  │
-│  │  │   Info    │  │ - PriorityList │  │  │
-│  │  └───────────┘  └────────────────┘  │  │
-│  └─────────────────────────────────────┘  │
-└───────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────┐
+│               Sidebar Panels (Logic)                 │
+│  ┌─────────────┐  ┌───────────────────┐              │
+│  │ TaskSidebar │  │ DashboardSidebar  │              │
+│  │ (form,      │  │ (stats, lists,    │              │
+│  │  CRUD)      │  │  navigation)      │              │
+│  └──────┬──────┘  └────────┬──────────┘              │
+│         │                  │                         │
+│         └────────┬─────────┘                         │
+│                  ▼                                   │
+│  ┌───────────────────────────────────────────────┐   │
+│  │            Sidebar UI Engine                  │   │
+│  │                                               │   │
+│  │  ┌─────────────┐  ┌───────────────────────┐   │   │
+│  │  │  Container  │  │    Form Elements      │   │   │
+│  │  │  - Shell    │  │    - Input            │   │   │
+│  │  │  - Action   │  │    - Textarea         │   │   │
+│  │  │    Bar      │  │    - Select           │   │   │
+│  │  └─────────────┘  └───────────────────────┘   │   │
+│  │                                               │   │
+│  │  ┌─────────────┐  ┌───────────────────────┐   │   │
+│  │  │   Actions   │  │    Data Display       │   │   │
+│  │  │  - Close    │  │    - TaskCard         │   │   │
+│  │  │  - Minimize │  │    - StatsCard        │   │   │
+│  │  │  - Collapse │  │    - ProgressBar      │   │   │
+│  │  │  - Panel    │  │    - PriorityList     │   │   │
+│  │  │    Actions  │  │                       │   │   │
+│  │  └─────────────┘  └───────────────────────┘   │   │
+│  │                                               │   │
+│  │  ┌───────────────────────────────────────┐    │   │
+│  │  │            Feedback                   │    │   │
+│  │  │  - ConfirmDialog                      │    │   │
+│  │  │  - MetaInfo                           │    │   │
+│  │  └───────────────────────────────────────┘    │   │
+│  └───────────────────────────────────────────────┘   │
+└──────────────────────────────────────────────────────┘
 ```
 
-### Core Components (11 atomic pieces)
+### Core Components (15 atomic pieces)
 
-| Category | Component | Purpose |
-|----------|-----------|---------|
-| **Container** | `SidebarShell` | Universal wrapper: responsive slide animation, ESC dismissal, overlay, breadcrumbs, dark/light theme, unified action buttons |
-| | `SidebarActionBar` | Footer with `ActionLeft`/`ActionRight` composition groups |
-| **Form** | `SidebarInput` | Text input with view/edit mode, dark mode, auto-focus support |
-| | `SidebarTextarea` | Multi-line input with disabled state transparency styling |
-| | `SidebarSelect` | Dropdown with icon-augmented options, theme-aware styling |
-| **Data Display** | `SidebarTaskCard` | Task card in two variants: `compact` (widget lists) and `detailed` (search results, filtered views) |
-| | `SidebarStatsCard` | Metric card with icon, value, hover scale effect, and navigation arrow |
-| | `SidebarProgressBar` | Animated gradient progress bar with label, percentage, and optional children |
-| | `SidebarPriorityList` | Priority breakdown with icons, counts, percentages, and color-coded progress bars |
-| **Feedback** | `SidebarConfirmDialog` | Two-step delete confirmation with destructive/warning visual variants |
-| | `SidebarMetaInfo` | Key-value metadata display for view mode (timestamps, status, etc.) |
+| # | Category | Component | Purpose |
+|---|----------|-----------|---------|
+| 1 | **Container** | `SidebarShell` | Universal wrapper: responsive slide animation, ESC dismissal, position-aware overlay, breadcrumbs, dark/light theme, header with icon + title + action buttons |
+| 2 | | `SidebarActionBar` | Footer with `ActionLeft`/`ActionRight` composition groups for button placement |
+| 3 | **Form** | `SidebarInput` | Text input with view/edit mode, dark mode styling, auto-focus via ref forwarding |
+| 4 | | `SidebarTextarea` | Multi-line input with disabled state transparency, resizable textarea |
+| 5 | | `SidebarSelect` | Dropdown with icon-augmented options, theme-aware trigger and content |
+| 6 | **Data Display** | `SidebarTaskCard` | Task card in two variants: `compact` (widget lists, status dot + badge) and `detailed` (search results, filtered views, priority + date + description) |
+| 7 | | `SidebarStatsCard` | Metric card with icon, value, hover scale effect, and navigation arrow |
+| 8 | | `SidebarProgressBar` | Animated gradient progress bar with label, percentage, and optional children slot |
+| 9 | | `SidebarPriorityList` | Priority breakdown with icons, counts, percentages, and color-coded progress bars |
+| 10 | **Feedback** | `SidebarConfirmDialog` | Two-step delete confirmation with destructive (`red`) and warning (`yellow`) visual variants, icon slot |
+| 11 | | `SidebarMetaInfo` | Key-value metadata display for view mode (timestamps, status badges, etc.) |
+| 12 | **Actions** | `CloseButton` | Atomic close button (`X` icon), 3 sizes, ghost/solid variants, dark mode |
+| 13 | | `MinimizeButton` | Atomic minimize button (`Minus` icon), 3 sizes, ghost style, dark mode |
+| 14 | | `CollapseButton` | Atomic collapse button with custom `CollapseIcon` SVG, 3 sizes, ghost/solid variants |
+| 15 | | `PanelActions` | Responsive composer: separate ghost buttons on desktop, unified pill container with divider on mobile—automatically adapts to viewport |
+| * | *(icon)* | `CollapseIcon` | Custom SVG icon: rounded panel rectangle with vertical divider line and chevron arrow |
+
+### Category Breakdown
+
+```
+Container   ██░░░░░░░░  (2)  Shell + ActionBar
+Form        ███░░░░░░░  (3)  Input + Textarea + Select
+Data        ████░░░░░░  (4)  TaskCard + StatsCard + ProgressBar + PriorityList
+Feedback    ██░░░░░░░░  (2)  ConfirmDialog + MetaInfo
+Actions     █████░░░░░  (5)  CloseButton + MinimizeButton + CollapseButton + PanelActions + CollapseIcon
+            ─────────
+            15 atomic pieces
+```
+
+### Responsive Action System
+
+The `PanelActions` composer encapsulates all responsive logic for panel control buttons:
+
+| Context | Desktop (≥768px) | Mobile (<768px) |
+|---------|------------------|-----------------|
+| **Panel header** | Two separate ghost buttons: `MinimizeButton` + `CloseButton` | Single unified pill container with vertical divider: `CollapseIcon` + `CloseButton` |
+| **Main sidebar drawer** | N/A (fixed sidebar) | `CollapseButton` (solid variant, larger touch target) |
+| **Overlay panels** | Ghost buttons inline | Pill container, matches sidebar hamburger style |
+
+This ensures consistent, platform-native interaction patterns across all device sizes without any conditional logic in panel code.
 
 ### Why a Separate UI Engine?
 
-| Without Engine | With Engine |
-|----------------|-------------|
-| Each panel duplicates animation, ESC, overlay logic | `SidebarShell` encapsulates it once |
-| Dark mode classes scattered across panel implementations | Single `isDarkMode` prop propagation |
-| Inconsistent spacing, typography, hover states | Standardized via atomic components |
-| 200+ lines of duplicated task card markup | One `SidebarTaskCard` with variant prop |
-| Adding a new panel = copy-paste boilerplate | Adding a new panel = compose from existing atoms |
+| Concern | Without Engine | With Engine |
+|---------|---------------|-------------|
+| **Animation & ESC logic** | Each panel duplicates 30+ lines | `SidebarShell` encapsulates once |
+| **Dark mode** | Classes scattered across 10+ files | Single `isDarkMode` prop propagation |
+| **Spacing & typography** | Inconsistent across panels | Standardized via atomic components |
+| **Task card rendering** | 200+ lines duplicated across widgets | One `SidebarTaskCard` with `variant` prop |
+| **Action buttons** | Each panel hand-crafts close/minimize | `PanelActions` composer, responsive by default |
+| **New panel creation** | Copy-paste 150+ lines of boilerplate | Compose from existing 15 atoms in minutes |
+| **Testing** | Test duplication across panels | Test each atom once, compose with confidence |
 
 ### Example: Building a New Panel
 
 ```tsx
-// CalendarSidebar.tsx - assembled in minutes with existing atoms
+// CalendarSidebar.tsx — assembled in minutes with existing atoms
 const CalendarSidebar: React.FC<PanelProps> = ({ isOpen, onClose, isDarkMode }) => (
-  <SidebarShell isOpen={isOpen} onClose={onClose} isDarkMode={isDarkMode} 
-    title={event.title} icon={<Calendar />}>
+  <SidebarShell 
+    isOpen={isOpen} 
+    onClose={onClose} 
+    isDarkMode={isDarkMode} 
+    panelId="calendar-panel"
+    title={event.title} 
+    icon={<Calendar />}
+    showMinimize
+  >
     <SidebarMetaInfo items={[
       { icon: <Clock />, label: 'Date', value: event.date },
       { icon: <MapPin />, label: 'Location', value: event.location },
@@ -282,9 +328,7 @@ const CalendarSidebar: React.FC<PanelProps> = ({ isOpen, onClose, isDarkMode }) 
 );
 ```
 
-**Result:** 90% less boilerplate per new panel, 100% consistent UI, zero duplicated animation/theme logic.
-
----
+**Result:** 90% less boilerplate per new panel, 100% consistent UI, zero duplicated animation/theme logic. The panel inherits responsive behavior, dark mode, minimize/restore, ESC dismissal, and overlay coordination automatically.
 
 ## Centralized Icon Registry
 
