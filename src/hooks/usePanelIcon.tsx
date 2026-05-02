@@ -19,3 +19,5 @@ export const usePanelIconComponent = (panelId?: string, size: number = 20) => {
     return <Icon size={size} />;
   }, [panelId, size]);
 };
+
+

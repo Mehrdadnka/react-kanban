@@ -25,12 +25,12 @@ interface SidebarShellProps {
 const maxWidthClasses = {
   sm: 'max-w-sm',
   md: 'max-w-md',
-  lg: 'max-w-lg',
+  lg: 'lg:max-w-lg',
   xl: 'max-w-xl',
 };
 
 const positionClasses: Record<PanelPosition, string> = {
-  left: 'left-0 ml-16',
+  left: 'left-0 lg:ml-16 ml-0 ',
   right: 'right-0',
   overlay: 'left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 h-auto max-h-[80vh] rounded-xl',
 };
