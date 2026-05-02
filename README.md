@@ -237,8 +237,8 @@ A **reusable atomic component library** that standardizes all sidebar panel UIs 
 │  │                                               │   │
 │  │  ┌───────────────────────────────────────┐    │   │
 │  │  │            Feedback                   │    │   │
-│  │  │  - ConfirmDialog                      │    │   │
-│  │  │  - MetaInfo                           │    │   │
+│  │  │             - ConfirmDialog           │    │   │
+│  │  │             - MetaInfo                │    │   │
 │  │  └───────────────────────────────────────┘    │   │
 │  └───────────────────────────────────────────────┘   │
 └──────────────────────────────────────────────────────┘
