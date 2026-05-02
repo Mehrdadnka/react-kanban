@@ -152,12 +152,12 @@ The main application sidebar underwent a comprehensive architectural decompositi
 │  │                    │                   │  │
 │  │     ┌──────────────┼──────────────┐    │  │
 │  │     │              │              │    │  │
-│  │  ┌──▼──┐ ┌────────▼──┐ ┌───────▼──┐   │  │
-│  │  │ Nav │ │ Minimized │ │  Tools  │   │  │
-│  │  │ Sec │ │  Section  │ │ Section │   │  │
-│  │  └─────┘ └───────────┘ └──────────┘   │  │
+│  │  ┌──▼──┐ ┌────────▼──┐ ┌──────────▼┐   │  │
+│  │  │ Nav │ │ Minimized │ │    Tools  │   │  │
+│  │  │ Sec │ │  Section  │ │  Section  │   │  │
+│  │  └─────┘ └───────────┘ └───────────┘   │  │
 │  │  ┌──────────────────────────────────┐  │  │
-│  │  │         SidebarClock            │  │  │
+│  │  │         SidebarClock             │  │  │
 │  │  └──────────────────────────────────┘  │  │
 │  └────────────────────────────────────────┘  │
 │                                              │
@@ -171,12 +171,6 @@ The main application sidebar underwent a comprehensive architectural decompositi
 │  │   ├── SidebarToolsSection.tsx             │
 │  │   ├── SidebarClock.tsx                    │
 │  │   ├── HamburgerMenu.tsx                   │
-│  │   └── buttons/                            │
-│  │       ├── CloseButton.tsx                 │
-│  │       ├── MinimizeButton.tsx              │
-│  │       ├── CollapseButton.tsx              │
-│  │       ├── CollapseIcon.tsx (SVG)          │
-│  │       └── PanelActions.tsx  (composer)    │
 │  └── hooks/                                  │
 │      ├── useSearchControl.ts                 │
 │      └── useMinimizedPanelIcon.ts            │
@@ -436,8 +430,11 @@ src/
 │   │   ├── SidebarStatsCard.tsx   # Metric card with icon & value
 │   │   ├── SidebarProgressBar.tsx # Animated progress bar
 │   │   ├── SidebarPriorityList.tsx # Priority breakdown list
-│   │   ├── PanelActions.tsx       # Responsive close/minimize composer
+│   │   ├── CloseButton.tsx        # Atomic close button (X icon)
+│   │   ├── MinimizeButton.tsx     # Atomic minimize button (Minus icon)
+│   │   ├── CollapseButton.tsx     # Atomic collapse button (custom SVG)
 │   │   ├── CollapseIcon.tsx       # Custom SVG collapse icon
+│   │   ├── PanelActions.tsx       # Responsive close/minimize composer
 │   │   └── index.ts               # Barrel exports
 │   ├── board/                     # Kanban board, columns, task cards
 │   │   └── __test__/              # Board component tests
@@ -448,9 +445,18 @@ src/
 ├── hooks/                         # Custom React hooks
 ├── features/
 │   ├── sidebar/                   # Main sidebar feature module
-│   │   ├── components/            # Atomic sidebar components
-│   │   │   └── buttons/           # Action button atoms
-│   │   └── hooks/                 # Sidebar-specific hooks
+│   │   ├── components/            # Sidebar structure components
+│   │   │   ├── SidebarProvider.tsx    # Context + TooltipProvider
+│   │   │   ├── SidebarContainer.tsx   # Desktop fixed / mobile drawer
+│   │   │   ├── SidebarItem.tsx        # Icon-only / full variants
+│   │   │   ├── SidebarNavSection.tsx  # Navigation items
+│   │   │   ├── SidebarMinimizedSection.tsx # Minimized panel indicators
+│   │   │   ├── SidebarToolsSection.tsx     # Search + theme toggle
+│   │   │   ├── SidebarClock.tsx            # Responsive clock display
+│   │   │   └── HamburgerMenu.tsx           # Mobile trigger button
+│   │   └── hooks/                 # Sidebar-specific logic
+│   │       ├── useSearchControl.ts        # Search panel state machine
+│   │       └── useMinimizedPanelIcon.ts   # Dynamic minimized icons
 │   ├── TaskSidebar/               # Task detail/edit/create panel
 │   ├── DashboardSidebar/          # Dashboard drill-down panel
 │   └── widgets/                   # Dashboard widgets
