@@ -12,6 +12,7 @@ A modern, high-performance Kanban board built with React 18 and TypeScript. Feat
 
 ![Dashboard](public/dashboard-screenshot.png)
 ![Dashboard Sidebar](public/dashboard-sidebar-inprogress.png)
+![Kanban Board](public/dashboard-sidebar-minimized.png)
 ![Kanban Board](public/taskboard-screenshot-minimized.png)
 ![Task Details](public/task-edit.png)
 
