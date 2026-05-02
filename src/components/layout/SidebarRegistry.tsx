@@ -1,5 +1,5 @@
 import React from 'react';
-import { TaskSidebar } from '@/components/board/TaskSidebar/TaskSidebar';
+import { TaskSidebar } from '@/features/TaskSidebar/TaskSidebar';
 import { DashboardSidebar } from '@/features/DashboardSidebar/DashboardSidebar';
 import { SearchSidebar } from '@/components/search/SearchSidebar/SearchSidebar';
 import { useSidebarPanel } from '@/hooks/useSidebarPanel';

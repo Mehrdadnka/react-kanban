@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import { PanelProps } from '@/stores/sidebar-engine/sidebar-engine.types';
 import { PriorityColors } from '@/components/ui/PriorityColors';
 import { Task } from '@/types/task.types';
-import { usePanelIcon, usePanelIconComponent } from '@/hooks/usePanelIcon';
+import { usePanelIconComponent } from '@/hooks/usePanelIcon';
 
 // Need useApp for ViewField
 import { useApp } from '@/providers/AppProvider';
@@ -25,61 +25,10 @@ import { SidebarActionBar, SidebarActionLeft, SidebarActionRight } from '@/compo
 import { SidebarConfirmDialog } from '@/components/sidebar-ui-engine/SidebarConfirmDialog';
 import { SidebarMetaInfo } from '@/components/sidebar-ui-engine/SidebarMetaInfo';
 import { usePanelPosition } from '@/stores/sidebar-engine/sidebar-engine.store';
-
-// ---------- Local Helpers ----------
-
-const statusLabels: Record<Task['status'], string> = {
-  'todo': 'Todo',
-  'in-progress': 'In Progress',
-  'done': 'Done',
-};
-
-const statusOptions = [
-  { value: 'todo', label: 'Todo', icon: <ClipboardList size={16} className="text-blue-500" /> },
-  { value: 'in-progress', label: 'In Progress', icon: <Zap size={16} className="text-yellow-500" /> },
-  { value: 'done', label: 'Done', icon: <CheckCircle2 size={16} className="text-green-500" /> },
-];
-
-const priorityOptions = [
-  { value: 'low', label: 'Low' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'high', label: 'High' },
-];
-
-const StatusIcon: React.FC<{ status: Task['status']; size?: number }> = ({ status, size = 20 }) => {
-  const props = { size };
-  switch (status) {
-    case 'todo': return <ClipboardList {...props} className="text-blue-500" />;
-    case 'in-progress': return <Zap {...props} className="text-yellow-500" />;
-    case 'done': return <CheckCircle2 {...props} className="text-green-500" />;
-  }
-};
-
-const PriorityBadge: React.FC<{ priority: Task['priority'] }> = ({ priority }) => (
-  <Badge variant="secondary" className={cn("text-xs capitalize", PriorityColors[priority])}>
-    {priority}
-  </Badge>
-);
-
-// ViewField component
-const ViewField: React.FC<{ label: string; icon?: React.ReactNode; value: React.ReactNode }> = ({ label, icon, value }) => {
-  const { isDarkMode } = useApp();
-  return (
-    <div>
-      <label className={cn("text-sm mb-1.5 block", isDarkMode ? "text-gray-300" : "text-gray-700")}>
-        {label}
-      </label>
-      <div className="mt-1.5 flex items-center gap-2 py-2 px-3 rounded-md border border-transparent">
-        {icon}
-        <span className="text-sm font-medium">
-          {typeof value === 'string' ? statusLabels[value as Task['status']] || value : value}
-        </span>
-      </div>
-    </div>
-  );
-};
-
-// ---------- Main Component ----------
+import { priorityOptions, statusLabels, statusOptions } from './utils';
+import ViewField from './components/ViewField';
+import StatusIcon from './components/StatusIcon';
+import PriorityBadge from './components/PriorityBadge';
 
 export const TaskSidebar: React.FC<PanelProps> = memo(({ zIndex, onClose, isOpen: panelIsOpen, panelId }) => {
   const { isDarkMode } = useApp();
