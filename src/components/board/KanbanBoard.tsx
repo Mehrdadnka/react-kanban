@@ -1,7 +1,7 @@
 import React from 'react';
 import { Column } from './Column';
 import { useTaskStore } from '@/stores/task.store';
-import { KanbanDndProvider } from './KanbanDndProvider';
+import { DndProvider } from '../../providers/DndProvider';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { TooltipProvider } from '@radix-ui/react-tooltip';
 import { IconButton } from '@radix-ui/themes';
@@ -23,7 +23,7 @@ export const KanbanBoard: React.FC = () => {
 
   return (
     <>
-      <KanbanDndProvider columns={columns}>
+      <DndProvider columns={columns}>
         <div className="mb-6 flex items-center justify-between w-full">
           <h1 className="lg:text-3xl sm:text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             TaskFlow Board
@@ -80,7 +80,7 @@ export const KanbanBoard: React.FC = () => {
             />
           ))}
         </div>
-      </KanbanDndProvider>
+      </DndProvider>
     </>
   );
 };

@@ -10,14 +10,14 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import { useTaskStore } from '@/stores/task.store';
-import { TaskCard } from './TaskCard';
+import { TaskCard } from '../components/board/TaskCard';
 
 interface KanbanDndProviderProps {
   children: React.ReactNode;
   columns: Array<{ id: string }>;
 }
 
-export const KanbanDndProvider: React.FC<KanbanDndProviderProps> = ({ 
+export const DndProvider: React.FC<KanbanDndProviderProps> = ({ 
   children, 
   columns 
 }) => {
