@@ -37,6 +37,7 @@ export interface ISidebarEngine {
   closeTop: () => void;
   closeAll: () => void;
   closeAllVisible: () => void; 
+  closeAllExcept: (exceptId: string) => void; 
   getPanelState: (id: string) => PanelState | undefined;
   isPanelOpen: (id: string) => boolean;
 }

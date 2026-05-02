@@ -1,6 +1,7 @@
 import React, { memo, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useSidebarEngineStore } from '../stores/sidebar-engine/sidebar-engine.store';
+import { cn } from '@/lib/utils';
 
 const PanelRenderer: React.FC = memo(() => {
   const panels = useSidebarEngineStore(state => state.panels);
@@ -12,14 +13,20 @@ const PanelRenderer: React.FC = memo(() => {
   const topPanelZIndex = visiblePanels.length > 0 
     ? Math.max(...visiblePanels.map(p => p.zIndex)) 
     : 0;
+  const topPanel = visiblePanels[visiblePanels.length - 1];
+  const isTopOverlay = topPanel?.config.priority === 20;
 
   return (
     <>
       {visiblePanels.length > 0 && (
         <div
           key="engine-overlay"
-          style={{ zIndex: topPanelZIndex - 100, marginLeft: '4rem' }}
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm"
+          style={{ zIndex: topPanelZIndex - 100, marginLeft: isTopOverlay ? '0' : '4rem', }}
+          className={cn(
+            "fixed inset-0 bg-black/20 backdrop-blur-sm",
+            // ✅ overlay تیره‌تر برای focus بیشتر
+            isTopOverlay && "bg-black/50"
+          )}
           onClick={closeTop}
           aria-hidden="true"
         />

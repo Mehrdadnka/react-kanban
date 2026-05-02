@@ -30,7 +30,7 @@ const SearchSidebarRegistrar: React.FC = () => {
   useSidebarPanel({
     id: 'search-sidebar',
     component: SearchSidebar,
-    priority: 15,
+    priority: 20,
     position: SIDEBAR_POSITION,
   });
   return null;

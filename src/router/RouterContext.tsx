@@ -27,7 +27,7 @@ export function RouterProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    useSidebarEngineStore.getState().closeAllVisible();
+    useSidebarEngineStore.getState().closeAllExcept('search-sidebar');
   }, [currentPath]);
 
   return (

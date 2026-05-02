@@ -182,6 +182,29 @@ export const useSidebarEngineStore = create<EngineStoreState>((set, get) => ({
       };
     });
   },
+
+  closeAllExcept: (exceptId: string) => {
+    set((state) => {
+      const updatedPanels = { ...state.panels };
+      Object.keys(updatedPanels).forEach(id => {
+        if (id !== exceptId) {
+          updatedPanels[id] = {
+            ...updatedPanels[id],
+            isOpen: false,
+            isMinimized: false,
+          };
+        }
+      });
+      
+      const newStack = state.stack.filter(id => id === exceptId);
+      
+      return {
+        panels: updatedPanels,
+        stack: newStack,
+      };
+    });
+  },
+
 }));
 
 export const usePanelIds = () => 
