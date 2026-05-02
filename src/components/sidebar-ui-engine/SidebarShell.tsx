@@ -7,6 +7,7 @@ import { Breadcrumb } from '@/components/ui/breadcrumb/Breadcrumb';
 import { useSidebarEngineStore } from '@/stores/sidebar-engine/sidebar-engine.store';
 import { IconButton } from '@radix-ui/themes';
 import { PanelPosition } from '@/stores/sidebar-engine/sidebar-engine.types';
+import { PanelActions } from '@/components/sidebar-ui-engine/PanelActions';
 
 interface SidebarShellProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ interface SidebarShellProps {
   children: React.ReactNode;
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl';
   position?: PanelPosition;
+  isDarkMode?: boolean
 }
 
 const maxWidthClasses = {
@@ -61,9 +63,9 @@ export const SidebarShell: React.FC<SidebarShellProps> = memo(({
   breadcrumbs,
   children,
   maxWidth = 'lg',
-  position = 'overlay'
+  position = 'overlay',
+  isDarkMode
 }) => {
-  const { isDarkMode } = useApp();
   const [isAnimating, setIsAnimating] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
   
@@ -151,40 +153,11 @@ export const SidebarShell: React.FC<SidebarShellProps> = memo(({
           )}
           <h2 className="text-lg font-semibold">{title}</h2>
         </div>
-        
-        <div className="flex items-center gap-1">
-          {showMinimize && panelId && (
-            <IconButton
-              variant='ghost'
-              size='2'
-              onClick={handleMinimize}
-              title="Minimize panel"
-              className={cn(
-                'p-1.5 rounded-lg transition-colors',
-                isDarkMode
-                  ? 'hover:bg-gray-800 text-gray-400 hover:text-gray-200'
-                  : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
-              )}
-            >
-              <Minus size={20} />
-            </IconButton>
-          )}
-          
-          <IconButton
-            variant='ghost'
-            size='2'
-            onClick={onClose}
-            title="Close panel"
-            className={cn(
-              'p-1.5 rounded-lg transition-colors',
-              isDarkMode
-                ? 'hover:bg-gray-800 text-gray-400 hover:text-gray-200'
-                : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
-            )}
-          >
-            <X size={20} />
-          </IconButton>
-        </div>
+          <PanelActions
+            onClose={onClose}
+            onMinimize={showMinimize && panelId ? handleMinimize : undefined}
+            isDarkMode={isDarkMode}
+          />
       </div>
 
       {breadcrumbs && breadcrumbs.length > 0 && (

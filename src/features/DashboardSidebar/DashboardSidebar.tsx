@@ -19,8 +19,7 @@ import FilteredTaskListContent from './components/FilteredTaskListContent';
 import { WIDGET_ICONS } from '@/config/panel-icons.config';
 
 // ============ Main Content ============
-export const DashboardSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose, panelId }) => {
-  const { isDarkMode } = useApp();
+export const DashboardSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose, panelId, isDarkMode }) => {
   const { navigate } = useRouter();
   const { activeWidget, widgetData, closeSidebar } = useDashboardSidebarStore();
 
@@ -128,6 +127,7 @@ export const DashboardSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose, p
       isOpen={isOpen}
       position={position}
       onClose={handleClose}
+      isDarkMode={isDarkMode}
       panelId={panelId} 
       title={title}
       icon={icon}

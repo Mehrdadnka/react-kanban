@@ -2,11 +2,12 @@ import React, { memo, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useSidebarEngineStore } from '../stores/sidebar-engine/sidebar-engine.store';
 import { cn } from '@/lib/utils';
+import { useApp } from './AppProvider';
 
 const PanelRenderer: React.FC = memo(() => {
+  const { isDarkMode } = useApp()
   const panels = useSidebarEngineStore(state => state.panels);
   const closeTop = useSidebarEngineStore(state => state.closeTop);
-
   const visiblePanels = Object.values(panels).filter(p => p.isOpen && !p.isMinimized);
   const allOpenPanels = Object.values(panels).filter(p => p.isOpen); 
   
@@ -41,6 +42,7 @@ const PanelRenderer: React.FC = memo(() => {
             panelId={panel.config.id}
             isOpen={isVisible} 
             zIndex={panel.zIndex}
+            isDarkMode={isDarkMode} // ← از AppProvider بگیر
             metadata={panel.metadata}
             onClose={() => useSidebarEngineStore.getState().close(panel.config.id)}
             onUpdateMetadata={(newMetadata) => {

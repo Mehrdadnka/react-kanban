@@ -4,7 +4,7 @@ import { useApp } from '@/providers/AppProvider';
 import { useSidebar } from './SidebarProvider';
 import { HamburgerMenu } from './HamburgerMenu';
 import * as Dialog from '@radix-ui/react-dialog';
-import { CollapseIcon } from './CollapseIcon';
+import { CollapseIcon } from '@/components/sidebar-ui-engine/CollapseIcon';
 
 interface SidebarContainerProps {
   children: (variant: 'icon-only' | 'full') => React.ReactNode;

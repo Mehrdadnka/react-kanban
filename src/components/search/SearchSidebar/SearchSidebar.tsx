@@ -12,7 +12,7 @@ import { useSearchSidebarStore } from '@/stores/sidebar-engine/search-sidebar.st
 import { usePanelPosition } from '@/stores/sidebar-engine/sidebar-engine.store';
 import { usePanelIconComponent } from '@/hooks/usePanelIcon';
 
-export const SearchSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose, panelId }) => {
+export const SearchSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose, panelId, isDarkMode }) => {
   const { query, results, setQuery, search, closeSearch } = useSearchSidebarStore();
   const { tasks } = useTaskStore();
   const { navigate } = useRouter();
@@ -69,6 +69,7 @@ export const SearchSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose, pane
       isOpen={isOpen}
       position={position}
       onClose={handleClose}
+      isDarkMode={isDarkMode}
       panelId={panelId}
       title="Search Tasks"
       icon={icon}

@@ -14,6 +14,7 @@ export interface PanelProps {
   panelId: string;
   isOpen: boolean;
   zIndex: number;
+  isDarkMode: boolean;
   metadata?: Record<string, any>;
   onClose: () => void;
   onUpdateMetadata?: (metadata: any) => void;

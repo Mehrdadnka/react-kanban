@@ -33,8 +33,7 @@ import ViewField from './components/ViewField';
 import StatusIcon from './components/StatusIcon';
 import PriorityBadge from './components/PriorityBadge';
 
-export const TaskSidebar: React.FC<PanelProps> = memo(({ zIndex, onClose, isOpen: panelIsOpen, panelId }) => {
-  const { isDarkMode } = useApp();
+export const TaskSidebar: React.FC<PanelProps> = memo(({ zIndex, onClose, isOpen: panelIsOpen, panelId, isDarkMode }) => {
   const { addTask, updateTask, deleteTask } = useTaskStore();
   const {
     mode, selectedTask, formState, breadcrumbs,
@@ -142,6 +141,7 @@ export const TaskSidebar: React.FC<PanelProps> = memo(({ zIndex, onClose, isOpen
       isOpen={panelIsOpen} 
       zIndex={zIndex} 
       onClose={handleClose}
+      isDarkMode={isDarkMode}
       icon={icon}
       panelId={panelId}  
       title={title} 
