@@ -1,9 +1,10 @@
+// components/board/TaskCard.tsx
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card/Card';
 import { Badge } from '@/components/ui/badge/Badge';
-import { Eye, GripVertical, Paperclip, Trash2 } from 'lucide-react';
+import { Eye, GripVertical, Paperclip } from 'lucide-react';
 import { Task } from '@/types/task.types';
 import { cn } from '@/lib/utils';
 import { IconButton } from '@radix-ui/themes';
@@ -47,15 +48,16 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onClick }) => {
         <CardHeader className="p-4 pb-2">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-2 flex-1">
-              <button
+              <IconButton
                 {...attributes}
                 {...listeners}
+                variant="ghost"
+                size="1"
                 className="cursor-grab active:cursor-grabbing"
                 onClick={(e) => e.stopPropagation()}
-
               >
                 <GripVertical size={18} className="text-gray-400" />
-              </button>
+              </IconButton>
               <CardTitle className="text-base font-medium">
                 {task.title}
               </CardTitle>

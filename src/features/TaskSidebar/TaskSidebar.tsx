@@ -1,7 +1,10 @@
-import React, { useEffect, useRef, useState, memo } from 'react';
+import React, { useEffect, useRef, useState, memo, useMemo } from 'react';
 import { 
   Save, Edit3, Trash2, Calendar, Clock, 
-  CheckCircle2, Zap, ClipboardList 
+  CheckCircle2, Zap, ClipboardList, 
+  CheckSquare,
+  Eye,
+  Plus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button/Button';
 import { Badge } from '@/components/ui/badge/Badge';
@@ -37,12 +40,25 @@ export const TaskSidebar: React.FC<PanelProps> = memo(({ zIndex, onClose, isOpen
     mode, selectedTask, formState, breadcrumbs,
     closeSidebar, updateFormField, openEditSidebar,
   } = useTaskSidebarStore();
-  const icon = usePanelIconComponent(panelId);
+
   const position = usePanelPosition(panelId); 
   
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-
+  
+  const icon = useMemo(() => {
+    switch (mode) {
+      case 'create':
+        return <Plus size={20} />;
+      case 'view':
+        return <Eye size={20} />;
+      case 'edit':
+        return <Edit3 size={20} />;
+      default:
+        return <CheckSquare size={20} />;
+    }
+  }, [mode]);
+  
   // Focus on input when creating
   useEffect(() => {
     if (panelIsOpen && mode === 'create' && inputRef.current) {

@@ -6,15 +6,22 @@ import * as Tooltip from '@radix-ui/react-tooltip';
 import { TooltipProvider } from '@radix-ui/react-tooltip';
 import { IconButton } from '@radix-ui/themes';
 import { cn } from '@/lib/utils';
-import { CheckCircle2, ClipboardList, Plus, Zap } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useApp } from '@/providers/AppProvider';
 import { useTaskSidebarStore } from '@/stores/sidebar-engine/task-sidebar.store';
+import { COLUMN_ICONS } from '@/config/panel-icons.config';
 
-const columns = [
-  { id: 'todo', title: 'Todo', icon: <ClipboardList />,color: 'text-blue-500' },
-  { id: 'in-progress', title: 'In progress', icon: <Zap />, color: 'text-yellow-500' },
-  { id: 'done', title: 'Done', icon: <CheckCircle2 />, color: 'text-green-500' },
-];
+const columns = Object.entries(COLUMN_ICONS).map(([id, config]) => {
+  const Icon = config.icon;
+  return {
+    id,
+    title: config.label,
+    icon: <Icon size={18} />,
+    color: id === 'todo' ? 'text-blue-500' : 
+           id === 'in-progress' ? 'text-yellow-500' : 
+           'text-green-500',
+  };
+});
 
 export const KanbanBoard: React.FC = () => {
   const { isDarkMode } = useApp();

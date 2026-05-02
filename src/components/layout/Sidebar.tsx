@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { cn } from '@/lib/utils';
-import { Moon, Sun, Search } from 'lucide-react';
+import { Moon, Sun, Search, Plus, Eye, Edit3 } from 'lucide-react';
 import { useApp } from '@/providers/AppProvider';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { TooltipProvider } from '@radix-ui/react-tooltip';
@@ -51,6 +51,7 @@ const Sidebar = () => {
     if (path) navigate(path);
   };
 
+ 
   return (
     <TooltipProvider>
       <aside
@@ -108,70 +109,91 @@ const Sidebar = () => {
             );
           })}
         </nav>
-        
 
-{/* Minimized Panels Section */}
-{minimizedPanelIds.filter(id => id !== 'search-sidebar').length > 0 && (
-  <>            
-    <Separator isDarkMode={isDarkMode} className='w-10 mx-auto' size='2' />
-    <div className="flex flex-col items-center gap-2 mt-4">
-      {minimizedPanelIds
-        .filter(id => id !== 'search-sidebar') 
-        .map((panelId) => {
-          // ✅ گرفتن metadata برای dashboard-sidebar
-          const panel = useSidebarEngineStore.getState().getPanelState(panelId);
-          let icon: LucideIcon;
-          let label: string;
-          
-          if (panelId === 'dashboard-sidebar' && panel?.metadata?.activeWidget) {
-            const widgetConfig = WIDGET_ICONS[panel.metadata.activeWidget as string];
-            icon = widgetConfig?.icon || PANEL_ICONS[panelId]?.icon;
-            label = widgetConfig?.label || PANEL_ICONS[panelId]?.label;
-          } else {
-            const baseConfig = PANEL_ICONS[panelId];
-            if (!baseConfig) return null;
-            icon = baseConfig.icon;
-            label = baseConfig.label;
-          }
-          
-          const Icon = icon;
-          
-          return (
-            <Tooltip.Root key={panelId} delayDuration={300}>
-              <Tooltip.Trigger asChild>
-                <button
-                  onClick={() => restorePanel(panelId)}
-                  className={cn(
-                    'w-10 h-10 rounded-xl flex items-center justify-center',
-                    'transition-all duration-200 relative group',
-                    isDarkMode
-                      ? 'text-gray-500 hover:text-gray-200 hover:bg-gray-800 bg-gray-800/30 ring-1 ring-gray-700'
-                      : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100 bg-gray-100/50 ring-1 ring-gray-200'
-                  )}
-                >
-                  <Icon size={20} />
-                </button>
-              </Tooltip.Trigger>
-              <Tooltip.Portal>
-                <Tooltip.Content
-                  side="right" sideOffset={10}
-                  className={cn(
-                    'rounded-lg px-3 py-1.5 text-sm font-medium shadow-lg border z-[9999]',
-                    isDarkMode
-                      ? 'bg-gray-800 border-gray-700 text-gray-200'
-                      : 'bg-white border-gray-200 text-gray-700'
-                  )}
-                >
-                  {label} (Minimized)
-                  <Tooltip.Arrow className={isDarkMode ? 'fill-gray-800' : 'fill-white'} />
-                </Tooltip.Content>
-              </Tooltip.Portal>
-            </Tooltip.Root>
-          );
-        })}
-    </div>
-  </>
-)}
+
+       
+        {/* Minimized Panels Section */}
+        {minimizedPanelIds.filter(id => id !== 'search-sidebar').length > 0 && (
+          <>            
+            <Separator isDarkMode={isDarkMode} className='w-10 mx-auto' size='2' />
+            <div className="flex flex-col items-center gap-2 mt-4">
+              {minimizedPanelIds
+                .filter(id => id !== 'search-sidebar') 
+                .map((panelId) => {
+                  const panel = useSidebarEngineStore.getState().getPanelState(panelId);
+
+                  let icon: LucideIcon;
+                  let label: string;
+            
+                  if (panelId === 'dashboard-sidebar' && panel?.metadata?.activeWidget) {
+                    const widgetConfig = WIDGET_ICONS[panel.metadata.activeWidget as string];
+                    icon = widgetConfig?.icon || PANEL_ICONS[panelId]?.icon;
+                    label = widgetConfig?.label || PANEL_ICONS[panelId]?.label;
+                  } else if (panelId === 'task-sidebar' && panel?.metadata?.mode) {
+                    const mode = panel.metadata.mode as string;
+                    switch (mode) {
+                      case 'create':
+                        label = 'New Task';
+                        icon = Plus;
+                        break;
+                      case 'view':
+                        label = 'Task Details';
+                        icon = Eye;
+                        break;
+                      case 'edit':
+                        label = 'Edit Task';
+                        icon = Edit3;
+                        break;
+                      default:
+                        label = 'Task Panel';
+                        icon = PANEL_ICONS[panelId]?.icon;
+                    }
+                  }
+                  else {
+                    const baseConfig = PANEL_ICONS[panelId];
+                    if (!baseConfig) return null;
+                    icon = baseConfig.icon;
+                    label = baseConfig.label;
+                  }
+                  
+                  const Icon = icon;
+                  
+                  return (
+                    <Tooltip.Root key={panelId} delayDuration={300}>
+                      <Tooltip.Trigger asChild>
+                        <button
+                          onClick={() => restorePanel(panelId)}
+                          className={cn(
+                            'w-10 h-10 rounded-xl flex items-center justify-center',
+                            'transition-all duration-200 relative group',
+                            isDarkMode
+                              ? 'text-gray-500 hover:text-gray-200 hover:bg-gray-800 bg-gray-800/30 ring-1 ring-gray-700'
+                              : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100 bg-gray-100/50 ring-1 ring-gray-200'
+                          )}
+                        >
+                          <Icon size={20} />
+                        </button>
+                      </Tooltip.Trigger>
+                      <Tooltip.Portal>
+                        <Tooltip.Content
+                          side="right" sideOffset={10}
+                          className={cn(
+                            'rounded-lg px-3 py-1.5 text-sm font-medium shadow-lg border z-[9999]',
+                            isDarkMode
+                              ? 'bg-gray-800 border-gray-700 text-gray-200'
+                              : 'bg-white border-gray-200 text-gray-700'
+                          )}
+                        >
+                          {label} (Minimized)
+                          <Tooltip.Arrow className={isDarkMode ? 'fill-gray-800' : 'fill-white'} />
+                        </Tooltip.Content>
+                      </Tooltip.Portal>
+                    </Tooltip.Root>
+                  );
+                })}
+            </div>
+          </>
+        )}
 
         <div className="flex-1" />
         

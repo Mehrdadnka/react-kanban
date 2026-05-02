@@ -84,3 +84,18 @@ export const WIDGET_ICONS: Record<string, PanelIconConfig> = {
     label: 'Priorities',
   },
 } as const;
+
+export const COLUMN_ICONS: Record<string, PanelIconConfig> = {
+  'todo': {
+    icon: ClipboardList,
+    label: 'To Do',
+  },
+  'in-progress': {
+    icon: Zap,
+    label: 'In Progress',
+  },
+  'done': {
+    icon: CheckCircle2,
+    label: 'Done',
+  },
+} as const;
