@@ -10,10 +10,10 @@
 
 A modern, high-performance Kanban board built with React 18 and TypeScript. Features a custom client-side router, intuitive drag-and-drop, interactive dashboard with sidebar drill-downs, and a polished responsive UI.
 
-![Dashboard](public/dashboard-screen.png)
-![Dashboard Sidebar](public/dashboard-sidebar.png)
-![Kanban Board](public/taskboard-screenshot.png)
-![Task Details](public/task-detail.png)
+![Dashboard](public/dashboard-screenshot.png)
+![Dashboard Sidebar](public/dashboard-sidebar-inprogress.png)
+![Kanban Board](public/taskboard-screenshot-minimized.png)
+![Task Details](public/task-edit.png)
 
 | Mobile Dashboard | Mobile Tasks | Not Found Page |
 |:---:|:---:|:---:|
@@ -31,6 +31,12 @@ A modern, high-performance Kanban board built with React 18 and TypeScript. Feat
 - **Interactive Dashboard:** Task overview widgets with drill-down sidebar for filtered views
 - **Activity Heatmap:** 365-day GitHub-style contribution graph with canvas rendering engine and smart tooltips
 - **Sidebar Orchestration Engine:** Centralized panel management with z-index stacking, overlay coordination, and priority-based minimize/restore
+- **Panel Minimize/Restore:** Windows-like minimize to sidebar with state preservation
+- **Position Strategy:** Panels support left/right/overlay positioning (search opens as modal overlay)
+- **Dynamic Panel Icons:** Context-aware icons reflecting panel mode and active widget
+- **Centralized Icon Registry:** Single source of truth for all icons (panels, widgets, nav, columns)
+- **Route-Persistent Search:** Search panel survives route changes while other panels close
+- **Multi-Panel Minimize:** Multiple panels can be minimized simultaneously with sidebar indicators
 - **Quick Actions:** Floating action button for instant task creation
 - **Live Search:** Command-palette-style search with keyboard shortcut (⌘K / Ctrl+K)
 - **Dark/Light Mode:** Full theme support with system preference detection
@@ -69,23 +75,27 @@ The engine is an **event-driven layer** that centralizes floating panel lifecycl
 
 ### Core Concepts
 
-**Panel Registration:** Panels declare themselves via `useSidebarPanel` hook. The engine assigns base z-index and manages their lifecycle.
+**Panel Registration:** Panels declare themselves via `useSidebarPanel` hook with id, component, priority, and position.
+
 
 ```typescript
 useSidebarPanel({
   id: 'task-sidebar',
   component: TaskSidebar,     // Must implement PanelProps
   priority: 10,               // Higher = on top, minimizes lower panels
+  position: 'left',           // 'left' | 'right' | 'overlay'
 });
 ```
 
-**Priority Stacking:** When a higher-priority panel opens, lower-priority panels auto-minimize. On close, minimized panels restore in order. Think iOS app switching, but for sidebars.
+Priority Stacking: When a higher-priority panel opens, lower-priority visible panels auto-minimize. Already minimized panels stay minimized.
 
-**Overlay Coordination:** A single overlay renders at `topPanelZIndex - 100`, always behind the active panel. It respects the main sidebar with `margin-left: 4rem`.
+Minimize/Restore: Panels feature a minimize button that preserves DOM state. Minimized panels appear as icons in the main sidebar for quick restore. Search icon toggles minimize/restore like Windows taskbar.
 
-**LIFO Closing:** Panels close in Last-In-First-Out order via `closeTop()`. Clicking the overlay triggers this automatically.
+Overlay Coordination: A single overlay renders behind the active panel. Position-aware: ml-16 for side panels, full-screen for overlay panels (search). Clicking overlay triggers closeTop().
 
-**Route Awareness:** All panels auto-close on route change via `closeAll()` integrated into the custom router.
+Route Awareness: Route changes close all panels except search (closeAllExcept). Search persists across navigation.
+
+State Preservation: Minimized panels keep their DOM and internal state. Form data, search queries, and widget selections survive minimize/restore cycles.
 
 ### Adding a New Panel
 
@@ -190,6 +200,37 @@ const CalendarSidebar: React.FC<PanelProps> = ({ isOpen, onClose, event }) => (
 ```
 
 **Result:** 90% less boilerplate per new panel, 100% consistent UI, zero duplicated animation/theme logic.
+
+## Centralized Icon Registry
+
+All icons across the application are managed through a single configuration file (`config/panel-icons.config.ts`), eliminating hardcoded icons and ensuring visual consistency.
+
+### Icon Categories
+
+| Category | Purpose | Example |
+|----------|---------|---------|
+| `PANEL_ICONS` | Sidebar panel headers and minimized indicators | Task Panel → CheckSquare |
+| `NAV_ICONS` | Main navigation items | Home, Tasks |
+| `WIDGET_ICONS` | Dashboard widget headers and drill-down sidebars | Task Overview, Priorities |
+| `COLUMN_ICONS` | Kanban board columns | To Do, In Progress, Done |
+
+### Dynamic Icons
+
+Panels can override their default icon based on context:
+- **Task Sidebar:** Shows Plus/Eye/Edit3 based on mode (create/view/edit)
+- **Dashboard Sidebar:** Shows active widget's icon when drill-down is open
+- **Minimized Panels:** Reflect current state, not just panel type
+
+```typescript
+// Adding a new panel with icon
+export const PANEL_ICONS = {
+  'calendar-panel': {
+    icon: Calendar,
+    label: 'Calendar',
+    description: 'Calendar view of tasks',
+  },
+} as const;
+```
 
 ## Activity Heatmap Engine
 
@@ -328,14 +369,15 @@ src/
 │   │   ├── SidebarPriorityList.tsx # Priority breakdown list
 │   │   └── index.ts               # Barrel exports
 │   ├── board/                     # Kanban board, columns, task cards
-│   │   ├── TaskSidebar/           # Task detail/edit/create sidebar (logic only)
 │   │   └── __test__/              # Board component tests
 │   ├── dashboard/                 # Dashboard with interactive widgets
-│   │   └── DashboardSidebar/      # Drill-down sidebar (logic only, uses sidebar-ui-engine)
-│   ├── layout/                    # Main layout, sidebar navigation, search
+│   ├── layout/                    # Main layout, sidebar register & navigation, search
 │   └── ui/                        # Reusable UI primitives (Button, Badge, Breadcrumb, etc.)
+├── config/                        # Centralized icon registry
 ├── hooks/                         # Custom React hooks (useSidebarPanel)
 ├── features/
+│   ├── TaskSidebar/               # Task detail/edit/create sidebar
+│   ├── DashboardSidebar/          # Dashboard Drill-down sidebar
 │   └── widgets/                   # Task stats, recent tasks, priority breakdown
 │       └── activity-heatmap/      # Heatmap feature module
 │           ├── engine/            # Pure calculations & canvas renderer class
@@ -352,8 +394,7 @@ src/
 ├── stores/                        # Zustand state management
 │   ├── sidebar-engine/            # Engine core (types, store) - panel management
 │   ├── task.store.ts              # Task CRUD operations
-│   ├── task-sidebar.store.ts      # Task panel state machine (logic only)
-│   └── dashboard-sidebar.store.ts # Dashboard panel state (logic only)
+│   └── task-sidebar.store.ts      # Task panel state machine (logic only)
 └── test/                          # Test setup and configuration
 ```
 
@@ -412,6 +453,9 @@ pnpm test:ui       # Vitest UI dashboard
 This project was a deep dive into React internals and modern front-end architecture:
 
 - **Sidebar Orchestration Engine:** Designed an event-driven panel management system with z-index stacking, priority-based minimize/restore, LIFO closing, and route-aware cleanup. Replaced Framer Motion with optimized CSS transitions for a 40%+ performance improvement.
+- **State Preservation Strategy:** Kept DOM mounted during minimize with CSS `translate-x-full` + `pointer-events: none` instead of unmounting, preserving form state and scroll position
+- **Icon Registry Pattern:** Centralized icon management reducing 40+ hardcoded imports to a single config file, enabling one-click icon changes across the entire app
+- **Position-Aware Overlay:** Overlay respects panel position - side panels get `ml-16` offset while overlay panels (search) get full-screen dark backdrop
 - **Canvas Engine Architecture:** Separated a pure TypeScript renderer from React's lifecycle, handling retina scaling, pixel-precise mouse hit testing, and theme-aware color mapping. Bridged to React via Zustand for minimal re-renders
 - **Custom Router:** Built `pushState`, `popState`, and navigation from scratch to understand client-side routing
 - **Drag & Drop:** Implemented complex DnD with `@dnd-kit`, including drag overlays and cross-column movement
