@@ -17,7 +17,7 @@ A modern, high-performance Kanban board built with React 18 and TypeScript. Feat
 
 | Mobile Dashboard | Mobile Tasks | Not Found Page |
 |:---:|:---:|:---:|
-| ![Mobile Dashboard](public/dashboard-phone.png) | ![Mobile Tasks](public/taskboard-phone.png) | ![Not Found](public/NotFoundPage.png) |
+| ![Mobile Dashboard](public/homepage-phone.png) | ![Mobile Tasks](public/task-phone.png) | ![Not Found](public/NotFoundPage-phone.png) |
 
 | New Task | Edit Task | Serach Task |
 |:---:|:---:|:---:|
