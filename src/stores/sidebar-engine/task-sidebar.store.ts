@@ -1,5 +1,7 @@
+// src/stores/task-sidebar.store.ts
+
 import { create } from 'zustand';
-import { Task } from '@/types/task.types';
+import { Task, TaskPriority } from '@/types/task.types';
 import { useSidebarEngineStore } from '@/stores/sidebar-engine/sidebar-engine.store';
 
 export type SidebarMode = 'create' | 'view' | 'edit';
@@ -16,8 +18,8 @@ interface TaskSidebarState {
   // Selected task for view/edit mode
   selectedTask: Task | null;
   
-  // Default status for create mode
-  defaultStatus: Task['status'];
+  // Default column for create mode
+  defaultColumnId: string;
   
   // Breadcrumbs for view/edit mode
   breadcrumbs: BreadcrumbItem[];
@@ -26,12 +28,12 @@ interface TaskSidebarState {
   formState: {
     title: string;
     description: string;
-    priority: Task['priority'];
-    status: Task['status'];
+    priority: TaskPriority;
+    columnId: string;
   };
   
   // Actions
-  openCreateSidebar: (defaultStatus?: Task['status']) => void;
+  openCreateSidebar: (defaultColumnId?: string) => void;
   openViewSidebar: (task: Task) => void;
   openEditSidebar: (task: Task) => void;
   closeSidebar: () => void;
@@ -47,31 +49,29 @@ interface TaskSidebarState {
 const initialFormState = {
   title: '',
   description: '',
-  priority: 'medium' as Task['priority'],
-  status: 'todo' as Task['status'],
+  priority: 'medium' as TaskPriority,
+  columnId: 'todo',
 };
 
 export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
   mode: 'create',
   selectedTask: null,
-  defaultStatus: 'todo',
+  defaultColumnId: 'todo',
   breadcrumbs: [],
   formState: { ...initialFormState },
   
-  openCreateSidebar: (defaultStatus = 'todo') => {
-    // Setting inner state
+  openCreateSidebar: (defaultColumnId = 'todo') => {
     set({
       mode: 'create',
       selectedTask: null,
-      defaultStatus,
+      defaultColumnId,
       breadcrumbs: [{ label: 'New Task' }],
       formState: {
         ...initialFormState,
-        status: defaultStatus,
+        columnId: defaultColumnId,
       },
     });
     
-    // Opening Sidebar engine
     const engine = useSidebarEngineStore.getState();
     engine.open('task-sidebar', { mode: 'create' });
   },
@@ -82,14 +82,14 @@ export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
       selectedTask: task,
       breadcrumbs: [
         { label: 'Tasks' },
-        { label: task.status },
+        { label: task.columnId },
         { label: task.title },
       ],
       formState: {
         title: task.title,
         description: task.description || '',
         priority: task.priority,
-        status: task.status,
+        columnId: task.columnId,
       },
     });
     
@@ -103,7 +103,7 @@ export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
       selectedTask: task,
       breadcrumbs: [
         { label: 'Tasks' },
-        { label: task.status },
+        { label: task.columnId },
         { label: task.title, onClick: () => get().transitionTo('view', task) },
         { label: 'Edit' },
       ],
@@ -111,7 +111,7 @@ export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
         title: task.title,
         description: task.description || '',
         priority: task.priority,
-        status: task.status,
+        columnId: task.columnId,
       },
     });
     

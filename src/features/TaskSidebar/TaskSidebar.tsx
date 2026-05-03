@@ -1,3 +1,5 @@
+// src/features/TaskSidebar/TaskSidebar.tsx
+
 import React, { useEffect, useRef, useState, memo, useMemo } from 'react';
 import { 
   Save, Edit3, Trash2, Calendar, Clock, 
@@ -8,15 +10,11 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button/Button';
 import { Badge } from '@/components/ui/badge/Badge';
-import { useTaskSidebarStore } from '@/stores/sidebar-engine/task-sidebar.store';
 import { useTaskStore } from '@/stores/task.store';
 import { cn } from '@/lib/utils';
 import { PanelProps } from '@/stores/sidebar-engine/sidebar-engine.types';
 import { PriorityColors } from '@/components/ui/PriorityColors';
-import { Task } from '@/types/task.types';
 import { usePanelIconComponent } from '@/hooks/usePanelIcon';
-
-// Need useApp for ViewField
 import { useApp } from '@/providers/AppProvider';
 
 // UI Engine
@@ -28,10 +26,12 @@ import { SidebarActionBar, SidebarActionLeft, SidebarActionRight } from '@/compo
 import { SidebarConfirmDialog } from '@/components/sidebar-ui-engine/SidebarConfirmDialog';
 import { SidebarMetaInfo } from '@/components/sidebar-ui-engine/SidebarMetaInfo';
 import { usePanelPosition } from '@/stores/sidebar-engine/sidebar-engine.store';
-import { priorityOptions, statusLabels, statusOptions } from './utils';
+import { columnOptions, getColumnLabel, priorityOptions } from './utils';
 import ViewField from './components/ViewField';
 import StatusIcon from './components/StatusIcon';
 import PriorityBadge from './components/PriorityBadge';
+import { useTaskSidebarStore } from '@/stores/sidebar-engine/task-sidebar.store';
+import { Task } from '@/types/task.types';
 
 export const TaskSidebar: React.FC<PanelProps> = memo(({ zIndex, onClose, isOpen: panelIsOpen, panelId, isDarkMode }) => {
   const { addTask, updateTask, deleteTask } = useTaskStore();
@@ -83,16 +83,15 @@ export const TaskSidebar: React.FC<PanelProps> = memo(({ zIndex, onClose, isOpen
       addTask({ 
         title: formState.title, 
         description: formState.description, 
-        status: formState.status, 
-        priority: formState.priority, 
-        updatedAt: new Date().toISOString() 
+        columnId: formState.columnId, 
+        priority: formState.priority,
       });
     } else if (mode === 'edit' && selectedTask) {
       updateTask(selectedTask.id, { 
         title: formState.title, 
         description: formState.description, 
-        status: formState.status, 
-        priority: formState.priority 
+        columnId: formState.columnId, 
+        priority: formState.priority,
       });
     }
     
@@ -131,8 +130,8 @@ export const TaskSidebar: React.FC<PanelProps> = memo(({ zIndex, onClose, isOpen
       }) 
     },
     { 
-      label: 'Status', 
-      value: <Badge variant="secondary" className="text-xs">{statusLabels[selectedTask.status]}</Badge> 
+      label: 'Column', 
+      value: <Badge variant="secondary" className="text-xs">{getColumnLabel(selectedTask.columnId)}</Badge> 
     },
   ] : [];
 
@@ -170,14 +169,14 @@ export const TaskSidebar: React.FC<PanelProps> = memo(({ zIndex, onClose, isOpen
           disabled={isViewMode} 
         />
 
-        {/* Status & Priority Grid */}
+        {/* Column & Priority Grid */}
         <div className="grid grid-cols-2 gap-4">
           {isViewMode ? (
             <>
               <ViewField 
-                label="Status" 
-                icon={<StatusIcon status={formState.status} size={16} />} 
-                value={formState.status} 
+                label="Column" 
+                icon={<StatusIcon columnId={formState.columnId} size={16} />} 
+                value={formState.columnId} 
               />
               <ViewField 
                 label="Priority" 
@@ -188,11 +187,11 @@ export const TaskSidebar: React.FC<PanelProps> = memo(({ zIndex, onClose, isOpen
           ) : (
             <>
               <SidebarSelect 
-                id="task-status" 
-                label="Status" 
-                value={formState.status} 
-                onValueChange={(v) => updateFormField('status', v as Task['status'])} 
-                options={statusOptions} 
+                id="task-column" 
+                label="Column" 
+                value={formState.columnId} 
+                onValueChange={(v) => updateFormField('columnId', v)} 
+                options={columnOptions} 
               />
               <SidebarSelect 
                 id="task-priority" 

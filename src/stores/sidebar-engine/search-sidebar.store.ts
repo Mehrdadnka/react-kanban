@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { Task } from '@/types/task.types';
 import { useSidebarEngineStore } from '@/stores/sidebar-engine/sidebar-engine.store';
@@ -35,7 +36,7 @@ export const useSearchSidebarStore = create<SearchSidebarState>((set, get) => ({
     const results = tasks.filter(task => 
       task.title.toLowerCase().includes(searchTerm) ||
       task.description?.toLowerCase().includes(searchTerm) ||
-      task.status.toLowerCase().includes(searchTerm) ||
+      task.columnId.toLowerCase().includes(searchTerm) ||
       task.priority.toLowerCase().includes(searchTerm)
     ).slice(0, 20);
     

@@ -1,3 +1,5 @@
+// src/stores/dashboard-sidebar.store.ts
+
 import { create } from 'zustand';
 import { Task } from '@/types/task.types';
 import { useSidebarEngineStore } from './sidebar-engine.store';

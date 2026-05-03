@@ -1,16 +1,18 @@
+// src/features/SearchSidebar/SearchSidebar.tsx
+
 import React, { useEffect, useRef, memo } from 'react';
 import { Search, X, ArrowRight } from 'lucide-react';
 import { PanelProps } from '@/stores/sidebar-engine/sidebar-engine.types';
 import { useTaskStore } from '@/stores/task.store';
-import { useTaskSidebarStore } from '@/stores/sidebar-engine/task-sidebar.store';
 import { useRouter } from '@/router';
 
 import { SidebarShell } from '@/components/sidebar-ui-engine/SidebarShell';
 import { SidebarTaskCard } from '@/components/sidebar-ui-engine/SidebarTaskCard';
 import { SidebarInput } from '@/components/sidebar-ui-engine/SidebarInput';
-import { useSearchSidebarStore } from '@/stores/sidebar-engine/search-sidebar.store';
 import { usePanelPosition } from '@/stores/sidebar-engine/sidebar-engine.store';
 import { usePanelIconComponent } from '@/hooks/usePanelIcon';
+import { useSearchSidebarStore } from '@/stores/sidebar-engine/search-sidebar.store';
+import { useTaskSidebarStore } from '@/stores/sidebar-engine/task-sidebar.store';
 
 export const SearchSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose, panelId, isDarkMode }) => {
   const { query, results, setQuery, search, closeSearch } = useSearchSidebarStore();
@@ -21,7 +23,6 @@ export const SearchSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose, pane
   const icon = usePanelIconComponent(panelId);
   const position = usePanelPosition(panelId); 
   
-
   // Focus on open
   useEffect(() => {
     if (isOpen && inputRef.current) {
@@ -53,8 +54,9 @@ export const SearchSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose, pane
   };
 
   const groupedResults = results.reduce((acc, task) => {
-    if (!acc[task.status]) acc[task.status] = [];
-    acc[task.status].push(task);
+    const columnId = task.columnId || 'unknown';
+    if (!acc[columnId]) acc[columnId] = [];
+    acc[columnId].push(task);
     return acc;
   }, {} as Record<string, typeof results>);
 
@@ -119,13 +121,13 @@ export const SearchSidebar: React.FC<PanelProps> = memo(({ isOpen, onClose, pane
               )}
             </div>
 
-            {Object.entries(groupedResults).map(([status, statusTasks]) => (
-              <div key={status}>
+            {Object.entries(groupedResults).map(([columnId, columnTasks]) => (
+              <div key={columnId}>
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3">
-                  {statusLabels[status] || status}
+                  {statusLabels[columnId] || columnId}
                 </h3>
                 <div className="space-y-2">
-                  {statusTasks.map((task) => (
+                  {columnTasks.map((task) => (
                     <SidebarTaskCard
                       key={task.id}
                       task={task}

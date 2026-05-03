@@ -1,3 +1,5 @@
+// src/providers/DndProvider.tsx
+
 import React, { useState, useCallback } from 'react';
 import {
   DndContext,
@@ -47,8 +49,8 @@ export const DndProvider: React.FC<KanbanDndProviderProps> = ({
     if (!activeTask) return;
 
     const overColumn = columns.find(col => col.id === overId);
-    if (overColumn && activeTask.status !== overColumn.id) {
-      moveTask(activeId, overColumn.id as any);
+    if (overColumn && activeTask.columnId !== overColumn.id) {
+      moveTask(activeId, overColumn.id);
     }
   }, [tasks, columns, moveTask]);
 
