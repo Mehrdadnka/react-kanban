@@ -29,13 +29,13 @@ export const SidebarToolsSection: React.FC<SidebarToolsSectionProps> = ({ varian
         onClick={handleSearchClick}
         variant={variant}
         className={cn(
-          'text-gray-400 ring-1',
+          'text-gray-400',
           isSearchOpen
             ? ''
             : isSearchMinimized
               ? isDarkMode
-                ? 'hover:text-gray-200 hover:bg-gray-800 bg-gray-800/30 ring-gray-500'
-                : 'hover:text-gray-700 hover:bg-gray-100 bg-gray-100/50 ring-gray-400'
+                ? 'ring-1 hover:text-gray-200 hover:bg-gray-800 bg-gray-800/30 ring-gray-500'
+                : 'ring-1 hover:text-gray-700 hover:bg-gray-100 bg-gray-100/50 ring-gray-400'
               : isDarkMode
                 ? 'hover:text-gray-200 hover:bg-gray-800'
                 : 'hover:text-gray-700 hover:bg-gray-100'

@@ -1,4 +1,4 @@
-import { KanbanBoard } from "../../components/board/KanbanBoard";
+import {  KanbanBoard } from "@/components/board/KanbanBoard";
 
 export function Tasks() {
   return (

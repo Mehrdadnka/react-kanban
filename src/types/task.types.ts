@@ -1,5 +1,3 @@
-// src/types/task.types.ts
-
 export type AttachmentType = 'image' | 'video' | 'document' | 'other';
 
 export interface Attachment {
@@ -21,7 +19,8 @@ export interface ActivityLog {
   id: string;
   taskId: string;
   action: 'created' | 'updated' | 'moved' | 'deleted' | 'attachment_added' | 'label_changed' | 
-          'due_date_changed' | 'priority_changed' | 'subtask_added' | 'subtask_completed';
+          'due_date_changed' | 'priority_changed' | 'subtask_added' | 'subtask_completed' |
+          'related_task_added' | 'related_task_removed';
   field?: string;
   oldValue?: string;
   newValue?: string;
@@ -30,15 +29,18 @@ export interface ActivityLog {
 
 export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
 
+export type TaskType = 'task' | 'milestone' | 'project' | 'epic';
+
 export interface Task {
   // Core
   id: string;
   title: string;
   description?: string;
+  type: TaskType;
   createdAt: Date;
   updatedAt: Date;
   
-  // Column (replaces static 'status')
+  // Column
   columnId: string;
   
   // Priority
@@ -47,9 +49,12 @@ export interface Task {
   // Labels
   labels: string[];
   
-  // Sub-tasks
+  // Hierarchy
   parentId?: string;
   subTasks: string[];
+  
+  // Relations
+  relatedTasks: string[];
   
   // Dates
   dueDate?: Date;
@@ -71,11 +76,13 @@ export interface Task {
 export const createDefaultTask = (columnId: string, order: number): Omit<Task, 'id' | 'createdAt'> => ({
   title: '',
   description: '',
+  type: 'task',
   columnId,
   priority: 'medium',
   labels: [],
   subTasks: [],
   parentId: undefined,
+  relatedTasks: [],
   dueDate: undefined,
   startDate: undefined,
   completedAt: undefined,
