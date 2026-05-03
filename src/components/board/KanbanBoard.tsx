@@ -5,8 +5,6 @@ import * as Tooltip from '@radix-ui/react-tooltip';
 import { TooltipProvider } from '@radix-ui/react-tooltip';
 import { IconButton } from '@radix-ui/themes';
 import { Plus, Settings, ClipboardList, Zap, CheckCircle2, Circle, HelpCircle } from 'lucide-react';
-import { Toaster } from 'sonner';
-
 import { Column } from './Column';
 import { DndProvider } from '../../providers/DndProvider';
 import { useApp } from '@/providers/AppProvider';
@@ -54,8 +52,6 @@ export const KanbanBoard: React.FC = () => {
 
   return (
     <>
-      <Toaster position="bottom-right" richColors />
-      
       <DndProvider columns={columnIds.map(id => ({ id }))}>
         <header className="mb-6 flex items-center justify-between w-full">
           <div className="flex items-center gap-3">

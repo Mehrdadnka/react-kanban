@@ -140,7 +140,7 @@ export const ColumnManager: React.FC<ColumnManagerProps> = ({ isOpen, onClose })
             )}
             
             <div className="flex items-center gap-1">
-              {!column.isDefault && !editingId && (
+              {!editingId && (
                 <button
                   onClick={() => { setEditingId(column.id); setEditTitle(column.title); setEditWip(column.wipLimit?.toString() || ''); }}
                   className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"

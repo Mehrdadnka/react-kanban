@@ -53,12 +53,13 @@ export const DndProvider: React.FC<KanbanDndProviderProps> = ({
 
     const overColumn = columns.find(col => col.id === overId);
     if (!overColumn || activeTask.columnId === overColumn.id) return;
+    const targetColumn = getColumnById(overColumn.id);
 
     // WIP check
-    const targetColumn = getColumnById(overColumn.id);
     if (targetColumn?.wipLimit) {
       const currentCount = tasks.filter(t => t.columnId === overColumn.id).length;
       if (currentCount >= targetColumn.wipLimit) {
+        console.log('🚨 WIP EXCEEDED - showing toast');
         toast.warning(`WIP limit reached: ${targetColumn.title} is full (${currentCount}/${targetColumn.wipLimit})`, {
           description: 'Remove some tasks or increase the limit.',
           duration: 3000,
