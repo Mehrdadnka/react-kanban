@@ -11,7 +11,9 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
+import { toast } from 'sonner';
 import { useTaskStore } from '@/stores/task.store';
+import { useColumnStore } from '@/stores/column.store';
 import { TaskCard } from '../components/board/TaskCard';
 
 interface KanbanDndProviderProps {
@@ -24,6 +26,7 @@ export const DndProvider: React.FC<KanbanDndProviderProps> = ({
   columns 
 }) => {
   const { tasks, moveTask } = useTaskStore();
+  const { getColumnById } = useColumnStore();
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const sensors = useSensors(
@@ -49,10 +52,23 @@ export const DndProvider: React.FC<KanbanDndProviderProps> = ({
     if (!activeTask) return;
 
     const overColumn = columns.find(col => col.id === overId);
-    if (overColumn && activeTask.columnId !== overColumn.id) {
-      moveTask(activeId, overColumn.id);
+    if (!overColumn || activeTask.columnId === overColumn.id) return;
+
+    // WIP check
+    const targetColumn = getColumnById(overColumn.id);
+    if (targetColumn?.wipLimit) {
+      const currentCount = tasks.filter(t => t.columnId === overColumn.id).length;
+      if (currentCount >= targetColumn.wipLimit) {
+        toast.warning(`WIP limit reached: ${targetColumn.title} is full (${currentCount}/${targetColumn.wipLimit})`, {
+          description: 'Remove some tasks or increase the limit.',
+          duration: 3000,
+        });
+        return;
+      }
     }
-  }, [tasks, columns, moveTask]);
+
+    moveTask(activeId, overColumn.id);
+  }, [tasks, columns, moveTask, getColumnById]);
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     setActiveId(null);
