@@ -65,7 +65,7 @@ export const Stepper: React.FC<StepperProps> = ({
               {!isLast && (
                 <div
                   className={cn(
-                    'w-0.5 h-32',
+                    'w-0.5 h-40',
                     isCompleted ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'
                   )}
                 />

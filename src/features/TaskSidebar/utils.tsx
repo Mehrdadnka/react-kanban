@@ -37,3 +37,20 @@ export const priorityOptions = [
   { value: 'high', label: 'High' },
   { value: 'urgent', label: 'Urgent' },
 ];
+
+export const BREAKPOINTS = {
+  sm: 640,
+  md: 768,
+  lg: 1024,
+  xl: 1280,
+  '2xl': 1536,
+} as const;
+
+export const getBreakpoint = (width: number = typeof window !== 'undefined' ? window.innerWidth : 1024) => {
+  if (width < BREAKPOINTS.sm) return 'mobile';
+  if (width < BREAKPOINTS.md) return 'sm';
+  if (width < BREAKPOINTS.lg) return 'md';
+  if (width < BREAKPOINTS.xl) return 'lg';
+  if (width < BREAKPOINTS['2xl']) return 'xl';
+  return '2xl';
+};

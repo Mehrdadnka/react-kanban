@@ -97,7 +97,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   );
 
   return (
-    <div className={cn('space-y-2', className)}>
+    <div className={cn('space-y-2', className, 'min-h-[400px]')}>
       {/* Search + Filter toggle row */}
       <div className="flex items-center gap-2">
         {/* Search */}

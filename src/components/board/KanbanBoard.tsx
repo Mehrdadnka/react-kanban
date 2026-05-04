@@ -72,6 +72,7 @@ export const KanbanBoard: React.FC = () => {
 
     return result;
   }, [tasks, filters]);
+  const [isFilterExpanded, setIsFilterExpanded] = useState<boolean>(false);
 
   const handleTaskClick = useCallback((task: Task) => {
     openViewSidebar(task);
@@ -88,15 +89,33 @@ export const KanbanBoard: React.FC = () => {
   return (
     <>
       <DndProvider columns={columnIds.map(id => ({ id }))}>
-        <header className="mb-4 space-y-3">
-          {/* Title row */}
-          <div className="flex items-center justify-between w-full lg:w-[80%]">
-            <div className="flex items-center gap-3">
-              <h1 className="lg:text-3xl sm:text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+        {/* Filter bar - responsive width */}
+        <FilterSidebar 
+          filters={filters} 
+          onFilterChange={setFilters} 
+          isExpanded={isFilterExpanded}
+          onToggleExpand={() => setIsFilterExpanded(!isFilterExpanded)}
+        />
+        <div 
+          className={cn(
+            'transition-all duration-300',
+            'w-full',
+            'md:max-w-[calc(100%-5rem)]', 
+            isFilterExpanded ? 'md:max-w-[calc(100%-18rem)]' : 'md:max-w-[calc(100%-5rem)]',
+            'lg:max-w-[calc(100%-5rem)]',
+            isFilterExpanded ? 'lg:max-w-[calc(100%-18rem)]' : 'lg:max-w-[calc(100%-5rem)]',
+            'px-2 sm:px-3 md:px-4'
+          )}
+        >
+        <header className="mb-04 space-y-3">
+          {/* Title row - responsive */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 TaskFlow Board
               </h1>
             </div>
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2 sm:gap-4 self-end sm:self-auto">
               <TooltipProvider>
                 <Tooltip.Root delayDuration={300}>
                   <Tooltip.Trigger asChild>
@@ -105,10 +124,12 @@ export const KanbanBoard: React.FC = () => {
                       onClick={() => setShowColumnManager(true)}
                       className={cn(
                         'hover:bg-gray-100 dark:hover:bg-gray-800',
-                        'transition-all duration-200 border-none hover:shadow-md group w-12 h-12',
+                        'transition-all duration-200 border-none hover:shadow-md group',
+                        // اندازه‌های responsive برای دکمه‌ها
+                        'w-10 h-10 md:w-12 md:h-12'
                       )}
                     >
-                      <Settings size={24} className="group-hover:rotate-90 transition-transform duration-300" />
+                      <Settings className="w-5 h-5 md:w-6 md:h-6 group-hover:rotate-90 transition-transform duration-300" />
                     </IconButton>
                   </Tooltip.Trigger>
                   <Tooltip.Portal>
@@ -128,12 +149,13 @@ export const KanbanBoard: React.FC = () => {
                       variant="ghost"
                       className={cn(
                         'hover:bg-gray-100 dark:hover:bg-gray-800',
-                        'transition-all duration-200 hover:shadow-md group w-12 h-12',
-                        // 'bg-white dark:bg-gray-800 hover:scale-110'
+                        'transition-all duration-200 hover:shadow-md group',
+                        // اندازه‌های responsive
+                        'w-10 h-10 md:w-12 md:h-12'
                       )}
                       onClick={handleQuickAdd}
                     >
-                      <Plus size={24} className="group-hover:rotate-90 transition-transform duration-300" />
+                      <Plus className="w-5 h-5 md:w-6 md:h-6 group-hover:rotate-90 transition-transform duration-300" />
                     </IconButton>
                   </Tooltip.Trigger>
                   <Tooltip.Portal>
@@ -150,10 +172,18 @@ export const KanbanBoard: React.FC = () => {
             </div>
           </div>
         </header>
-        {/* Filter bar */}
-        <FilterSidebar filters={filters} onFilterChange={setFilters} />
 
-        <main className="flex gap-6  h-[calc(100vh-100px)] overflow-x-auto pb-4 lg:mr-72">
+        <main className={cn(
+          // موبایل: ستون‌ها عمودی
+          'flex flex-col gap-4',
+          // تبلت: ستون‌ها افقی با gap مناسب
+          'md:flex-row md:gap-4',
+          // دسکتاپ: gap بزرگتر
+          'lg:gap-6',
+          // ارتفاع responsive
+          'h-[calc(100vh-120px)] sm:h-[calc(100vh-110px)] md:h-[calc(100vh-100px)]',
+          'overflow-x-auto pb-4'
+        )}>
           {sortedColumns.map((column) => (
             <Column
               key={column.id}
@@ -167,6 +197,7 @@ export const KanbanBoard: React.FC = () => {
             />
           ))}
         </main>
+        </div>
       </DndProvider>
 
       {showColumnManager && (

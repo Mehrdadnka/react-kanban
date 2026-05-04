@@ -1,3 +1,5 @@
+// src/stores/task-sidebar.store.ts
+
 import { create } from 'zustand';
 import { Task, TaskPriority, TaskType } from '@/types/task.types';
 import { useSidebarEngineStore } from '@/stores/sidebar-engine/sidebar-engine.store';
@@ -27,11 +29,14 @@ interface TaskSidebarState {
   selectedTask: Task | null;
   defaultColumnId: string;
   breadcrumbs: BreadcrumbItem[];
-  
+
+  // ──── New: parent context ────
+  parentTaskId?: string;
+
   // Stepper
   activeStep: StepId;
   completedSteps: StepId[];
-  
+
   // Form state (all fields)
   formState: {
     title: string;
@@ -45,9 +50,10 @@ interface TaskSidebarState {
     subTasks: Array<{ id: string; title: string; completed: boolean }>;
     relatedTaskIds: string[];
   };
-  
+
   // Actions
-  openCreateSidebar: (defaultColumnId?: string) => void;
+  openCreateSidebar: (options?: { defaultColumnId?: string; parentTaskId?: string }) => void;
+  openCreateSubTaskSidebar: (parentTaskId: string) => void;
   openViewSidebar: (task: Task) => void;
   openEditSidebar: (task: Task) => void;
   closeSidebar: () => void;
@@ -55,7 +61,7 @@ interface TaskSidebarState {
   resetForm: () => void;
   setBreadcrumbs: (breadcrumbs: BreadcrumbItem[]) => void;
   transitionTo: (mode: SidebarMode, task?: Task) => void;
-  
+
   // Stepper actions
   goToStep: (step: StepId) => void;
   goNext: () => void;
@@ -81,29 +87,42 @@ export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
   selectedTask: null,
   defaultColumnId: 'todo',
   breadcrumbs: [],
+  parentTaskId: undefined,
   activeStep: 'basic',
   completedSteps: [],
   formState: { ...initialFormState },
-  
-  openCreateSidebar: (defaultColumnId = 'todo') => {
+
+  // ──── Open for new task (optionally as sub-task) ────
+  openCreateSidebar: (options = {}) => {
+    const { defaultColumnId = 'todo', parentTaskId: parentId } = options;
     set({
       mode: 'create',
       selectedTask: null,
       defaultColumnId,
-      breadcrumbs: [{ label: 'New Task' }],
+      parentTaskId: parentId,
+      breadcrumbs: parentId
+        ? [{ label: 'Back to Parent', onClick: () => get().closeSidebar() }, { label: 'New Sub-task' }]
+        : [{ label: 'New Task' }],
       activeStep: 'basic',
       completedSteps: [],
       formState: { ...initialFormState, columnId: defaultColumnId },
     });
-    useSidebarEngineStore.getState().open('task-sidebar', { mode: 'create' });
+    useSidebarEngineStore.getState().open('task-sidebar', { mode: 'create', parentTaskId: parentId });
   },
-  
+
+  // ──── Explicitly create sub-task from parent ────
+  openCreateSubTaskSidebar: (parentTaskId: string) => {
+    get().openCreateSidebar({ parentTaskId });
+  },
+
   openViewSidebar: (task: Task) => {
     set({
       mode: 'view',
       selectedTask: task,
+      parentTaskId: task.parentId,
       breadcrumbs: [
         { label: 'Tasks' },
+        ...(task.parentId ? [{ label: 'Parent' }] : []),
         { label: task.columnId },
         { label: task.title },
       ],
@@ -124,11 +143,12 @@ export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
     });
     useSidebarEngineStore.getState().open('task-sidebar', { mode: 'view', taskId: task.id });
   },
-  
+
   openEditSidebar: (task: Task) => {
     set({
       mode: 'edit',
       selectedTask: task,
+      parentTaskId: task.parentId,
       breadcrumbs: [
         { label: 'Tasks' },
         { label: task.columnId },
@@ -152,11 +172,12 @@ export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
     });
     useSidebarEngineStore.getState().open('task-sidebar', { mode: 'edit', taskId: task.id });
   },
-  
+
   closeSidebar: () => {
     set({
       mode: 'create',
       selectedTask: null,
+      parentTaskId: undefined,
       breadcrumbs: [],
       activeStep: 'basic',
       completedSteps: [],
@@ -164,28 +185,28 @@ export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
     });
     useSidebarEngineStore.getState().close('task-sidebar');
   },
-  
+
   updateFormField: (field, value) => {
     set(state => ({
       formState: { ...state.formState, [field]: value },
     }));
   },
-  
+
   resetForm: () => {
     set({ formState: { ...initialFormState } });
   },
-  
+
   setBreadcrumbs: (breadcrumbs) => set({ breadcrumbs }),
-  
+
   transitionTo: (mode, task?) => {
     if (mode === 'create') get().openCreateSidebar();
     else if (mode === 'view' && task) get().openViewSidebar(task);
     else if (mode === 'edit' && task) get().openEditSidebar(task);
   },
-  
-  // Stepper
+
+  // ──── Stepper ────
   goToStep: (step) => set({ activeStep: step }),
-  
+
   goNext: () => {
     const { activeStep } = get();
     const currentIndex = STEPS.findIndex(s => s.id === activeStep);
@@ -193,7 +214,7 @@ export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
       set({ activeStep: STEPS[currentIndex + 1].id });
     }
   },
-  
+
   goBack: () => {
     const { activeStep } = get();
     const currentIndex = STEPS.findIndex(s => s.id === activeStep);
@@ -201,7 +222,7 @@ export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
       set({ activeStep: STEPS[currentIndex - 1].id });
     }
   },
-  
+
   completeStep: (step) => {
     set(state => ({
       completedSteps: state.completedSteps.includes(step)

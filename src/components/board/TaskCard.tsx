@@ -136,13 +136,19 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onClick }) => {
 
             <div className="flex items-center gap-2">
               {hasSubTasks && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
-                  className="flex items-center gap-1 text-[10px] text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-                >
-                  <span>{completedSubs}/{subTaskItems.length}</span>
-                  {expanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-                </button>
+<button
+  onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
+  className="flex items-center gap-1 text-[10px] text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+>
+  <span>{completedSubs}/{subTaskItems.length}</span>
+  <ChevronRight 
+    size={12} 
+    className={cn(
+      'transition-transform duration-300 ease-in-out',
+      expanded ? 'rotate-90' : 'rotate-0'
+    )}
+  />
+</button>
               )}
               {hasAttachments && (
                 <div className="flex items-center text-[10px] text-gray-400">
@@ -153,29 +159,30 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onClick }) => {
             </div>
           </div>
 
-          {/* Expanded sub-tasks */}
-          {expanded && hasSubTasks && (
-            <div className={cn(
-              'border-t pt-2 space-y-1 -mx-3 px-3',
-              'border-gray-100 dark:border-gray-700'
-            )}>
-              {subTaskItems.map(st => (
-                <div key={st.id} className="flex items-center gap-2 text-xs py-0.5">
-                  {st.columnId === 'done' ? (
-                    <CheckCircle2 size={12} className="text-green-500 flex-shrink-0" />
-                  ) : (
-                    <Circle size={12} className="text-gray-400 flex-shrink-0" />
-                  )}
-                  <span className={cn('truncate', st.columnId === 'done' && 'line-through opacity-50')}>
-                    {st.title}
-                  </span>
-                  <Badge variant="secondary" className={cn('text-[10px] px-1 py-0 ml-auto', PriorityColors[st.priority])}>
-                    {st.priority}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          )}
+        {/* Expanded sub-tasks */}
+        <div className={cn(
+          'border-t border-gray-100 dark:border-gray-700',
+          'overflow-hidden transition-all duration-300 ease-in-out',
+          expanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+        )}>
+          <div className="px-3 pt-2 space-y-1">
+            {subTaskItems.map(st => (
+              <div key={st.id} className="flex items-center gap-2 text-xs py-0.5">
+                {st.columnId === 'done' ? (
+                  <CheckCircle2 size={12} className="text-green-500 flex-shrink-0" />
+                ) : (
+                  <Circle size={12} className="text-gray-400 flex-shrink-0" />
+                )}
+                <span className={cn('truncate', st.columnId === 'done' && 'line-through opacity-50')}>
+                  {st.title}
+                </span>
+                <Badge variant="secondary" className={cn('text-[10px] px-1 py-0 ml-auto', PriorityColors[st.priority])}>
+                  {st.priority}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        </div>
         </CardFooter>
       </Card>
     </div>

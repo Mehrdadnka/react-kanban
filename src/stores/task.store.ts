@@ -85,35 +85,48 @@ export const useTaskStore = create<TaskStore>()(
 
       // ──── CORE CRUD ────
 
-      addTask: (input) => {
-        const id = uuidv4();
-        const tasks = get().tasks;
-        const maxOrder = Math.max(...tasks.filter(t => t.columnId === input.columnId).map(t => t.order), -1);
+addTask: (input) => {
+  const id = uuidv4();
+  const tasks = get().tasks;
+  const maxOrder = Math.max(...tasks.filter(t => t.columnId === input.columnId).map(t => t.order), -1);
 
-        const newTask: Task = {
-          ...createDefaultTask(input.columnId, maxOrder + 1),
-          id,
-          title: input.title,
-          description: input.description || '',
-          type: input.type || 'task',
-          priority: input.priority,
-          labels: input.labels || [],
-          dueDate: input.dueDate,
-          startDate: input.startDate,
-          parentId: input.parentId,
-          createdAt: new Date(),
+  const newTask: Task = {
+    ...createDefaultTask(input.columnId, maxOrder + 1),
+    id,
+    title: input.title,
+    description: input.description || '',
+    type: input.type || 'task',
+    priority: input.priority,
+    labels: input.labels || [],
+    dueDate: input.dueDate,
+    startDate: input.startDate,
+    parentId: input.parentId,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    activityLog: [createLog(id, 'created')],
+  };
+
+  set(state => {
+    let updatedTasks = [...state.tasks, newTask];
+    
+    // اگر parentId وجود دارد، task را به subTasks والد اضافه کن
+    if (input.parentId) {
+      updatedTasks = updatedTasks.map(t => {
+        if (t.id !== input.parentId) return t;
+        return {
+          ...t,
+          subTasks: [...t.subTasks, id],
+          activityLog: [...t.activityLog, createLog(input.parentId!, 'subtask_added', 'subtasks', '', id)].slice(-50),
           updatedAt: new Date(),
-          activityLog: [createLog(id, 'created')],
         };
+      });
+    }
+    
+    return { tasks: updatedTasks };
+  });
 
-        set(state => ({ tasks: [...state.tasks, newTask] }));
-
-        if (input.parentId) {
-          get().addSubTask(input.parentId, input);
-        }
-
-        return id;
-      },
+  return id;
+},
 
       updateTask: (id, updates) => {
         set(state => ({
@@ -188,21 +201,9 @@ export const useTaskStore = create<TaskStore>()(
 
       // ──── SUB-TASKS ────
 
-      addSubTask: (parentId, input) => {
-        const childId = get().addTask({ ...input, parentId });
-        set(state => ({
-          tasks: state.tasks.map(t => {
-            if (t.id !== parentId) return t;
-            return {
-              ...t,
-              subTasks: [...t.subTasks, childId],
-              activityLog: [...t.activityLog, createLog(parentId, 'subtask_added', 'subtasks', '', childId)].slice(-50),
-              updatedAt: new Date(),
-            };
-          }),
-        }));
-        return childId;
-      },
+addSubTask: (parentId, input) => {
+  return get().addTask({ ...input, parentId });
+},
 
       removeSubTask: (parentId, subTaskId) => {
         get().deleteTask(subTaskId);
@@ -359,8 +360,8 @@ export const useTaskStore = create<TaskStore>()(
       },
     }),
     {
-      name: 'taskflow-storage-v3',
-      version: 3,
+      name: 'taskflow-storage-v5',
+      version: 5,
     }
   )
 );

@@ -32,7 +32,7 @@ import StatusIcon from './components/StatusIcon';
 import PriorityBadge from './components/PriorityBadge';
 import ViewField from './components/ViewField';
 import { StepId, STEPS, useTaskSidebarStore } from '@/stores/sidebar-engine/task-sidebar.store';
-import { SubTaskItem, SubTaskList } from './components/SubTaskList';
+import { SubTaskList } from './components/SubTaskList';
 
 // ──── Step Icons ────
 const STEP_ICONS: Record<StepId, React.ReactNode> = {
@@ -52,7 +52,7 @@ export const TaskSidebar: React.FC<PanelProps> = memo(({
   const { columns } = useColumnStore();
   const {
     mode, selectedTask, formState, breadcrumbs,
-    closeSidebar, updateFormField, openEditSidebar,
+    closeSidebar, updateFormField, openEditSidebar, parentTaskId,
     activeStep, completedSteps, goToStep, goNext, goBack, completeStep,
   } = useTaskSidebarStore();
 
@@ -64,6 +64,7 @@ export const TaskSidebar: React.FC<PanelProps> = memo(({
   const isEditMode = mode === 'edit' || mode === 'create';
   const isLastStep = activeStep === 'breakdown';
   const isFirstStep = activeStep === 'basic';
+                    console.log('📍 activeStep:', activeStep, 'isLastStep:', isLastStep);
 
   // ──── Mode Icon ────
   const icon = useMemo(() => {
@@ -126,29 +127,8 @@ export const TaskSidebar: React.FC<PanelProps> = memo(({
     );
   };
 
-  const handleSubTaskAdd = (title: string) => {
-    const newItem: SubTaskItem = {
-      id: crypto.randomUUID?.() || Math.random().toString(36).slice(2),
-      title,
-      completed: false,
-    };
-    updateFormField('subTasks', [...formState.subTasks, newItem]);
-  };
 
-  const handleSubTaskRemove = (id: string) => {
-    updateFormField('subTasks', formState.subTasks.filter(s => s.id !== id));
-  };
-
-  const handleSubTaskToggle = (id: string) => {
-    updateFormField('subTasks',
-      formState.subTasks.map(s =>
-        s.id === id ? { ...s, completed: !s.completed } : s
-      )
-    );
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = () => {
     if (!formState.title.trim()) return;
 
     const baseData = {
@@ -160,18 +140,11 @@ export const TaskSidebar: React.FC<PanelProps> = memo(({
       dueDate: formState.dueDate,
       startDate: formState.startDate,
       type: formState.type,
+      parentId: parentTaskId,
     };
 
     if (mode === 'create') {
-      const taskId = addTask(baseData);
-      // Add sub-tasks
-      formState.subTasks.forEach(st => {
-        addSubTask(taskId, {
-          title: st.title,
-          columnId: 'todo',
-          priority: 'medium',
-        });
-      });
+      addTask(baseData);
     } else if (mode === 'edit' && selectedTask) {
       updateTask(selectedTask.id, baseData);
     }
@@ -322,15 +295,32 @@ export const TaskSidebar: React.FC<PanelProps> = memo(({
             )}
           </div>
         );
-
+            
       case 'breakdown':
+        if (isViewMode && selectedTask) {
+          return (
+            <SubTaskList
+              parentTaskId={selectedTask.id}
+              subTaskIds={selectedTask.subTasks}
+              disabled
+            />
+          );
+        }
+        // For create mode, sub-tasks can only be added AFTER task exists
+        // So show message or persistent sub-task list if editing
+        if (mode === 'create') {
+          return (
+            <div className="text-xs text-gray-400 text-center py-8 space-y-2">
+              <p>Sub-tasks can be added after the task is created.</p>
+              <p>Complete the wizard and then add sub-tasks from the task view.</p>
+            </div>
+          );
+        }
+      // Edit mode
         return (
           <SubTaskList
-            items={formState.subTasks}
-            onAdd={handleSubTaskAdd}
-            onRemove={handleSubTaskRemove}
-            onToggle={handleSubTaskToggle}
-            disabled={isViewMode}
+            parentTaskId={selectedTask!.id}
+            subTaskIds={selectedTask!.subTasks}
           />
         );
 
@@ -373,7 +363,7 @@ export const TaskSidebar: React.FC<PanelProps> = memo(({
 
         {/* Content */}
         <div className="flex-1 w-full m-2 overflow-x-visible flex flex-col min-h-0">
-          <form onSubmit={handleSubmit} className="flex-1 flex flex-col">
+          <form className="flex-1 flex flex-col">
             <div className="flex-1 overflow-y-auto pb-4">
               {renderStepContent()}
             </div>
@@ -422,6 +412,7 @@ export const TaskSidebar: React.FC<PanelProps> = memo(({
                   </Button>
 
                   {!isLastStep ? (
+                    // const isLastStep = activeStep === 'breakdown';
                     <Button
                       type="button"
                       variant="outline"
@@ -432,7 +423,12 @@ export const TaskSidebar: React.FC<PanelProps> = memo(({
                       <ArrowRight size={14} />
                     </Button>
                   ) : (
-                    <Button type="submit" variant="success" className="flex items-center gap-2">
+                    <Button 
+                      type="button" 
+                      variant="success" 
+                      onClick={handleSubmit}
+                      className="flex items-center gap-2"
+                    >
                       <Save size={16} />
                       {mode === 'create' ? 'Create Task' : 'Save Changes'}
                     </Button>
