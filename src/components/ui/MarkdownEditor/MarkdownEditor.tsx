@@ -17,6 +17,7 @@ import { useApp } from '@/providers/AppProvider';
 import { EditorToolbar } from './EditorToolbar';
 import { TextStyle } from '@tiptap/extension-text-style';
 import { Extension } from '@tiptap/core';
+import { Table, TableCell, TableHeader, TableRow } from '@tiptap/extension-table';
 
 // Custom Font Size Extension
 const FontSize = Extension.create({
@@ -96,6 +97,16 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           class: 'text-blue-500 hover:text-blue-600 underline cursor-pointer',
         },
       }),
+      Table.configure({
+        resizable: true,
+        HTMLAttributes: {
+          class: 'border-collapse table-auto w-full',
+        },
+      }),
+      TableRow,
+      TableCell,
+      TableHeader,
+
       TaskList,
       TaskItem.configure({ nested: true }),
       Underline,
@@ -158,7 +169,9 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     <div
       className={cn(
         'flex flex-col rounded-lg border overflow-hidden',
-        isDarkMode ? 'border-gray-700 bg-gray-900' : 'border-gray-200 bg-white',
+        isDarkMode 
+          ? 'dark border-gray-700 bg-gray-900' 
+          : 'border-gray-200 bg-white',
         disabled && 'opacity-60 cursor-not-allowed',
         className
       )}

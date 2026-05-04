@@ -1,15 +1,20 @@
 // src/components/ui/MarkdownEditor/EditorToolbar.tsx
 
 import React from 'react';
-import { Editor } from '@tiptap/react';
 import {
   Bold, Italic, Underline, Strikethrough, Code, Quote,
   List, ListOrdered, CheckSquare, Heading1, Heading2,
-  Heading3, Link, Image, Table, Minus, Undo, Redo,
+  Heading3, Link, Image, Table as TableIcon, Minus, Undo, Redo,
   AlignLeft, AlignCenter, AlignRight
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { FontSizeSelector } from './FontSizeSelector';
+import { Editor } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import { Table } from '@tiptap/extension-table';
+import { TableRow } from '@tiptap/extension-table-row';
+import { TableCell } from '@tiptap/extension-table-cell';
+import { TableHeader } from '@tiptap/extension-table-header';
 
 interface EditorToolbarProps {
   editor: Editor;
@@ -110,7 +115,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
       <ToolbarButton onClick={() => editor.chain().focus().toggleBlockquote().run()} active={editor.isActive('blockquote')} icon={Quote} title="Blockquote" isDarkMode={isDarkMode} />
       <ToolbarButton onClick={addLink} active={editor.isActive('link')} icon={Link} title="Link" isDarkMode={isDarkMode} />
       <ToolbarButton onClick={onImageClick} icon={Image} title="Image" isDarkMode={isDarkMode} />
-      <ToolbarButton onClick={addTable} icon={Table} title="Table" isDarkMode={isDarkMode} />
+      <ToolbarButton onClick={addTable} icon={TableIcon} title="Table" isDarkMode={isDarkMode} />
       <ToolbarButton onClick={addHorizontalRule} icon={Minus} title="Horizontal Rule" isDarkMode={isDarkMode} />
     </div>
   );
