@@ -174,13 +174,9 @@ export const KanbanBoard: React.FC = () => {
         </header>
 
         <main className={cn(
-          // موبایل: ستون‌ها عمودی
           'flex flex-col gap-4',
-          // تبلت: ستون‌ها افقی با gap مناسب
           'md:flex-row md:gap-4',
-          // دسکتاپ: gap بزرگتر
           'lg:gap-6',
-          // ارتفاع responsive
           'h-[calc(100vh-120px)] sm:h-[calc(100vh-110px)] md:h-[calc(100vh-100px)]',
           'overflow-x-auto pb-4'
         )}>
@@ -193,6 +189,7 @@ export const KanbanBoard: React.FC = () => {
               color={column.color}
               wipLimit={column.wipLimit}
               tasks={getColumnTasks(column.id)}
+              onClick={handleQuickAdd}
               onTaskClick={handleTaskClick}
             />
           ))}

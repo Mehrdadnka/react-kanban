@@ -19,7 +19,7 @@ interface SidebarShellProps {
   icon?: React.ReactNode;
   breadcrumbs?: BreadcrumbItem[];
   children: React.ReactNode;
-  maxWidth?: 'sm' | 'md' | 'lg' | 'xl';
+  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
   position?: PanelPosition;
   isDarkMode?: boolean
 }
@@ -29,6 +29,7 @@ const maxWidthClasses = {
   md: 'max-w-md',
   lg: 'lg:max-w-lg',
   xl: 'max-w-xl',
+  full: 'max-w-full w-[96vw] left-1/2 -translate-x-1/2',
 };
 
 const positionClasses: Record<PanelPosition, string> = {

@@ -5,18 +5,18 @@ import { Task, TaskPriority, TaskType } from '@/types/task.types';
 import { useSidebarEngineStore } from '@/stores/sidebar-engine/sidebar-engine.store';
 
 export type SidebarMode = 'create' | 'view' | 'edit';
-export type StepId = 'basic' | 'classification' | 'schedule' | 'breakdown';
+// export type StepId = 'basic' | 'classification' | 'schedule' | 'breakdown' | 'timeline';
+export type StepId = 'quick-create' | 'full-details' | 'schedule' | 'meta';
 
 export interface Step {
   id: StepId;
   label: string;
 }
-
 export const STEPS: Step[] = [
-  { id: 'basic', label: 'Basic Info' },
-  { id: 'classification', label: 'Classification' },
+  { id: 'quick-create', label: 'Quick Create' },
+  { id: 'full-details', label: 'Full Details' },
   { id: 'schedule', label: 'Schedule' },
-  { id: 'breakdown', label: 'Breakdown' },
+  { id: 'meta', label: 'Meta' },
 ];
 
 export interface BreadcrumbItem {
@@ -37,19 +37,38 @@ interface TaskSidebarState {
   activeStep: StepId;
   completedSteps: StepId[];
 
-  // Form state (all fields)
-  formState: {
-    title: string;
-    description: string;
-    priority: TaskPriority;
-    columnId: string;
-    type: TaskType;
-    labels: string[];
-    dueDate?: Date;
-    startDate?: Date;
-    subTasks: Array<{ id: string; title: string; completed: boolean }>;
-    relatedTaskIds: string[];
-  };
+formState: {
+  // Quick Create (اجباری)
+  title: string;           // الزامی + یونیک
+  shortDescription: string; // یک خط، الزامی
+  type: TaskType;
+  priority: TaskPriority;
+  columnId: string;        // status
+  labels: string[];
+  milestone?: string;      // آیدی milestone
+  project?: string;        // آیدی project
+  
+  // Full Details
+  description: string;     // Rich text/Markdown
+  attachments: Array<{
+    id: string;
+    name: string;
+    type: 'image' | 'file' | 'code';
+    url?: string;
+    content?: string;
+  }>;
+  
+  // Schedule
+  dueDate?: Date;
+  startDate?: Date;
+  reminderDate?: Date;
+  
+  // Meta
+  customFields: Record<string, string>;
+  relatedTaskIds: string[];
+  estimatedHours?: number;
+  actualHours?: number;
+}
 
   // Actions
   openCreateSidebar: (options?: { defaultColumnId?: string; parentTaskId?: string }) => void;
@@ -71,15 +90,22 @@ interface TaskSidebarState {
 
 const initialFormState: TaskSidebarState['formState'] = {
   title: '',
-  description: '',
+  shortDescription: '',
+  type: 'task',
   priority: 'medium',
   columnId: 'todo',
-  type: 'task',
   labels: [],
+  milestone: undefined,
+  project: undefined,
+  description: '',
+  attachments: [],
   dueDate: undefined,
   startDate: undefined,
-  subTasks: [],
+  reminderDate: undefined,
+  customFields: {},
   relatedTaskIds: [],
+  estimatedHours: undefined,
+  actualHours: undefined,
 };
 
 export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
@@ -88,7 +114,7 @@ export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
   defaultColumnId: 'todo',
   breadcrumbs: [],
   parentTaskId: undefined,
-  activeStep: 'basic',
+  activeStep: 'quick-create',
   completedSteps: [],
   formState: { ...initialFormState },
 
@@ -103,7 +129,7 @@ export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
       breadcrumbs: parentId
         ? [{ label: 'Back to Parent', onClick: () => get().closeSidebar() }, { label: 'New Sub-task' }]
         : [{ label: 'New Task' }],
-      activeStep: 'basic',
+      activeStep: 'quick-create',
       completedSteps: [],
       formState: { ...initialFormState, columnId: defaultColumnId },
     });
@@ -115,7 +141,7 @@ export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
     get().openCreateSidebar({ parentTaskId });
   },
 
-  openViewSidebar: (task: Task) => {
+openViewSidebar: (task: Task) => {
     set({
       mode: 'view',
       selectedTask: task,
@@ -126,10 +152,12 @@ export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
         { label: task.columnId },
         { label: task.title },
       ],
-      activeStep: 'basic',
-      completedSteps: ['basic', 'classification', 'schedule', 'breakdown'],
+      activeStep: 'quick-create',
+      completedSteps: ['quick-create', 'full-details', 'schedule', 'meta'],
       formState: {
+        ...initialFormState,
         title: task.title,
+        shortDescription: task.shortDescription || '',
         description: task.description || '',
         priority: task.priority,
         columnId: task.columnId,
@@ -137,13 +165,11 @@ export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
         labels: task.labels || [],
         dueDate: task.dueDate,
         startDate: task.startDate,
-        subTasks: task.subTasks?.map(id => ({ id, title: '', completed: false })) || [],
         relatedTaskIds: task.relatedTasks || [],
       },
     });
     useSidebarEngineStore.getState().open('task-sidebar', { mode: 'view', taskId: task.id });
-  },
-
+},
   openEditSidebar: (task: Task) => {
     set({
       mode: 'edit',
@@ -155,7 +181,7 @@ export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
         { label: task.title, onClick: () => get().transitionTo('view', task) },
         { label: 'Edit' },
       ],
-      activeStep: 'basic',
+      activeStep: 'quick-create',
       completedSteps: [],
       formState: {
         title: task.title,
@@ -179,7 +205,7 @@ export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
       selectedTask: null,
       parentTaskId: undefined,
       breadcrumbs: [],
-      activeStep: 'basic',
+      activeStep: 'quick-create',
       completedSteps: [],
       formState: { ...initialFormState },
     });

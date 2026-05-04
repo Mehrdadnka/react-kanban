@@ -31,7 +31,7 @@ export const Stepper: React.FC<StepperProps> = ({
   const { isDarkMode } = useApp();
 
   return (
-    <div className={cn('flex border-r w-fit h-full flex-col', className)}>
+    <div className={cn('flex w-fit h-full flex-col', className)}>
       {steps.map((step, index) => {
         const isActive = step.id === activeStep;
         const isCompleted = completedSteps.includes(step.id);
