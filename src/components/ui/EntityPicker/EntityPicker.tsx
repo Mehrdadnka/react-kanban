@@ -164,6 +164,7 @@ export const EntityPicker: React.FC<EntityPickerProps> = ({
       </div>
     );
   }
+  const hasSelected = selectedItems.length > 0;
 
   return (
     <div ref={ref} className={cn('relative', className)}>
@@ -178,9 +179,23 @@ export const EntityPicker: React.FC<EntityPickerProps> = ({
             : "border-gray-300 hover:border-gray-400 text-gray-600 bg-white"
         )}
       >
-        {icon || <Plus size={12} />}
-        <span className="flex-1 text-left">{label}</span>
-        {selectedIds.length > 0 && (
+        {!hasSelected && (icon || <Plus size={12} />)}
+           
+        {hasSelected ? (
+          <div className="flex flex-wrap gap-1 flex-1">
+            {selectedItems.map(item =>
+              renderBadge ? (
+                <div key={item.id}>{renderBadge(item)}</div>
+              ) : (
+                defaultRenderBadge(item)
+              )
+            )}
+          </div>
+        ) : (
+          <span className="flex-1 text-left">{label}</span>
+        )}
+
+        {selectedIds.length > 0 && !hasSelected && (
           <span className={cn(
             "px-1.5 py-0.5 rounded-full text-[10px]",
             isDarkMode ? "bg-gray-700" : "bg-gray-200"

@@ -1,21 +1,21 @@
-// ──── src/components/sidebar-ui-engine/Stepper.tsx ────
-
+// src/components/sidebar-ui-engine/Stepper.tsx
 import React from 'react';
 import { Check, Circle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useApp } from '@/providers/AppProvider';
+import { StepId } from '@/stores/sidebar-engine/task-sidebar.store';
 
 export interface StepConfig {
-  id: string;
+  id: StepId;
   label: string;
   icon?: React.ReactNode;
 }
 
 interface StepperProps {
   steps: StepConfig[];
-  activeStep: string;
-  completedSteps: string[];
-  onStepClick?: (stepId: string) => void;
+  activeStep: StepId;
+  completedSteps: StepId[];
+  onStepClick?: (stepId: StepId) => void;
   orientation?: 'vertical';
   className?: string;
 }

@@ -2,7 +2,9 @@ import React from 'react';
 import { DashboardSidebar } from '@/features/DashboardSidebar/DashboardSidebar';
 import { SearchSidebar } from '@/components/search/SearchSidebar/SearchSidebar';
 import { useSidebarPanel } from '@/hooks/useSidebarPanel';
-import { MegaTaskSidebar } from '@/features/TaskSidebar/MegaTaskSidebar';
+import { MegaTaskSidebar } from '@/features/TaskSidebars/MegaTaskSidebar';
+import { CreateTaskSidebar } from '@/features/TaskSidebars/create/CreateTaskSidebar';
+
 
 const SIDEBAR_POSITION = 'left';
 
@@ -15,7 +17,16 @@ const MegaTaskSidebarRegistrar: React.FC = () => {
   });
   return null;
 };
-
+// 2. اضافه کردن رجیسترار جدید برای CreateTaskSidebar
+const CreateTaskSidebarRegistrar: React.FC = () => {
+  useSidebarPanel({
+    id: 'create-task-sidebar',
+    component: CreateTaskSidebar,
+    priority: 15,
+    position: SIDEBAR_POSITION,
+  });
+  return null;
+};
 const DashboardSidebarRegistrar: React.FC = () => {
   useSidebarPanel({
     id: 'dashboard-sidebar',
@@ -40,6 +51,7 @@ export const SidebarRegistry: React.FC = () => {
   return (
     <>
       <MegaTaskSidebarRegistrar />
+      <CreateTaskSidebarRegistrar />
       <DashboardSidebarRegistrar />
       <SearchSidebarRegistrar />
     </>

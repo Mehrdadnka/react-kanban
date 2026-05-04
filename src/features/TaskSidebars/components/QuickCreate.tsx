@@ -1,31 +1,45 @@
+// src/features/TaskSidebar/components/QuickCreate.tsx
 import React from 'react';
 import { 
-  AlertCircle, Hash, FileText, Tag, Flag, 
-  Target, Layout, Zap 
+  AlertCircle, FileText, Flag, Target, Zap 
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useApp } from '@/providers/AppProvider';
-import { useTaskSidebarStore } from '@/stores/sidebar-engine/task-sidebar.store';
 import { useColumnStore } from '@/stores/column.store';
 import { TaskType, TaskPriority } from '@/types/task.types';
 import { SidebarInput } from '@/components/sidebar-ui-engine/SidebarInput';
 import { SidebarSelect } from '@/components/sidebar-ui-engine/SidebarSelect';
 import StatusIcon from './StatusIcon';
-import PriorityBadge from './PriorityBadge';
-import { getColumnLabel } from '../utils';
 import { LabelPicker } from '@/components/pickers/LabelPicker';
 import { MilestonePicker } from '@/components/pickers/MilestonePicker';
 import { ProjectPicker } from '@/components/pickers/ProjectPicker';
 
+export interface QuickCreateFormState {
+  title: string;
+  shortDescription: string;
+  type: TaskType;
+  priority: TaskPriority;
+  columnId: string;
+  labels: string[];
+  milestoneIds: string[];
+  projectIds: string[];
+}
+
 interface QuickCreateProps {
   isViewMode: boolean;
   inputRef: React.RefObject<HTMLInputElement | null>;
+  formState: QuickCreateFormState;
+  updateFormField: <K extends keyof QuickCreateFormState>(field: K, value: QuickCreateFormState[K]) => void;
 }
 
-export const QuickCreate: React.FC<QuickCreateProps> = ({ isViewMode, inputRef }) => {
+export const QuickCreate: React.FC<QuickCreateProps> = ({ 
+  isViewMode, 
+  inputRef, 
+  formState, 
+  updateFormField 
+}) => {
   const { isDarkMode } = useApp();
   const { columns } = useColumnStore();
-  const { formState, updateFormField } = useTaskSidebarStore();
 
   const dynamicColumnOptions = columns
     .sort((a, b) => a.order - b.order)
@@ -41,32 +55,29 @@ export const QuickCreate: React.FC<QuickCreateProps> = ({ isViewMode, inputRef }
         <SidebarInput
           id="task-title"
           required={true}
-          label={'Title'}
+          label="Title"
           value={formState.title}
           onChange={(v) => updateFormField('title', v)}
           placeholder="Enter task title..."
           disabled={isViewMode}
           inputRef={inputRef}
         />
-        {!formState.title && !isViewMode && (
-          <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
-            <AlertCircle size={12} />
-            Title is required
-          </p>
-        )}
       </div>
 
       <div>
         <SidebarInput
           required={true}
           id="short-desc"
-          label={'Short Description'}
+          label="Short Description"
           value={formState.shortDescription}
           onChange={(v) => updateFormField('shortDescription', v)}
           placeholder="Brief summary in one line..."
           disabled={isViewMode}
         />
-        <p className="text-xs text-gray-400 mt-1">
+        <p className={cn(
+          "text-xs mt-1",
+          isDarkMode ? "text-gray-500" : "text-gray-400"
+        )}>
           {formState.shortDescription.length}/200 characters
         </p>
       </div>
@@ -100,7 +111,6 @@ export const QuickCreate: React.FC<QuickCreateProps> = ({ isViewMode, inputRef }
         />
       </div>
 
-      {/* Status (Column) */}
       <SidebarSelect
         id="task-column"
         label="Status"
@@ -117,56 +127,58 @@ export const QuickCreate: React.FC<QuickCreateProps> = ({ isViewMode, inputRef }
         )}>
           Labels
         </label>
-          <LabelPicker
-            selectedLabels={formState.labels}
-            onToggle={(labelId) => {
-              updateFormField('labels',
-              formState.labels.includes(labelId)
-                ? formState.labels.filter(id => id !== labelId)
-                : [...formState.labels, labelId]
-              );
-            }}
-          />
+        <LabelPicker
+          selectedLabels={formState.labels}
+          onToggle={(labelId) => {
+            const newLabels = formState.labels.includes(labelId)
+              ? formState.labels.filter(id => id !== labelId)
+              : [...formState.labels, labelId];
+            updateFormField('labels', newLabels);
+          }}
+          disabled={isViewMode}
+        />
       </div>
 
-      {/* Milestone & Project */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-        <label className="text-sm mb-1.5 block text-gray-700 dark:text-gray-300">
-          Milestones
-        </label>
-        <MilestonePicker
-          selectedMilestones={formState.milestoneIds || []}
-          onToggle={(milestoneId) => {
-              const current = formState.milestoneIds || [];
-              updateFormField('milestoneIds',
-                current.includes(milestoneId)
-                ? current.filter(id => id !== milestoneId)
-                : [...current, milestoneId]
-            );
-        }}
-        disabled={isViewMode}
-        />
+          <label className={cn(
+            "text-sm mb-1.5 block",
+            isDarkMode ? "text-gray-300" : "text-gray-700"
+          )}>
+            Milestones
+          </label>
+          <MilestonePicker
+            selectedMilestones={formState.milestoneIds}
+            onToggle={(milestoneId) => {
+              const newMilestones = formState.milestoneIds.includes(milestoneId)
+                ? formState.milestoneIds.filter(id => id !== milestoneId)
+                : [...formState.milestoneIds, milestoneId];
+              updateFormField('milestoneIds', newMilestones);
+            }}
+            disabled={isViewMode}
+          />
         </div>
         <div>
-
-        <label className="text-sm mb-1.5 block text-gray-700 dark:text-gray-300">
-          Projects
-        </label>
-        <ProjectPicker
-          selectedProjects={formState.projectIds || []}
-          onToggle={(projectId) => {
-            const current = formState.projectIds || [];
-            updateFormField('projectIds',
-                current.includes(projectId)
-                ? current.filter(id => id !== projectId)
-                : [...current, projectId]
-            );
-        }}
-        disabled={isViewMode}
-        />
+          <label className={cn(
+            "text-sm mb-1.5 block",
+            isDarkMode ? "text-gray-300" : "text-gray-700"
+          )}>
+            Projects
+          </label>
+          <ProjectPicker
+            selectedProjects={formState.projectIds}
+            onToggle={(projectId) => {
+              const newProjects = formState.projectIds.includes(projectId)
+                ? formState.projectIds.filter(id => id !== projectId)
+                : [...formState.projectIds, projectId];
+              updateFormField('projectIds', newProjects);
+            }}
+            disabled={isViewMode}
+          />
         </div>
       </div>
     </div>
   );
 };
+
+QuickCreate.displayName = 'QuickCreate';

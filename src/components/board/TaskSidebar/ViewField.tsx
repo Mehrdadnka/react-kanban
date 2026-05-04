@@ -1,6 +1,6 @@
 // src/components/board/TaskSidebar/ViewField.tsx
 
-import { getColumnLabel } from "@/features/TaskSidebar/utils";
+import { getColumnLabel } from "@/features/TaskSidebars/utils";
 import { cn } from "@/lib/utils";
 import { useApp } from "@/providers/AppProvider";
 

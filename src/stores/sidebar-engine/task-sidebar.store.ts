@@ -182,7 +182,7 @@ export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
         ...initialData, // Allow overriding initial data
       },
     });
-    useSidebarEngineStore.getState().open('task-sidebar', { 
+    useSidebarEngineStore.getState().open('create-task-sidebar', { 
       mode: 'create', 
       parentTaskId: parentId 
     });
