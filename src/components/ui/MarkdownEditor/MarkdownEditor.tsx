@@ -77,6 +77,12 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 // const fileInputRef = useRef<HTMLInputElement>(null);
 
+const stripHtml = (html: string) => {
+  const tmp = document.createElement('DIV');
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || '';
+};
+
 
   const editor = useEditor({
     extensions: [
@@ -119,7 +125,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     content: value,
     editable: !disabled,
     onUpdate: ({ editor }) => {
-      onChange(editor.getHTML()); 
+      onChange(editor.getText()); 
     },
     editorProps: {
       attributes: {

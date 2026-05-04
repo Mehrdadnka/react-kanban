@@ -39,7 +39,7 @@ export const DetailsStep: React.FC<DetailsStepProps> = ({
       )}>
         <MarkdownEditor
           value={value}
-          onChange={onChange}
+          onChange={(rawMarkdown) => onChange(rawMarkdown)} // ✅ raw markdown
           placeholder={placeholder}
           disabled={disabled}
           className="h-full"

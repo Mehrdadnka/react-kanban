@@ -1,5 +1,3 @@
-// src/features/TaskSidebar/utils.tsx
-
 import React from 'react';
 import { ClipboardList, Zap, CheckCircle2, FileText, Calendar, Tag } from 'lucide-react';
 import { StepId } from '@/stores/sidebar-engine/task-sidebar.store';

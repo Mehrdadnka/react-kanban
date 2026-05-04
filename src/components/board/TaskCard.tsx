@@ -100,9 +100,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onClick }) => {
               <Eye size={14} />
             </IconButton>
           </div>
-          {task.description && (
+          {task.shortDescription && (
             <CardDescription className="text-xs mt-1 ml-6 line-clamp-2">
-              {task.description}
+              {task.shortDescription}
             </CardDescription>
           )}
         </CardHeader>
