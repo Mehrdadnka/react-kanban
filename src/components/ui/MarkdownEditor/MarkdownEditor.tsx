@@ -74,12 +74,14 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
 }) => {
   const { isDarkMode } = useApp();
   const fileInputRef = useRef<HTMLInputElement>(null);
+// const fileInputRef = useRef<HTMLInputElement>(null);
+
 
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
         heading: { levels: [1, 2, 3, 4, 5, 6] },
-        codeBlock: false, // از نسخه کم‌حجم‌تر استفاده می‌کنیم
+        codeBlock: false, 
       }),
       Placeholder.configure({ placeholder }),
       Image.configure({
@@ -115,7 +117,6 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           isDarkMode ? 'prose-invert' : '',
           'p-4 min-h-[250px] lg:min-h-[450px]'
         ),
-        // style: `min-height: ${minHeight}`,
       },
     },
   });

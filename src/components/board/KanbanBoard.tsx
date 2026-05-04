@@ -1,4 +1,4 @@
-// ──── src/components/board/KanbanBoard.tsx ────
+// src/components/board/KanbanBoard.tsx
 
 import React, { useState, useCallback, useMemo } from 'react';
 import * as Tooltip from '@radix-ui/react-tooltip';
@@ -79,7 +79,9 @@ export const KanbanBoard: React.FC = () => {
   }, [openViewSidebar]);
 
   const handleQuickAdd = useCallback(() => {
-    openCreateSidebar(sortedColumns[0]?.id || 'todo');
+    openCreateSidebar({
+      defaultColumnId: sortedColumns[0]?.id || 'todo'
+    });
   }, [sortedColumns, openCreateSidebar]);
 
   const getColumnTasks = useCallback((columnId: string) => {

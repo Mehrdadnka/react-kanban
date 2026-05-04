@@ -1,17 +1,17 @@
-// src/stores/task-sidebar.store.ts
+// src/stores/sidebar-engine/task-sidebar.store.ts
 
 import { create } from 'zustand';
-import { Task, TaskPriority, TaskType } from '@/types/task.types';
+import { Task, TaskPriority, TaskType, Attachment } from '@/types/task.types';
 import { useSidebarEngineStore } from '@/stores/sidebar-engine/sidebar-engine.store';
 
 export type SidebarMode = 'create' | 'view' | 'edit';
-// export type StepId = 'basic' | 'classification' | 'schedule' | 'breakdown' | 'timeline';
 export type StepId = 'quick-create' | 'full-details' | 'schedule' | 'meta';
 
 export interface Step {
   id: StepId;
   label: string;
 }
+
 export const STEPS: Step[] = [
   { id: 'quick-create', label: 'Quick Create' },
   { id: 'full-details', label: 'Full Details' },
@@ -24,32 +24,20 @@ export interface BreadcrumbItem {
   onClick?: () => void;
 }
 
-interface TaskSidebarState {
-  mode: SidebarMode;
-  selectedTask: Task | null;
-  defaultColumnId: string;
-  breadcrumbs: BreadcrumbItem[];
-
-  // ──── New: parent context ────
-  parentTaskId?: string;
-
-  // Stepper
-  activeStep: StepId;
-  completedSteps: StepId[];
-
-formState: {
+// ──── Form State (هماهنگ با Task interface) ────
+export interface TaskFormState {
   // Quick Create (اجباری)
-  title: string;           // الزامی + یونیک
-  shortDescription: string; // یک خط، الزامی
+  title: string;
+  shortDescription: string;
   type: TaskType;
   priority: TaskPriority;
-  columnId: string;        // status
+  columnId: string;
   labels: string[];
-  milestone?: string;      // آیدی milestone
-  project?: string;        // آیدی project
+  milestoneIds: string[];  // تغییر از milestone به آرایه
+  projectIds: string[];    // تغییر از project به آرایه
   
   // Full Details
-  description: string;     // Rich text/Markdown
+  description: string;
   attachments: Array<{
     id: string;
     name: string;
@@ -64,19 +52,39 @@ formState: {
   reminderDate?: Date;
   
   // Meta
-  customFields: Record<string, string>;
-  relatedTaskIds: string[];
   estimatedHours?: number;
-  actualHours?: number;
+  relatedTaskIds: string[];
+  assigneeId?: string;
 }
 
+interface TaskSidebarState {
+  mode: SidebarMode;
+  selectedTask: Task | null;
+  defaultColumnId: string;
+  breadcrumbs: BreadcrumbItem[];
+  parentTaskId?: string;
+
+  // Stepper
+  activeStep: StepId;
+  completedSteps: StepId[];
+
+  // Form State
+  formState: TaskFormState;
+
   // Actions
-  openCreateSidebar: (options?: { defaultColumnId?: string; parentTaskId?: string }) => void;
+  openCreateSidebar: (options?: { 
+    defaultColumnId?: string; 
+    parentTaskId?: string;
+    initialData?: Partial<TaskFormState>;
+  }) => void;
   openCreateSubTaskSidebar: (parentTaskId: string) => void;
   openViewSidebar: (task: Task) => void;
   openEditSidebar: (task: Task) => void;
   closeSidebar: () => void;
-  updateFormField: <K extends keyof TaskSidebarState['formState']>(field: K, value: TaskSidebarState['formState'][K]) => void;
+  updateFormField: <K extends keyof TaskFormState>(
+    field: K, 
+    value: TaskFormState[K]
+  ) => void;
   resetForm: () => void;
   setBreadcrumbs: (breadcrumbs: BreadcrumbItem[]) => void;
   transitionTo: (mode: SidebarMode, task?: Task) => void;
@@ -86,28 +94,57 @@ formState: {
   goNext: () => void;
   goBack: () => void;
   completeStep: (step: StepId) => void;
+  
+  // Bulk form update
+  updateFormBulk: (updates: Partial<TaskFormState>) => void;
 }
 
-const initialFormState: TaskSidebarState['formState'] = {
+// ──── Initial State ────
+const initialFormState: TaskFormState = {
   title: '',
   shortDescription: '',
   type: 'task',
   priority: 'medium',
   columnId: 'todo',
   labels: [],
-  milestone: undefined,
-  project: undefined,
+  milestoneIds: [],
+  projectIds: [],
   description: '',
   attachments: [],
   dueDate: undefined,
   startDate: undefined,
   reminderDate: undefined,
-  customFields: {},
-  relatedTaskIds: [],
   estimatedHours: undefined,
-  actualHours: undefined,
+  relatedTaskIds: [],
+  assigneeId: undefined,
 };
 
+// ──── Helper: Map Task to FormState ────
+const taskToFormState = (task: Task): TaskFormState => ({
+  title: task.title,
+  shortDescription: task.shortDescription || '',
+  type: task.type,
+  priority: task.priority,
+  columnId: task.columnId,
+  labels: task.labels || [],
+  milestoneIds: task.milestoneIds || [],
+  projectIds: task.projectIds || [],
+  description: task.description || '',
+  attachments: task.attachments?.map(a => ({
+    id: a.id,
+    name: a.name,
+    type: a.type === 'image' ? 'image' : a.type === 'code' ? 'code' : 'file',
+    url: a.url,
+  })) || [],
+  dueDate: task.dueDate,
+  startDate: task.startDate,
+  reminderDate: task.reminderDate,
+  estimatedHours: task.estimatedHours,
+  relatedTaskIds: task.relatedTasks || [],
+  assigneeId: task.assigneeId,
+});
+
+// ──── Store ────
 export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
   mode: 'create',
   selectedTask: null,
@@ -118,30 +155,46 @@ export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
   completedSteps: [],
   formState: { ...initialFormState },
 
-  // ──── Open for new task (optionally as sub-task) ────
+  // ──── Open for new task ────
   openCreateSidebar: (options = {}) => {
-    const { defaultColumnId = 'todo', parentTaskId: parentId } = options;
+    const { 
+      defaultColumnId = 'todo', 
+      parentTaskId: parentId,
+      initialData 
+    } = options;
+    
     set({
       mode: 'create',
       selectedTask: null,
       defaultColumnId,
       parentTaskId: parentId,
       breadcrumbs: parentId
-        ? [{ label: 'Back to Parent', onClick: () => get().closeSidebar() }, { label: 'New Sub-task' }]
+        ? [
+            { label: 'Back to Parent', onClick: () => get().closeSidebar() }, 
+            { label: 'New Sub-task' }
+          ]
         : [{ label: 'New Task' }],
       activeStep: 'quick-create',
       completedSteps: [],
-      formState: { ...initialFormState, columnId: defaultColumnId },
+      formState: { 
+        ...initialFormState, 
+        columnId: defaultColumnId,
+        ...initialData, // Allow overriding initial data
+      },
     });
-    useSidebarEngineStore.getState().open('task-sidebar', { mode: 'create', parentTaskId: parentId });
+    useSidebarEngineStore.getState().open('task-sidebar', { 
+      mode: 'create', 
+      parentTaskId: parentId 
+    });
   },
 
-  // ──── Explicitly create sub-task from parent ────
+  // ──── Create sub-task ────
   openCreateSubTaskSidebar: (parentTaskId: string) => {
     get().openCreateSidebar({ parentTaskId });
   },
 
-openViewSidebar: (task: Task) => {
+  // ──── View task ────
+  openViewSidebar: (task: Task) => {
     set({
       mode: 'view',
       selectedTask: task,
@@ -154,22 +207,15 @@ openViewSidebar: (task: Task) => {
       ],
       activeStep: 'quick-create',
       completedSteps: ['quick-create', 'full-details', 'schedule', 'meta'],
-      formState: {
-        ...initialFormState,
-        title: task.title,
-        shortDescription: task.shortDescription || '',
-        description: task.description || '',
-        priority: task.priority,
-        columnId: task.columnId,
-        type: task.type || 'task',
-        labels: task.labels || [],
-        dueDate: task.dueDate,
-        startDate: task.startDate,
-        relatedTaskIds: task.relatedTasks || [],
-      },
+      formState: taskToFormState(task),
     });
-    useSidebarEngineStore.getState().open('task-sidebar', { mode: 'view', taskId: task.id });
-},
+    useSidebarEngineStore.getState().open('task-sidebar', { 
+      mode: 'view', 
+      taskId: task.id 
+    });
+  },
+
+  // ──── Edit task ────
   openEditSidebar: (task: Task) => {
     set({
       mode: 'edit',
@@ -182,23 +228,16 @@ openViewSidebar: (task: Task) => {
         { label: 'Edit' },
       ],
       activeStep: 'quick-create',
-      completedSteps: [],
-      formState: {
-        title: task.title,
-        description: task.description || '',
-        priority: task.priority,
-        columnId: task.columnId,
-        type: task.type || 'task',
-        labels: task.labels || [],
-        dueDate: task.dueDate,
-        startDate: task.startDate,
-        subTasks: task.subTasks?.map(id => ({ id, title: '', completed: false })) || [],
-        relatedTaskIds: task.relatedTasks || [],
-      },
+      completedSteps: [], // Start fresh for editing
+      formState: taskToFormState(task),
     });
-    useSidebarEngineStore.getState().open('task-sidebar', { mode: 'edit', taskId: task.id });
+    useSidebarEngineStore.getState().open('task-sidebar', { 
+      mode: 'edit', 
+      taskId: task.id 
+    });
   },
 
+  // ──── Close ────
   closeSidebar: () => {
     set({
       mode: 'create',
@@ -212,9 +251,17 @@ openViewSidebar: (task: Task) => {
     useSidebarEngineStore.getState().close('task-sidebar');
   },
 
+  // ──── Update single field ────
   updateFormField: (field, value) => {
     set(state => ({
       formState: { ...state.formState, [field]: value },
+    }));
+  },
+
+  // ──── Bulk update ────
+  updateFormBulk: (updates) => {
+    set(state => ({
+      formState: { ...state.formState, ...updates },
     }));
   },
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, memo, useMemo, useCallback } from 'react';
 import {
-  Save, Edit3, Trash2, Calendar, Clock, FileText, Tag,
-  CheckSquare, Eye, Plus, ListChecks, Flag,
+    Save, Edit3, Trash2, Calendar, Clock, FileText, Tag,
+    CheckSquare, Eye, Plus, ListChecks, Flag,
   ArrowRight, ArrowLeft,
   Zap
 } from 'lucide-react';
@@ -24,7 +24,7 @@ import { SidebarConfirmDialog } from '@/components/sidebar-ui-engine/SidebarConf
 import { SidebarMetaInfo } from '@/components/sidebar-ui-engine/SidebarMetaInfo';
 import { Stepper } from '@/components/sidebar-ui-engine/Stepper';
 import { DatePicker } from '@/components/ui/DatePicker/DatePicker';
-import { LabelPicker } from '@/components/board/LabelPicker';
+import { LabelPicker } from '@/components/pickers/LabelPicker';
 import { usePanelPosition } from '@/stores/sidebar-engine/sidebar-engine.store';
 import { StepId, STEPS, useTaskSidebarStore } from '@/stores/sidebar-engine/task-sidebar.store';
 
@@ -45,94 +45,111 @@ const STEP_ICONS: Record<StepId, React.ReactNode> = {
 };
 // ──── Component ────
 export const MegaTaskSidebar: React.FC<PanelProps> = memo(({
-  zIndex, onClose, isOpen: panelIsOpen, panelId, isDarkMode
+    zIndex, onClose, isOpen: panelIsOpen, panelId, isDarkMode
 }) => {
-  const { addTask, updateTask, deleteTask } = useTaskStore();
-  const { labels, getLabelById } = useLabelStore();
-  const { columns } = useColumnStore();
-  const {
-    mode, selectedTask, formState, breadcrumbs,
-    closeSidebar, updateFormField, openEditSidebar, parentTaskId,
-    activeStep, completedSteps, goToStep, goNext, goBack, completeStep,
-  } = useTaskSidebarStore();
+    const { addTask, updateTask, deleteTask } = useTaskStore();
+    const { labels, getLabelById } = useLabelStore();
+    const { columns } = useColumnStore();
+    const {
+        mode, selectedTask, formState, breadcrumbs,
+        closeSidebar, updateFormField, openEditSidebar, parentTaskId,
+        activeStep, completedSteps, goToStep, goNext, goBack, completeStep,
+    } = useTaskSidebarStore();
+    
+    const position = usePanelPosition(panelId);
+    const fileInputRef = useRef<HTMLInputElement>(null);  // ← بالای کامپوننت هست؟
+    const inputRef = useRef<HTMLInputElement | null>(null);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  const position = usePanelPosition(panelId);
-  const inputRef = useRef<HTMLInputElement | null>(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const isViewMode = mode === 'view';
+    const isEditMode = mode === 'edit' || mode === 'create';
+    const isLastStep = activeStep === 'meta';       
+    const isFirstStep = activeStep === 'quick-create'; 
+    const icon = useMemo(() => {
+      switch (mode) {
+        case 'create': return <Plus size={20} />;
+        case 'view': return <Eye size={20} />;
+        case 'edit': return <Edit3 size={20} />;
+        default: return <CheckSquare size={20} />;
+      }
+    }, [mode]);
 
-  const isViewMode = mode === 'view';
-  const isEditMode = mode === 'edit' || mode === 'create';
-//   const isLastStep = activeStep === 'breakdown';
-//   const isFirstStep = activeStep === 'basic';
-const isLastStep = activeStep === 'meta';       
-const isFirstStep = activeStep === 'quick-create'; 
-  const icon = useMemo(() => {
-    switch (mode) {
-      case 'create': return <Plus size={20} />;
-      case 'view': return <Eye size={20} />;
-      case 'edit': return <Edit3 size={20} />;
-      default: return <CheckSquare size={20} />;
-    }
-  }, [mode]);
+    useEffect(() => {
+      if (panelIsOpen && mode === 'create' && inputRef.current) {
+        setTimeout(() => inputRef.current?.focus(), 100);
+      }
+    }, [panelIsOpen, mode]);
 
-  useEffect(() => {
-    if (panelIsOpen && mode === 'create' && inputRef.current) {
-      setTimeout(() => inputRef.current?.focus(), 100);
-    }
-  }, [panelIsOpen, mode]);
+    useEffect(() => {
+      if (!panelIsOpen) setShowDeleteConfirm(false);
+      }, [panelIsOpen]);
 
-  useEffect(() => {
-    if (!panelIsOpen) setShowDeleteConfirm(false);
-  }, [panelIsOpen]);
+    const handleClose = () => {
+      closeSidebar();
+      onClose?.();
+    };
 
-  const handleClose = () => {
-    closeSidebar();
-    onClose?.();
-  };
+    const handleNext = () => {
+      completeStep(activeStep);
+      goNext();
+    };
 
-  const handleNext = () => {
-    completeStep(activeStep);
-    goNext();
-  };
+    const handleBack = () => {
+      if (isFirstStep) return;
+      goBack();
+    };
 
-  const handleBack = () => {
-    if (isFirstStep) return;
-    goBack();
-  };
+    const handleLabelToggle = (labelId: string) => {
+      updateFormField('labels',
+        formState.labels.includes(labelId)
+          ? formState.labels.filter(id => id !== labelId)
+          : [...formState.labels, labelId]
+      );
+    };
+  const handleMilestoneToggle = useCallback((milestoneId: string) => {
+      const current = formState.milestoneIds || [];
+      updateFormField('milestoneIds',
+        current.includes(milestoneId)
+          ? current.filter(id => id !== milestoneId)
+          : [...current, milestoneId]
+      );
+  }, [formState.milestoneIds, updateFormField]);
 
-  const handleLabelToggle = (labelId: string) => {
-    updateFormField('labels',
-      formState.labels.includes(labelId)
-        ? formState.labels.filter(id => id !== labelId)
-        : [...formState.labels, labelId]
-    );
-  };
+  const handleProjectToggle = useCallback((projectId: string) => {
+    const current = formState.projectIds || [];
+    updateFormField('projectIds',
+      current.includes(projectId)
+        ? current.filter(id => id !== projectId)
+        : [...current, projectId]
+      );
+    }, [formState.projectIds, updateFormField]);
 
-const handleSubmit = () => {
-  if (!formState.title.trim() || !formState.shortDescription.trim()) return;
+  const handleSubmit = useCallback(
+  () => {
+    if (!formState.title.trim() || !formState.shortDescription.trim()) return;
   
-  const baseData = {
-    title: formState.title,
-    shortDescription: formState.shortDescription,
-    description: formState.description,
-    columnId: formState.columnId,
-    priority: formState.priority,
-    type: formState.type,
-    labels: formState.labels,
-    milestone: formState.milestone,
-    project: formState.project,
-    dueDate: formState.dueDate,
-    startDate: formState.startDate,
-    reminderDate: formState.reminderDate,
-    estimatedHours: formState.estimatedHours,
-    attachments: formState.attachments as any,
-    parentId: parentTaskId,
-  };
+    const baseData = {
+      title: formState.title,
+      shortDescription: formState.shortDescription,
+      description: formState.description,
+      columnId: formState.columnId,
+      priority: formState.priority,
+      type: formState.type,
+      labels: formState.labels,
+      milestoneIds: formState.milestoneIds || [],
+      project: formState.projectIds || [],
+      dueDate: formState.dueDate,
+      startDate: formState.startDate,
+      reminderDate: formState.reminderDate,
+      estimatedHours: formState.estimatedHours,
+      attachments: formState.attachments as any,
+      parentId: parentTaskId,
+    };
   
-  if (mode === 'create') addTask(baseData);
-  else if (mode === 'edit' && selectedTask) updateTask(selectedTask.id, baseData);
-  handleClose();
-};
+    if (mode === 'create') addTask(baseData);
+    else if (mode === 'edit' && selectedTask) updateTask(selectedTask.id, baseData);
+    handleClose();
+  }, [formState, mode, selectedTask, parentTaskId, addTask, updateTask, handleClose]);
 
   const handleDeleteConfirm = () => {
     if (selectedTask) {
@@ -156,152 +173,216 @@ const handleSubmit = () => {
     { value: 'project', label: 'Project' },
     { value: 'epic', label: 'Epic' },
   ];
-    const handleAttachmentDrop = useCallback(
-  (event: React.DragEvent) => {
-    event.preventDefault();
-    const files = Array.from(event.dataTransfer.files);
-    
+
+  const handleAttachmentClick = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleFileSelect = useCallback(
+  (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
     files.forEach(file => {
       const reader = new FileReader();
       reader.onload = (e) => {
-        const newAttachment = {
+        const url = e.target?.result as string;
+        updateFormField('attachments', [...formState.attachments, {
           id: crypto.randomUUID(),
           name: file.name,
-          type: file.type.startsWith('image/') ? 'image' as const : 'file' as const,
-          url: e.target?.result as string,
-        };
-        updateFormField('attachments', [...formState.attachments, newAttachment]);
+          type: file.type.startsWith('image/') ? 'image' : 'file',
+          url,
+        }]);
       };
       reader.readAsDataURL(file);
     });
-  },
-  [formState.attachments, updateFormField]
-);
-  // ──── Render Step Content ────
-const renderStepContent = () => {
-  switch (activeStep) {
-    case 'quick-create':
-      return <QuickCreate isViewMode={isViewMode} inputRef={inputRef} />;
+    event.target.value = '';
+  },  [formState.attachments, updateFormField]);
 
-case 'full-details':
-  return (
-    <div className="flex-1 lg:max-h-[600px] max-h-[400px] flex flex-col min-h-0">
-      <MarkdownEditor
-        value={formState.description}
-        onChange={(v) => updateFormField('description', v)}
-        placeholder="Detailed task description with Markdown support..."
-        disabled={isViewMode}
-        // minHeight="300px"
-        className="flex-1 h-full"
-      />
-    </div>
-  );   
+  const handleAttachmentDrop = useCallback(
+    (event: React.DragEvent) => {
+      event.preventDefault();
+      const files = Array.from(event.dataTransfer.files);
     
-      case 'schedule':
-      return (
-        <div className="space-y-4">
-          <DatePicker
-            label="Start Date"
-            value={formState.startDate}
-            onChange={(d) => updateFormField('startDate', d)}
-            disabled={isViewMode}
-          />
-          <DatePicker
-            label="Due Date"
-            value={formState.dueDate}
-            onChange={(d) => updateFormField('dueDate', d)}
-            disabled={isViewMode}
-            includeTime
-          />
-          <DatePicker
-            label="Reminder"
-            value={formState.reminderDate}
-            onChange={(d) => updateFormField('reminderDate', d)}
-            disabled={isViewMode}
-            includeTime
-          />
-          
-          {/* Duration calculation */}
-          {formState.startDate && formState.dueDate && (
-            <div className={cn(
-              'p-3 rounded-lg text-xs space-y-1',
-              isDarkMode ? 'bg-gray-800' : 'bg-gray-50'
-            )}>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Duration</span>
-                <span className="font-medium">
-                  {Math.ceil((formState.dueDate.getTime() - formState.startDate.getTime()) / (1000 * 60 * 60 * 24))} days
-                </span>
-              </div>
-            </div>
-          )}
-        </div>
-      );
-
-case 'meta':
-
-
-  return (
-    <div className="space-y-4">
-      {/* Attachments */}
-      <div>
-        <label className={cn(
-          "text-sm mb-2 block font-medium",
-          isDarkMode ? "text-gray-300" : "text-gray-700"
-        )}>
-          Attachments
-        </label>
-        <div
-          className={cn(
-            'border-2 border-dashed rounded-lg p-6 text-center transition-colors',
-            isDarkMode
-              ? 'border-gray-700 hover:border-gray-600'
-              : 'border-gray-300 hover:border-gray-400',
-            isViewMode && 'opacity-50'
-          )}
-          onDrop={handleAttachmentDrop}
-          onDragOver={(e) => e.preventDefault()}
-        >
-          {isViewMode ? (
-            <p className="text-sm text-gray-400">No attachments</p>
-          ) : (
-            <>
-              <p className="text-sm text-gray-400 mb-1">
-                Drop files, images, or code snippets here
-              </p>
-              <p className="text-xs text-gray-500">or click to browse</p>
-            </>
-          )}
-        </div>
-        {/* لیست attachments (بعداً اضافه می‌کنیم) */}
-      </div>
-
-      {/* Estimated Hours */}
-      <SidebarInput
-        id="estimated-hours"
-        label="Estimated Hours"
-        value={formState.estimatedHours?.toString() || ''}
-        onChange={(v) => updateFormField('estimatedHours', v ? parseInt(v) : undefined)}
-        placeholder="0"
-        disabled={isViewMode}
-      />
-
-      {/* Related Tasks placeholder */}
-      <div>
-        <label className={cn(
-          "text-sm mb-1.5 block",
-          isDarkMode ? "text-gray-300" : "text-gray-700"
-        )}>
-          Related Tasks
-        </label>
-        <p className="text-xs text-gray-400 italic">Task linking coming soon</p>
-      </div>
-    </div>
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const url = e.target?.result as string;
+          const newAttachment = {
+            id: crypto.randomUUID(),
+            name: file.name,
+            type: file.type.startsWith('image/') ? 'image' as const : 'file' as const,
+            url,
+          };
+          updateFormField('attachments', [...formState.attachments, newAttachment]);
+        };
+        reader.readAsDataURL(file);
+      });
+    },
+    [formState.attachments, updateFormField]
   );
+  // ──── Render Step Content ────
+  const renderStepContent = () => {
+    switch (activeStep) {
+      case 'quick-create':
+        return <QuickCreate isViewMode={isViewMode} inputRef={inputRef} />;
+
+      case 'full-details':
+    return (
+        <div className="flex-1 lg:max-h-[600px] max-h-[400px] flex flex-col min-h-0">
+        <MarkdownEditor
+            value={formState.description}
+            onChange={(v) => updateFormField('description', v)}
+            placeholder="Detailed task description with Markdown support..."
+            disabled={isViewMode}
+            // minHeight="300px"
+            className="flex-1 h-full"
+        />
+        </div>
+    );   
+        
+      case 'schedule':
+        return (
+            <div className="space-y-4">
+            <DatePicker
+                label="Start Date"
+                value={formState.startDate}
+                onChange={(d) => updateFormField('startDate', d)}
+                disabled={isViewMode}
+            />
+            <DatePicker
+                label="Due Date"
+                value={formState.dueDate}
+                onChange={(d) => updateFormField('dueDate', d)}
+                disabled={isViewMode}
+                includeTime
+            />
+            <DatePicker
+                label="Reminder"
+                value={formState.reminderDate}
+                onChange={(d) => updateFormField('reminderDate', d)}
+                disabled={isViewMode}
+                includeTime
+            />
+            
+            {/* Duration calculation */}
+            {formState.startDate && formState.dueDate && (
+                <div className={cn(
+                'p-3 rounded-lg text-xs space-y-1',
+                isDarkMode ? 'bg-gray-800' : 'bg-gray-50'
+                )}>
+                <div className="flex justify-between">
+                    <span className="text-gray-500">Duration</span>
+                    <span className="font-medium">
+                    {Math.ceil((formState.dueDate.getTime() - formState.startDate.getTime()) / (1000 * 60 * 60 * 24))} days
+                    </span>
+                </div>
+                </div>
+            )}
+            </div>
+        );
+
+      case 'meta':
+        return (
+          <div className="space-y-4">
+            <div>
+              <label 
+                className={cn(
+                  "text-sm mb-2 block font-medium",
+                  isDarkMode ? "text-gray-300" : "text-gray-700"
+                )}
+              >
+                Attachments
+              </label>
+              <div
+                className={cn(
+                  'border-2 border-dashed rounded-lg p-6 text-center', 'transition-colors cursor-pointer',
+                  isDarkMode
+                    ? 'border-gray-700 hover:border-gray-600'
+                    : 'border-gray-300 hover:border-gray-400',
+                  isViewMode && 'opacity-50'
+                )}
+                onDrop={handleAttachmentDrop}
+                onDragOver={(e: React.DragEvent) => e.preventDefault()}
+                onClick={handleAttachmentClick}
+              >
+                {isViewMode ? (
+                  <p className="text-sm text-gray-400">No attachments</p>
+                ) : (
+                  <>
+                    <p className="text-sm text-gray-400 mb-1">
+                      Drop files, images, or code snippets here
+                    </p>
+                    <p className="text-xs text-gray-500">or click to browse</p>
+                  </>
+                )}
+              </div>
+              {/* لیست attachments (بعداً اضافه می‌کنیم) */}
+              {/* داخل case 'meta'، بعد از div attachments */}
+<input
+  ref={fileInputRef}
+  type="file"
+  multiple
+  onChange={handleFileSelect}
+  className="hidden"
+  accept="image/*,.pdf,.doc,.docx,.txt,.md,.js,.ts,.jsx,.tsx,.json,.csv"
+/>
+{formState.attachments.length > 0 && (
+  <div className="mt-3 space-y-1.5">
+    {formState.attachments.map(att => (
+      <div
+        key={att.id}
+        className={cn(
+          'flex items-center gap-2 px-3 py-2 rounded-lg text-xs group',
+          isDarkMode ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-50 hover:bg-gray-100'
+        )}
+      >
+        {att.type === 'image' ? (
+          <img src={att.url} alt={att.name} className="w-8 h-8 rounded object-cover" />
+        ) : (
+          <FileText size={14} className="text-gray-400" />
+        )}
+        <span className="flex-1 truncate">{att.name}</span>
+        <span className="text-gray-500 text-[10px] uppercase">{att.type}</span>
+        {!isViewMode && (
+          <button
+            onClick={() => updateFormField('attachments', formState.attachments.filter(a => a.id !== att.id))}
+            className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 transition-opacity"
+          >
+            <Trash2 size={14} />
+          </button>
+        )}
+      </div>
+    ))}
+  </div>
+)}
+            </div>
+
+            {/* Estimated Hours */}
+            <SidebarInput
+                id="estimated-hours"
+                label="Estimated Hours"
+                value={formState.estimatedHours?.toString() || ''}
+                onChange={(v) => updateFormField('estimatedHours', v ? parseInt(v) : undefined)}
+                placeholder="0"
+                disabled={isViewMode}
+            />
+
+            {/* Related Tasks placeholder */}
+            <div>
+                <label className={cn(
+                "text-sm mb-1.5 block",
+                isDarkMode ? "text-gray-300" : "text-gray-700"
+                )}>
+                Related Tasks
+                </label>
+                <p className="text-xs text-gray-400 italic">Task linking coming soon</p>
+            </div>
+            </div>
+        );
+      
       default:
-      return null;
-  }
-};
+        return null;
+    }
+  };
 
   const metaItems = selectedTask ? [
     { icon: <Calendar size={14} />, label: 'Created', value: new Date(selectedTask.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) },
@@ -328,7 +409,7 @@ case 'meta':
           <Stepper
             steps={stepConfig}
             activeStep={activeStep}
-            completedSteps={isViewMode ? ['basic', 'classification', 'schedule', 'breakdown'] : completedSteps}
+            completedSteps={isViewMode ? ['quick-create', 'full-details', 'schedule', 'meta'] : completedSteps}
             onStepClick={isViewMode ? undefined : (stepId) => goToStep(stepId as StepId)}
           />
         </div>
