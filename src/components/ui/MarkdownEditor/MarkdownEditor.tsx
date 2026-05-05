@@ -1,5 +1,3 @@
-// src/components/ui/MarkdownEditor/MarkdownEditor.tsx
-
 import React, { useCallback, useRef } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -89,18 +87,13 @@ const stripHtml = (html: string) => {
       StarterKit.configure({
         heading: { levels: [1, 2, 3, 4, 5, 6] },
         codeBlock: false, 
+        underline: false
       }),
       Placeholder.configure({ placeholder }),
       Image.configure({
         allowBase64: true,
         HTMLAttributes: {
           class: 'rounded-lg max-w-full my-2',
-        },
-      }),
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: {
-          class: 'text-blue-500 hover:text-blue-600 underline cursor-pointer',
         },
       }),
       Table.configure({
@@ -123,8 +116,8 @@ const stripHtml = (html: string) => {
       FontSize
     ],
     content: value,
-    editable: !disabled,
     onUpdate: ({ editor }) => {
+      editable: !disabled;
       onChange(editor.getText()); 
     },
     editorProps: {
@@ -132,7 +125,7 @@ const stripHtml = (html: string) => {
         class: cn(
           'prose prose-sm max-w-none focus:outline-none',
           isDarkMode ? 'prose-invert' : '',
-          'p-4 min-h-[250px] lg:min-h-[450px]'
+          'p-4 min-h-[250px] lg:min-h-[400px]'
         ),
       },
     },

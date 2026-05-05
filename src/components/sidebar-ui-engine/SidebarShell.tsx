@@ -165,7 +165,7 @@ export const SidebarShell: React.FC<SidebarShellProps> = memo(({
         <Breadcrumb items={breadcrumbs} isDarkMode={isDarkMode} />
       )}
 
-      <div className="overflow-y-auto h-[calc(100vh-130px)] p-6">
+      <div className="overflow-y-auto h-[calc(100vh-10vh)] p-6">
         {children}
       </div>
     </div>

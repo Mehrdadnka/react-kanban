@@ -1,6 +1,6 @@
 // src/features/TaskSidebars/create/steps/BasicInfoStep.tsx
 import React from 'react';
-import { QuickCreate } from '@/features/TaskSidebars/components/QuickCreate';
+import { QuickCreate } from '@/features/TaskSidebars/components/quickCreate/QuickCreate';
 import { TaskType, TaskPriority } from '@/types/task.types';
 
 // Define what fields BasicInfoStep needs

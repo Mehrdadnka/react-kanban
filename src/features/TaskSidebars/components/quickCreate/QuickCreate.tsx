@@ -1,11 +1,5 @@
-// src/features/TaskSidebar/components/QuickCreate.tsx
 import React, { useState } from 'react';
-import { 
-  AlertCircle, FileText, Flag, Target, Zap,
-  Tag, Milestone, FolderKanban, Columns3,
-  Settings,
-  Folder
-} from 'lucide-react';
+import { FileText, Flag, Tag, Milestone, FolderKanban, Columns3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useApp } from '@/providers/AppProvider';
 import { useColumnStore } from '@/stores/column.store';
@@ -13,9 +7,11 @@ import { useLabelStore } from '@/stores/label.store';
 import { useMilestoneStore } from '@/stores/milestone.store';
 import { useProjectStore } from '@/stores/project.store';
 import { TaskType, TaskPriority } from '@/types/task.types';
-import { SidebarInput } from '@/components/sidebar-ui-engine/SidebarInput';
 import { EntityPicker } from '@/components/ui/EntityPicker/EntityPicker';
-import StatusIcon from './StatusIcon';
+import StatusIcon from '../StatusIcon';
+import { PRIORITY_CONFIG, TYPE_CONFIG } from './config/config';
+import MetaRow from '../metaRow/MetaRow';
+import MainInput from './components/MainInput';
 
 export interface QuickCreateFormState {
   title: string;
@@ -34,49 +30,6 @@ interface QuickCreateProps {
   formState: QuickCreateFormState;
   updateFormField: <K extends keyof QuickCreateFormState>(field: K, value: QuickCreateFormState[K]) => void;
 }
-
-// ──── Priority Config ────
-const PRIORITY_CONFIG = {
-  urgent: { label: 'Urgent', color: '#EF4444', icon: <Flag size={12} /> },
-  high:   { label: 'High', color: '#F97316', icon: <Flag size={12} /> },
-  medium: { label: 'Medium', color: '#3B82F6', icon: <Flag size={12} /> },
-  low:    { label: 'Low', color: '#6B7280', icon: <Flag size={12} /> },
-} as const;
-
-const TYPE_CONFIG = {
-  task:      { label: 'Task', icon: <FileText size={12} /> },
-  bug:       { label: 'Bug', icon: <AlertCircle size={12} /> },
-  milestone: { label: 'Milestone', icon: <Target size={12} /> },
-  epic:      { label: 'Epic', icon: <Zap size={12} /> },
-  project:   { label: 'Project', icon: <Folder size={12} /> }, // Add this
-} as const;
-
-// ──── Metadata Row Component ────
-interface MetaRowProps {
-  icon: React.ReactNode;
-  label: string;
-  children: React.ReactNode;
-  isDarkMode?: boolean;
-}
-
-const MetaRow: React.FC<MetaRowProps> = ({ icon, label, children, isDarkMode }) => (
-  <div className="flex items-center gap-3 py-2">
-    <div className="flex items-center gap-2 min-w-[100px] flex-shrink-0">
-      <span className={cn(isDarkMode ? "text-gray-400" : "text-gray-500")}>
-        {icon}
-      </span>
-      <span className={cn(
-        "text-xs font-medium",
-        isDarkMode ? "text-gray-400" : "text-gray-500"
-      )}>
-        {label}
-      </span>
-    </div>
-    <div className="flex-1 flex items-center">
-      {children}
-    </div>
-  </div>
-);
 
 // ──── Component ────
 export const QuickCreate: React.FC<QuickCreateProps> = ({ 
@@ -145,92 +98,30 @@ export const QuickCreate: React.FC<QuickCreateProps> = ({
   ? TYPE_CONFIG[formState.type] 
   : TYPE_CONFIG.task; // fallback to task if invalid
 
-  const selectedPriority = PRIORITY_CONFIG[formState.priority] ?? PRIORITY_CONFIG.medium; // fallback
-  const selectedColumn = columns.find(c => c.id === formState.columnId);
-
-  if (isViewMode) {
-    return (
-      <div className="space-y-5">
-        <div>
-          <SidebarInput
-            id="task-title"
-            required
-            label="Title"
-            value={formState.title}
-            onChange={(v) => updateFormField('title', v)}
-            placeholder="Enter task title..."
-            disabled
-          />
-        </div>
-        <div>
-          <SidebarInput
-            id="short-desc"
-            required
-            label="Short Description"
-            value={formState.shortDescription}
-            onChange={(v) => updateFormField('shortDescription', v)}
-            placeholder="Brief summary..."
-            disabled
-          />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-5">
       {/* ──── Main Inputs (Always visible, prominent) ──── */}
       <div className="space-y-4">
         {/* Title */}
-        <div>
-          <SidebarInput
-            id="task-title"
-            required={true}
-            label="Title"
-            value={formState.title}
-            onChange={(v) => updateFormField('title', v)}
-            placeholder="Enter task title..."
-            disabled={isViewMode}
-            inputRef={inputRef}
-          />
-          <div className="flex justify-between items-center mt-1">
-            {!formState.title.trim() ? (
-              <p className="text-xs text-red-500 flex items-center gap-1">
-                <AlertCircle size={10} />
-                Required
-              </p>
-            ) : (
-              <span />
-            )}
-            <span className={cn(
-              "text-[10px] tabular-nums",
-              formState.title.length > 100 ? "text-red-500" : "text-gray-400"
-            )}>
-              {formState.title.length}/100
-            </span>
-          </div>
-        </div>
-
+        <MainInput 
+          id="task-title"
+          label="Title"
+          title={formState.title}
+          onChange={(v) => updateFormField('title', v)}
+          placeholder="Enter task title..."
+          inputRef={inputRef}
+          titleLen={100}
+        />
         {/* Short Description */}
-        <div>
-          <SidebarInput
-            required={true}
-            id="short-desc"
-            label="Short Description"
-            value={formState.shortDescription}
-            onChange={(v) => updateFormField('shortDescription', v)}
-            placeholder="Brief summary in one line..."
-            disabled={isViewMode}
-          />
-          <div className="flex justify-end mt-1">
-            <span className={cn(
-              "text-[10px] tabular-nums",
-              formState.shortDescription.length > 200 ? "text-red-500" : "text-gray-400"
-            )}>
-              {formState.shortDescription.length}/200
-            </span>
-          </div>
-        </div>
+        <MainInput 
+          id="short-desc"
+          label="Short Description"
+          title={formState.shortDescription}
+          onChange={(v) => updateFormField('shortDescription', v)}
+          placeholder="Brief summary in one line..." 
+          titleLen={200}        
+        />
       </div>
 
       {/* ──── Divider ──── */}
@@ -243,53 +134,51 @@ export const QuickCreate: React.FC<QuickCreateProps> = ({
       <div className="space-y-0">
         <div className="grid grid-cols-3 gap-2 ">
           {/* Type */}
-        <MetaRow icon={<FileText size={14} />} label="Type" isDarkMode={isDarkMode}>
-          <EntityPicker
-            items={typeItems}
-            selectedIds={[formState.type]}
-            onToggle={(id) => {
-              updateFormField('type', id as TaskType);
-              setOpenDropdown(null);
-            }}
-            placeholder="Select type"
-            searchPlaceholder="Filter types..."
-            // icon={selectedType.icon}
-            showAsSettingsButton
-            className="flex-1"
-          />
-        </MetaRow>
-        {/* Status */}
-        <MetaRow icon={<Columns3 size={14} />} label="Status" isDarkMode={isDarkMode}>
-          <EntityPicker
-            items={columnItems}
-            selectedIds={[formState.columnId]}
-            onToggle={(id) => {
-              updateFormField('columnId', id);
-              setOpenDropdown(null);
-            }}
-            placeholder="Select status"
-            searchPlaceholder="Filter columns..."
-            showAsSettingsButton
-            className="flex-1"
-          />
-        </MetaRow>
-        {/* Priority */}
-        <MetaRow icon={<Flag size={14} />} label="Priority" isDarkMode={isDarkMode}>
-          <EntityPicker
-            items={priorityItems}
-            selectedIds={[formState.priority]}
-            onToggle={(id) => {
-              updateFormField('priority', id as TaskPriority);
-              setOpenDropdown(null);
-            }}
-            placeholder="Select priority"
-            searchPlaceholder="Filter..."
-            showAsSettingsButton
-            className="flex-1"
-          />
-        </MetaRow>
-                
-
+          <MetaRow icon={<FileText size={14} />} label="Type" isDarkMode={isDarkMode}>
+            <EntityPicker
+              items={typeItems}
+              selectedIds={[formState.type]}
+              onToggle={(id) => {
+                updateFormField('type', id as TaskType);
+                setOpenDropdown(null);
+              }}
+              placeholder="Select type"
+              searchPlaceholder="Filter types..."
+              icon={selectedType.icon}
+              showAsSettingsButton
+              className="flex-1"
+            />
+          </MetaRow>
+          {/* Status */}
+          <MetaRow icon={<Columns3 size={14} />} label="Status" isDarkMode={isDarkMode}>
+            <EntityPicker
+              items={columnItems}
+              selectedIds={[formState.columnId]}
+              onToggle={(id) => {
+                updateFormField('columnId', id);
+                setOpenDropdown(null);
+              }}
+              placeholder="Select status"
+              searchPlaceholder="Filter columns..."
+              showAsSettingsButton
+              className="flex-1"
+            />
+          </MetaRow>
+          {/* Priority */}
+          <MetaRow icon={<Flag size={14} />} label="Priority" isDarkMode={isDarkMode}>
+            <EntityPicker
+              items={priorityItems}
+              selectedIds={[formState.priority]}
+              onToggle={(id) => {
+                updateFormField('priority', id as TaskPriority);
+                setOpenDropdown(null);
+              }}
+              placeholder="Select priority"
+              searchPlaceholder="Filter..."
+              showAsSettingsButton
+              className="flex-1"
+            />
+          </MetaRow>
         </div>
 
         {/* Labels */}
@@ -360,8 +249,6 @@ export const QuickCreate: React.FC<QuickCreateProps> = ({
             className="flex-1"
           />
         </MetaRow>
-
-
       </div>
     </div>
   );

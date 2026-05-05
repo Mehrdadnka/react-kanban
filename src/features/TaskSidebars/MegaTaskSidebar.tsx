@@ -35,7 +35,7 @@ import PriorityBadge from './components/PriorityBadge';
 import ViewField from './components/ViewField';
 import { getColumnLabel } from './utils';
 import { MarkdownEditor } from '@/components/ui/MarkdownEditor/MarkdownEditor';
-import { QuickCreate } from './components/QuickCreate';
+import { QuickCreate } from './components/quickCreate/QuickCreate';
 
 const STEP_ICONS: Record<StepId, React.ReactNode> = {
   'quick-create': <Zap size={14} />,

@@ -56,7 +56,7 @@ export const TaskSidebarLayout: React.FC<TaskSidebarLayoutProps> = ({
       position={position} 
       maxWidth="full"
     >
-      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 h-full max-h-[calc(100vh-14rem)] min-h-0">
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 h-full max-h-full min-h-0">
         <div className="flex-shrink-0 lg:w-40 lg:border-r border-gray-200 dark:border-gray-800 lg:pr-4">
           <Stepper
             steps={stepConfig}

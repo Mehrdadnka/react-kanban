@@ -4,7 +4,7 @@ import { useFormContext } from 'react-hook-form';
 import { TaskFormValues } from '../schemas/task.schema';
 import { SidebarInput } from '@/components/sidebar-ui-engine/SidebarInput';
 import { SidebarSelect } from '@/components/sidebar-ui-engine/SidebarSelect';
-import { QuickCreate } from '../../components/QuickCreate';
+import { QuickCreate } from '../../components/quickCreate/QuickCreate';
 import { useColumnStore } from '@/stores/column.store';
 import { StatusIcon } from '@/components/board/TaskSidebar/StatusIcon';
 

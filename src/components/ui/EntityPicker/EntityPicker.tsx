@@ -244,11 +244,14 @@ export const EntityPicker: React.FC<EntityPickerProps> = ({
                   {searchQuery ? 'No matches found' : 'No items yet'}
                 </p>
               ) : (
-                filteredItems.map(item => 
-                  renderItem 
-                    ? renderItem(item, selectedIds.includes(item.id))
-                    : defaultRenderItem(item, selectedIds.includes(item.id))
-                )
+                filteredItems.map(item => (
+                  <React.Fragment key={item.id}>
+                    {renderItem 
+                      ? renderItem(item, selectedIds.includes(item.id))
+                      : defaultRenderItem(item, selectedIds.includes(item.id))
+                    }
+                  </React.Fragment>
+                ))
               )}
             </div>
 
