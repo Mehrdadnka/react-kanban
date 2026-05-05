@@ -1,18 +1,21 @@
 // src/features/TaskSidebar/components/QuickCreate.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { 
-  AlertCircle, FileText, Flag, Target, Zap 
+  AlertCircle, FileText, Flag, Target, Zap,
+  Tag, Milestone, FolderKanban, Columns3,
+  Settings,
+  Folder
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useApp } from '@/providers/AppProvider';
 import { useColumnStore } from '@/stores/column.store';
+import { useLabelStore } from '@/stores/label.store';
+import { useMilestoneStore } from '@/stores/milestone.store';
+import { useProjectStore } from '@/stores/project.store';
 import { TaskType, TaskPriority } from '@/types/task.types';
 import { SidebarInput } from '@/components/sidebar-ui-engine/SidebarInput';
-import { SidebarSelect } from '@/components/sidebar-ui-engine/SidebarSelect';
+import { EntityPicker } from '@/components/ui/EntityPicker/EntityPicker';
 import StatusIcon from './StatusIcon';
-import { LabelPicker } from '@/components/pickers/LabelPicker';
-import { MilestonePicker } from '@/components/pickers/MilestonePicker';
-import { ProjectPicker } from '@/components/pickers/ProjectPicker';
 
 export interface QuickCreateFormState {
   title: string;
@@ -32,6 +35,50 @@ interface QuickCreateProps {
   updateFormField: <K extends keyof QuickCreateFormState>(field: K, value: QuickCreateFormState[K]) => void;
 }
 
+// ──── Priority Config ────
+const PRIORITY_CONFIG = {
+  urgent: { label: 'Urgent', color: '#EF4444', icon: <Flag size={12} /> },
+  high:   { label: 'High', color: '#F97316', icon: <Flag size={12} /> },
+  medium: { label: 'Medium', color: '#3B82F6', icon: <Flag size={12} /> },
+  low:    { label: 'Low', color: '#6B7280', icon: <Flag size={12} /> },
+} as const;
+
+const TYPE_CONFIG = {
+  task:      { label: 'Task', icon: <FileText size={12} /> },
+  bug:       { label: 'Bug', icon: <AlertCircle size={12} /> },
+  milestone: { label: 'Milestone', icon: <Target size={12} /> },
+  epic:      { label: 'Epic', icon: <Zap size={12} /> },
+  project:   { label: 'Project', icon: <Folder size={12} /> }, // Add this
+} as const;
+
+// ──── Metadata Row Component ────
+interface MetaRowProps {
+  icon: React.ReactNode;
+  label: string;
+  children: React.ReactNode;
+  isDarkMode?: boolean;
+}
+
+const MetaRow: React.FC<MetaRowProps> = ({ icon, label, children, isDarkMode }) => (
+  <div className="flex items-center gap-3 py-2">
+    <div className="flex items-center gap-2 min-w-[100px] flex-shrink-0">
+      <span className={cn(isDarkMode ? "text-gray-400" : "text-gray-500")}>
+        {icon}
+      </span>
+      <span className={cn(
+        "text-xs font-medium",
+        isDarkMode ? "text-gray-400" : "text-gray-500"
+      )}>
+        {label}
+      </span>
+    </div>
+    <div className="flex-1 flex items-center">
+      {children}
+    </div>
+  </div>
+);
+
+// ──── Component ────
 export const QuickCreate: React.FC<QuickCreateProps> = ({ 
   isViewMode, 
   inputRef, 
@@ -40,142 +87,281 @@ export const QuickCreate: React.FC<QuickCreateProps> = ({
 }) => {
   const { isDarkMode } = useApp();
   const { columns } = useColumnStore();
+  const { labels, addLabel, deleteLabel } = useLabelStore();
+  const { milestones, addMilestone, deleteMilestone } = useMilestoneStore();
+  const { projects, addProject, deleteProject } = useProjectStore();
 
-  const dynamicColumnOptions = columns
+  // Track which dropdown is open
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+
+  // ──── EntityPicker items ────
+  const typeItems = Object.entries(TYPE_CONFIG).map(([value, config]) => ({
+    id: value,
+    name: config.label,
+    icon: config.icon,
+    color: value === formState.type ? '#3B82F6' : undefined,
+  }));
+
+  const priorityItems = Object.entries(PRIORITY_CONFIG).map(([value, config]) => ({
+    id: value,
+    name: config.label,
+    color: config.color,
+    icon: config.icon,
+  }));
+
+  const columnItems = columns
     .sort((a, b) => a.order - b.order)
     .map(col => ({
-      value: col.id,
-      label: col.title,
-      icon: <StatusIcon columnId={col.id} size={16} />,
+      id: col.id,
+      name: col.title,
+      color: col.color,
+      icon: <StatusIcon columnId={col.id} size={12} />,
     }));
 
+  const labelItems = labels.map(l => ({
+    id: l.id,
+    name: l.name,
+    color: l.color,
+  }));
+
+  const milestoneItems = milestones.map(m => ({
+    id: m.id,
+    name: m.name,
+    color: m.color,
+  }));
+
+  const projectItems = projects.map(p => ({
+    id: p.id,
+    name: p.name,
+    color: p.color,
+  }));
+
+  // ──── Selected display ────
+  function isValidType(type: string): type is keyof typeof TYPE_CONFIG {
+    return type in TYPE_CONFIG;
+  }
+
+  const selectedType = isValidType(formState.type) 
+  ? TYPE_CONFIG[formState.type] 
+  : TYPE_CONFIG.task; // fallback to task if invalid
+
+  const selectedPriority = PRIORITY_CONFIG[formState.priority] ?? PRIORITY_CONFIG.medium; // fallback
+  const selectedColumn = columns.find(c => c.id === formState.columnId);
+
+  if (isViewMode) {
+    return (
+      <div className="space-y-5">
+        <div>
+          <SidebarInput
+            id="task-title"
+            required
+            label="Title"
+            value={formState.title}
+            onChange={(v) => updateFormField('title', v)}
+            placeholder="Enter task title..."
+            disabled
+          />
+        </div>
+        <div>
+          <SidebarInput
+            id="short-desc"
+            required
+            label="Short Description"
+            value={formState.shortDescription}
+            onChange={(v) => updateFormField('shortDescription', v)}
+            placeholder="Brief summary..."
+            disabled
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-4">
-      <div className="relative">
-        <SidebarInput
-          id="task-title"
-          required={true}
-          label="Title"
-          value={formState.title}
-          onChange={(v) => updateFormField('title', v)}
-          placeholder="Enter task title..."
-          disabled={isViewMode}
-          inputRef={inputRef}
-        />
-      </div>
-
-      <div>
-        <SidebarInput
-          required={true}
-          id="short-desc"
-          label="Short Description"
-          value={formState.shortDescription}
-          onChange={(v) => updateFormField('shortDescription', v)}
-          placeholder="Brief summary in one line..."
-          disabled={isViewMode}
-        />
-        <p className={cn(
-          "text-xs mt-1",
-          isDarkMode ? "text-gray-500" : "text-gray-400"
-        )}>
-          {formState.shortDescription.length}/200 characters
-        </p>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <SidebarSelect
-          id="task-type"
-          label="Type"
-          value={formState.type}
-          onValueChange={(v) => updateFormField('type', v as TaskType)}
-          options={[
-            { value: 'task', label: 'Task', icon: <FileText size={16} /> },
-            { value: 'bug', label: 'Bug', icon: <AlertCircle size={16} /> },
-            { value: 'milestone', label: 'Milestone', icon: <Target size={16} /> },
-            { value: 'epic', label: 'Epic', icon: <Zap size={16} /> },
-          ]}
-          disabled={isViewMode}
-        />
-        <SidebarSelect
-          id="task-priority"
-          label="Priority"
-          value={formState.priority}
-          onValueChange={(v) => updateFormField('priority', v as TaskPriority)}
-          options={[
-            { value: 'low', label: 'Low', icon: <Flag size={16} className="text-gray-400" /> },
-            { value: 'medium', label: 'Medium', icon: <Flag size={16} className="text-blue-400" /> },
-            { value: 'high', label: 'High', icon: <Flag size={16} className="text-orange-400" /> },
-            { value: 'urgent', label: 'Urgent', icon: <Flag size={16} className="text-red-500" /> },
-          ]}
-          disabled={isViewMode}
-        />
-      </div>
-
-      <SidebarSelect
-        id="task-column"
-        label="Status"
-        value={formState.columnId}
-        onValueChange={(v) => updateFormField('columnId', v)}
-        options={dynamicColumnOptions}
-        disabled={isViewMode}
-      />
-
-      <div>
-        <label className={cn(
-          "text-sm mb-1.5 block",
-          isDarkMode ? "text-gray-300" : "text-gray-700"
-        )}>
-          Labels
-        </label>
-        <LabelPicker
-          selectedLabels={formState.labels}
-          onToggle={(labelId) => {
-            const newLabels = formState.labels.includes(labelId)
-              ? formState.labels.filter(id => id !== labelId)
-              : [...formState.labels, labelId];
-            updateFormField('labels', newLabels);
-          }}
-          disabled={isViewMode}
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
+    <div className="space-y-5">
+      {/* ──── Main Inputs (Always visible, prominent) ──── */}
+      <div className="space-y-4">
+        {/* Title */}
         <div>
-          <label className={cn(
-            "text-sm mb-1.5 block",
-            isDarkMode ? "text-gray-300" : "text-gray-700"
-          )}>
-            Milestones
-          </label>
-          <MilestonePicker
-            selectedMilestones={formState.milestoneIds}
-            onToggle={(milestoneId) => {
-              const newMilestones = formState.milestoneIds.includes(milestoneId)
-                ? formState.milestoneIds.filter(id => id !== milestoneId)
-                : [...formState.milestoneIds, milestoneId];
-              updateFormField('milestoneIds', newMilestones);
-            }}
+          <SidebarInput
+            id="task-title"
+            required={true}
+            label="Title"
+            value={formState.title}
+            onChange={(v) => updateFormField('title', v)}
+            placeholder="Enter task title..."
+            disabled={isViewMode}
+            inputRef={inputRef}
+          />
+          <div className="flex justify-between items-center mt-1">
+            {!formState.title.trim() ? (
+              <p className="text-xs text-red-500 flex items-center gap-1">
+                <AlertCircle size={10} />
+                Required
+              </p>
+            ) : (
+              <span />
+            )}
+            <span className={cn(
+              "text-[10px] tabular-nums",
+              formState.title.length > 100 ? "text-red-500" : "text-gray-400"
+            )}>
+              {formState.title.length}/100
+            </span>
+          </div>
+        </div>
+
+        {/* Short Description */}
+        <div>
+          <SidebarInput
+            required={true}
+            id="short-desc"
+            label="Short Description"
+            value={formState.shortDescription}
+            onChange={(v) => updateFormField('shortDescription', v)}
+            placeholder="Brief summary in one line..."
             disabled={isViewMode}
           />
+          <div className="flex justify-end mt-1">
+            <span className={cn(
+              "text-[10px] tabular-nums",
+              formState.shortDescription.length > 200 ? "text-red-500" : "text-gray-400"
+            )}>
+              {formState.shortDescription.length}/200
+            </span>
+          </div>
         </div>
-        <div>
-          <label className={cn(
-            "text-sm mb-1.5 block",
-            isDarkMode ? "text-gray-300" : "text-gray-700"
-          )}>
-            Projects
-          </label>
-          <ProjectPicker
-            selectedProjects={formState.projectIds}
-            onToggle={(projectId) => {
-              const newProjects = formState.projectIds.includes(projectId)
-                ? formState.projectIds.filter(id => id !== projectId)
-                : [...formState.projectIds, projectId];
-              updateFormField('projectIds', newProjects);
+      </div>
+
+      {/* ──── Divider ──── */}
+      <div className={cn(
+        "border-t",
+        isDarkMode ? "border-gray-800" : "border-gray-200"
+      )} />
+
+      {/* ──── Metadata Section ──── */}
+      <div className="space-y-0">
+        <div className="grid grid-cols-3 gap-2 ">
+          {/* Type */}
+        <MetaRow icon={<FileText size={14} />} label="Type" isDarkMode={isDarkMode}>
+          <EntityPicker
+            items={typeItems}
+            selectedIds={[formState.type]}
+            onToggle={(id) => {
+              updateFormField('type', id as TaskType);
+              setOpenDropdown(null);
             }}
-            disabled={isViewMode}
+            placeholder="Select type"
+            searchPlaceholder="Filter types..."
+            // icon={selectedType.icon}
+            showAsSettingsButton
+            className="flex-1"
           />
+        </MetaRow>
+        {/* Status */}
+        <MetaRow icon={<Columns3 size={14} />} label="Status" isDarkMode={isDarkMode}>
+          <EntityPicker
+            items={columnItems}
+            selectedIds={[formState.columnId]}
+            onToggle={(id) => {
+              updateFormField('columnId', id);
+              setOpenDropdown(null);
+            }}
+            placeholder="Select status"
+            searchPlaceholder="Filter columns..."
+            showAsSettingsButton
+            className="flex-1"
+          />
+        </MetaRow>
+        {/* Priority */}
+        <MetaRow icon={<Flag size={14} />} label="Priority" isDarkMode={isDarkMode}>
+          <EntityPicker
+            items={priorityItems}
+            selectedIds={[formState.priority]}
+            onToggle={(id) => {
+              updateFormField('priority', id as TaskPriority);
+              setOpenDropdown(null);
+            }}
+            placeholder="Select priority"
+            searchPlaceholder="Filter..."
+            showAsSettingsButton
+            className="flex-1"
+          />
+        </MetaRow>
+                
+
         </div>
+
+        {/* Labels */}
+        <MetaRow icon={<Tag size={14} />} label="Labels" isDarkMode={isDarkMode}>
+          <EntityPicker
+            items={labelItems}
+            selectedIds={formState.labels}
+            onToggle={(id) => {
+              updateFormField('labels',
+                formState.labels.includes(id)
+                  ? formState.labels.filter(l => l !== id)
+                  : [...formState.labels, id]
+              );
+            }}
+            onCreate={(name, color) => addLabel(name, color || '#6B7280')}
+            onDelete={deleteLabel}
+            placeholder="Add labels"
+            searchPlaceholder="Filter labels..."
+            createPlaceholder="Label name..."
+            showColorPicker
+            showAsSettingsButton
+            className="flex-1"
+          />
+        </MetaRow>
+
+        {/* Milestone */}
+        <MetaRow icon={<Milestone size={14} />} label="Milestone" isDarkMode={isDarkMode}>
+          <EntityPicker
+            items={milestoneItems}
+            selectedIds={formState.milestoneIds}
+            onToggle={(id) => {
+              updateFormField('milestoneIds',
+                formState.milestoneIds.includes(id)
+                  ? formState.milestoneIds.filter(m => m !== id)
+                  : [...formState.milestoneIds, id]
+              );
+            }}
+            onCreate={(name, color) => addMilestone(name, color || '#6B7280')}
+            onDelete={deleteMilestone}
+            placeholder="Add milestone"
+            searchPlaceholder="Filter milestones..."
+            createPlaceholder="Milestone name..."
+            showColorPicker
+            showAsSettingsButton
+            className="flex-1"
+          />
+        </MetaRow>
+
+        {/* Project */}
+        <MetaRow icon={<FolderKanban size={14} />} label="Project" isDarkMode={isDarkMode}>
+          <EntityPicker
+            items={projectItems}
+            selectedIds={formState.projectIds}
+            onToggle={(id) => {
+              updateFormField('projectIds',
+                formState.projectIds.includes(id)
+                  ? formState.projectIds.filter(p => p !== id)
+                  : [...formState.projectIds, id]
+              );
+            }}
+            onCreate={(name, color) => addProject(name, color || '#3B82F6')}
+            onDelete={deleteProject}
+            placeholder="Add project"
+            searchPlaceholder="Filter projects..."
+            createPlaceholder="Project name..."
+            showColorPicker
+            showAsSettingsButton
+            className="flex-1"
+          />
+        </MetaRow>
+
+
       </div>
     </div>
   );

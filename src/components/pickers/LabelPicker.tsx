@@ -39,6 +39,7 @@ export const LabelPicker: React.FC<LabelPickerProps> = ({
       showColorPicker={true}
       className={className}
       disabled={disabled}
+      showAsSettingsButton
     />
   );
 };

@@ -45,6 +45,7 @@ export const MilestonePicker: React.FC<MilestonePickerProps> = ({
       showColorPicker={true}
       className={className}
       disabled={disabled}
+      showAsSettingsButton={true}
     />
   );
 };

@@ -45,6 +45,7 @@ export const ProjectPicker: React.FC<ProjectPickerProps> = ({
       showColorPicker={true}
       className={className}
       disabled={disabled}
+      showAsSettingsButton
     />
   );
 };
