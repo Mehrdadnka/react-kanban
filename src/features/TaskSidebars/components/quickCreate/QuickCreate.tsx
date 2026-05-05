@@ -132,77 +132,81 @@ export const QuickCreate: React.FC<QuickCreateProps> = ({
 
       {/* ──── Metadata Section ──── */}
       <div className="space-y-0">
-        <div className="grid grid-cols-3 gap-2 ">
+        <div className="grid grid-cols-2 gap-2 ">
           {/* Type */}
-          <MetaRow icon={<FileText size={14} />} label="Type" isDarkMode={isDarkMode}>
-            <EntityPicker
-              items={typeItems}
-              selectedIds={[formState.type]}
-              onToggle={(id) => {
-                updateFormField('type', id as TaskType);
-                setOpenDropdown(null);
-              }}
-              placeholder="Select type"
-              searchPlaceholder="Filter types..."
-              icon={selectedType.icon}
-              showAsSettingsButton
-              className="flex-1"
-            />
-          </MetaRow>
-          {/* Status */}
-          <MetaRow icon={<Columns3 size={14} />} label="Status" isDarkMode={isDarkMode}>
-            <EntityPicker
-              items={columnItems}
-              selectedIds={[formState.columnId]}
-              onToggle={(id) => {
-                updateFormField('columnId', id);
-                setOpenDropdown(null);
-              }}
-              placeholder="Select status"
-              searchPlaceholder="Filter columns..."
-              showAsSettingsButton
-              className="flex-1"
-            />
-          </MetaRow>
-          {/* Priority */}
-          <MetaRow icon={<Flag size={14} />} label="Priority" isDarkMode={isDarkMode}>
-            <EntityPicker
-              items={priorityItems}
-              selectedIds={[formState.priority]}
-              onToggle={(id) => {
-                updateFormField('priority', id as TaskPriority);
-                setOpenDropdown(null);
-              }}
-              placeholder="Select priority"
-              searchPlaceholder="Filter..."
-              showAsSettingsButton
-              className="flex-1"
-            />
-          </MetaRow>
-        </div>
+<MetaRow icon={<FileText size={14} />} label="Type" isDarkMode={isDarkMode}>
+  <EntityPicker
+    items={typeItems}
+    selectedIds={[formState.type]}
+    onToggle={(id) => {
+      updateFormField('type', id as TaskType);
+      setOpenDropdown(null);
+    }}
+    label="Type"
+    cardPlaceholder="Select type"
+    searchPlaceholder="Filter types..."
+    compact  
+    className="flex-1"
+  />
+</MetaRow>
+
+<MetaRow icon={<Columns3 size={14} />} label="Status" isDarkMode={isDarkMode}>
+  <EntityPicker
+    items={columnItems}
+    selectedIds={[formState.columnId]}
+    onToggle={(id) => {
+      updateFormField('columnId', id);
+      setOpenDropdown(null);
+    }}
+    label="Status"
+    cardPlaceholder="Select status"
+    searchPlaceholder="Filter columns..."
+    compact
+    className="flex-1"
+  />
+</MetaRow>
+
+<MetaRow icon={<Flag size={14} />} label="Priority" isDarkMode={isDarkMode}>
+  <EntityPicker
+    items={priorityItems}
+    selectedIds={[formState.priority]}
+    onToggle={(id) => {
+      updateFormField('priority', id as TaskPriority);
+      setOpenDropdown(null);
+    }}
+    label="Priority"
+    cardPlaceholder="Select priority"
+    searchPlaceholder="Filter..."
+    compact
+    className="flex-1"
+  />
+</MetaRow>
 
         {/* Labels */}
-        <MetaRow icon={<Tag size={14} />} label="Labels" isDarkMode={isDarkMode}>
-          <EntityPicker
-            items={labelItems}
-            selectedIds={formState.labels}
-            onToggle={(id) => {
-              updateFormField('labels',
-                formState.labels.includes(id)
-                  ? formState.labels.filter(l => l !== id)
-                  : [...formState.labels, id]
-              );
-            }}
-            onCreate={(name, color) => addLabel(name, color || '#6B7280')}
-            onDelete={deleteLabel}
-            placeholder="Add labels"
-            searchPlaceholder="Filter labels..."
-            createPlaceholder="Label name..."
-            showColorPicker
-            showAsSettingsButton
-            className="flex-1"
-          />
-        </MetaRow>
+
+<MetaRow icon={<Tag size={14} />} label="Labels" isDarkMode={isDarkMode}>
+  <EntityPicker
+    items={labelItems}
+    selectedIds={formState.labels}
+    onToggle={(id) => {
+      updateFormField('labels',
+        formState.labels.includes(id)
+          ? formState.labels.filter(l => l !== id)
+          : [...formState.labels, id]
+      );
+    }}
+    onCreate={(name, color) => addLabel(name, color || '#6B7280')}
+    onDelete={deleteLabel}
+    label="Labels"
+    cardPlaceholder="Add labels"
+    searchPlaceholder="Filter labels..."
+    createPlaceholder="Label name..."
+    showColorPicker
+    compact
+    className="flex-1"
+  />
+</MetaRow>
+
 
         {/* Milestone */}
         <MetaRow icon={<Milestone size={14} />} label="Milestone" isDarkMode={isDarkMode}>
@@ -221,8 +225,9 @@ export const QuickCreate: React.FC<QuickCreateProps> = ({
             placeholder="Add milestone"
             searchPlaceholder="Filter milestones..."
             createPlaceholder="Milestone name..."
+            label='Milestone'
             showColorPicker
-            showAsSettingsButton
+            compact
             className="flex-1"
           />
         </MetaRow>
@@ -241,14 +246,17 @@ export const QuickCreate: React.FC<QuickCreateProps> = ({
             }}
             onCreate={(name, color) => addProject(name, color || '#3B82F6')}
             onDelete={deleteProject}
+            label='Project'
             placeholder="Add project"
             searchPlaceholder="Filter projects..."
             createPlaceholder="Project name..."
             showColorPicker
-            showAsSettingsButton
+            compact
             className="flex-1"
           />
         </MetaRow>
+        </div>
+
       </div>
     </div>
   );
