@@ -7,6 +7,8 @@ export interface EntityItem {
   metadata?: Record<string, any>;
 }
 
+export type EntityItemType = EntityItem;
+
 export interface EntityPickerProps {
   items: EntityItem[];
   selectedIds: string[];
