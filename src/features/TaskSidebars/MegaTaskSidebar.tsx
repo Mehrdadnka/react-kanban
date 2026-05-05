@@ -23,7 +23,6 @@ import { SidebarActionBar, SidebarActionLeft, SidebarActionRight } from '@/compo
 import { SidebarConfirmDialog } from '@/components/sidebar-ui-engine/SidebarConfirmDialog';
 import { SidebarMetaInfo } from '@/components/sidebar-ui-engine/SidebarMetaInfo';
 import { Stepper } from '@/components/sidebar-ui-engine/Stepper';
-import { DatePicker } from '@/components/ui/DatePicker/DatePicker';
 import { LabelPicker } from '@/components/pickers/LabelPicker';
 import { usePanelPosition } from '@/stores/sidebar-engine/sidebar-engine.store';
 import { StepId, STEPS, useTaskSidebarStore } from '@/stores/sidebar-engine/task-sidebar.store';

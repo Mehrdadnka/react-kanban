@@ -1,16 +1,17 @@
-import React from 'react';
-import { Calendar, Clock, AlertCircle } from 'lucide-react';
-import { DatePicker } from '@/components/ui/DatePicker/DatePicker';
+import React, { useState, useEffect } from 'react';
+import { Calendar, Clock, AlertCircle, Bell } from 'lucide-react';
+import { RangeDatePicker } from '@/components/ui/DatePicker/RangeDatePicker';
 import { calculateDuration } from '@/features/TaskSidebars/utils';
 import { cn } from '@/lib/utils';
+import { DatePicker } from '@/components/ui/DatePicker/DatePicker';
 
 interface ScheduleStepProps {
   startDate?: Date;
   dueDate?: Date;
   reminderDate?: Date;
-  onStartDateChange?: (date: Date) => void;
-  onDueDateChange?: (date: Date) => void;
-  onReminderDateChange?: (date: Date) => void;
+  onStartDateChange?: (date: Date | undefined) => void;
+  onDueDateChange?: (date: Date | undefined) => void;
+  onReminderDateChange?: (date: Date | undefined) => void;
   disabled?: boolean;
   isDarkMode?: boolean;
 }
@@ -25,10 +26,32 @@ export const ScheduleStep: React.FC<ScheduleStepProps> = ({
   disabled = false,
   isDarkMode = false,
 }) => {
-  const hasDateConflict = startDate && dueDate && startDate > dueDate;
-  const durationDays = startDate && dueDate && !hasDateConflict
-    ? calculateDuration(startDate, dueDate)
+  const [range, setRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
+    from: startDate,
+    to: dueDate,
+  });
+
+  // Sync external props to internal state
+  useEffect(() => {
+    setRange({ from: startDate, to: dueDate });
+  }, [startDate, dueDate]);
+
+  const hasDateConflict = range.from && range.to && range.from > range.to;
+  const durationDays = range.from && range.to && !hasDateConflict
+    ? calculateDuration(range.from, range.to)
     : null;
+
+  const handleRangeChange = (newRange: { from: Date | undefined; to: Date | undefined } | undefined) => {
+    const updatedRange = newRange || { from: undefined, to: undefined };
+    setRange(updatedRange);
+    
+    onStartDateChange?.(updatedRange.from);
+    onDueDateChange?.(updatedRange.to);
+  };
+
+  const handleReminderChange = (date: Date | undefined) => {
+    onReminderDateChange?.(date);
+  };
 
   return (
     <div className="space-y-5">
@@ -39,35 +62,55 @@ export const ScheduleStep: React.FC<ScheduleStepProps> = ({
             Schedule
           </h3>
           <p className={cn("text-xs", isDarkMode ? "text-gray-500" : "text-gray-400")}>
-            Set dates for this task. All fields are optional.
+            Select start and due date by dragging. All fields are optional.
           </p>
         </div>
       </div>
 
-      <div className="space-y-4">
-        <DatePicker
-          label="Start Date"
-          value={startDate}
-          onChange={onStartDateChange as any}
-          disabled={disabled}
-        />
+<div className="flex flex-row items-start gap-4">
+  {/* Date Range Picker for Start + Due Date */}
+  <div className="space-y-2 flex-[2]">
+    <label className={cn(
+      "text-sm font-medium flex items-center gap-1.5",
+      isDarkMode ? "text-gray-300" : "text-gray-700"
+    )}>
+      <Calendar size={14} />
+      Date Range
+    </label>
+    <div className='flex items-center'>
 
-        <DatePicker
-          label="Due Date"
-          value={dueDate}
-          onChange={onDueDateChange as any}
-          disabled={disabled}
-          includeTime
-        />
+    <RangeDatePicker
+      value={range}
+      onChange={handleRangeChange}
+      disabled={disabled}
+      includeTime={true}
+      numberOfMonths={2}
+      isDarkMode={isDarkMode}
+    />
+  </div>
+  </div>
 
-        <DatePicker
-          label="Reminder"
-          value={reminderDate}
-          onChange={onReminderDateChange as any}
-          disabled={disabled}
-          includeTime
-        />
+  {/* Reminder Picker */}
+  <div className="space-y-2 flex-1 w-fit">
+    <label className={cn(
+      "text-sm font-medium !pt-0 flex items-center gap-1.5",
+      isDarkMode ? "text-gray-300" : "text-gray-700"
+    )}>
+      <Bell size={14} />
+      Reminder
+    </label>
+    <div className='flex items-center'>
+
+    <DatePicker
+      value={reminderDate}
+      onChange={handleReminderChange}
+      disabled={disabled}
+      includeTime={true}
+      isDarkMode={isDarkMode}
+      />
       </div>
+  </div>
+</div>
 
       {/* Duration Calculation */}
       {durationDays !== null && (
@@ -90,6 +133,11 @@ export const ScheduleStep: React.FC<ScheduleStepProps> = ({
             <span className={cn("text-sm", isDarkMode ? "text-gray-400" : "text-gray-500")}>
               {durationDays === 1 ? 'day' : 'days'}
             </span>
+          </div>
+          <div className={cn("text-xs", isDarkMode ? "text-gray-500" : "text-gray-400")}>
+            {range.from && range.to && 
+              `${range.from.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} → ${range.to.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+            }
           </div>
         </div>
       )}
