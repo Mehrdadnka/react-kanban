@@ -134,127 +134,125 @@ export const QuickCreate: React.FC<QuickCreateProps> = ({
       <div className="space-y-0">
         <div className="grid grid-cols-2 gap-2 ">
           {/* Type */}
-<MetaRow icon={<FileText size={14} />} label="Type" isDarkMode={isDarkMode}>
-  <EntityPicker
-    items={typeItems}
-    selectedIds={[formState.type]}
-    onToggle={(id) => {
-      updateFormField('type', id as TaskType);
-      setOpenDropdown(null);
-    }}
-    label="Type"
-    cardPlaceholder="Select type"
-    searchPlaceholder="Filter types..."
-    compact  
-    className="flex-1"
-  />
-</MetaRow>
+          <MetaRow icon={<FileText size={14} />} label="Type" isDarkMode={isDarkMode}>
+            <EntityPicker
+              items={typeItems}
+              selectedIds={[formState.type]}
+              onToggle={(id) => {
+                updateFormField('type', id as TaskType);
+                setOpenDropdown(null);
+              }}
+              label="Type"
+              cardPlaceholder="Select type"
+              searchPlaceholder="Filter types..."
+              compact  
+              className="flex-1"
+            />
+          </MetaRow>
 
-<MetaRow icon={<Columns3 size={14} />} label="Status" isDarkMode={isDarkMode}>
-  <EntityPicker
-    items={columnItems}
-    selectedIds={[formState.columnId]}
-    onToggle={(id) => {
-      updateFormField('columnId', id);
-      setOpenDropdown(null);
-    }}
-    label="Status"
-    cardPlaceholder="Select status"
-    searchPlaceholder="Filter columns..."
-    compact
-    className="flex-1"
-  />
-</MetaRow>
+          <MetaRow icon={<Columns3 size={14} />} label="Status" isDarkMode={isDarkMode}>
+            <EntityPicker
+              items={columnItems}
+              selectedIds={[formState.columnId]}
+              onToggle={(id) => {
+                updateFormField('columnId', id);
+                setOpenDropdown(null);
+              }}
+              label="Status"
+              cardPlaceholder="Select status"
+              searchPlaceholder="Filter columns..."
+              compact
+              className="flex-1"
+            />
+          </MetaRow>
 
-<MetaRow icon={<Flag size={14} />} label="Priority" isDarkMode={isDarkMode}>
-  <EntityPicker
-    items={priorityItems}
-    selectedIds={[formState.priority]}
-    onToggle={(id) => {
-      updateFormField('priority', id as TaskPriority);
-      setOpenDropdown(null);
-    }}
-    label="Priority"
-    cardPlaceholder="Select priority"
-    searchPlaceholder="Filter..."
-    compact
-    className="flex-1"
-  />
-</MetaRow>
+          <MetaRow icon={<Flag size={14} />} label="Priority" isDarkMode={isDarkMode}>
+            <EntityPicker
+              items={priorityItems}
+              selectedIds={[formState.priority]}
+              onToggle={(id) => {
+                updateFormField('priority', id as TaskPriority);
+                setOpenDropdown(null);
+              }}
+              label="Priority"
+              cardPlaceholder="Select priority"
+              searchPlaceholder="Filter..."
+              compact
+              className="flex-1"
+            />
+          </MetaRow>
 
-        {/* Labels */}
+          {/* Labels */}
+          <MetaRow icon={<Tag size={14} />} label="Labels" isDarkMode={isDarkMode}>
+            <EntityPicker
+              items={labelItems}
+              selectedIds={formState.labels}
+              onToggle={(id) => {
+                updateFormField('labels',
+                  formState.labels.includes(id)
+                    ? formState.labels.filter(l => l !== id)
+                    : [...formState.labels, id]
+                );
+              }}
+              onCreate={(name, color) => addLabel(name, color || '#6B7280')}
+              onDelete={deleteLabel}
+              label="Labels"
+              cardPlaceholder="Add labels"
+              searchPlaceholder="Filter labels..."
+              createPlaceholder="Label name..."
+              showColorPicker
+              compact
+              className="flex-1"
+            />
+          </MetaRow>
 
-<MetaRow icon={<Tag size={14} />} label="Labels" isDarkMode={isDarkMode}>
-  <EntityPicker
-    items={labelItems}
-    selectedIds={formState.labels}
-    onToggle={(id) => {
-      updateFormField('labels',
-        formState.labels.includes(id)
-          ? formState.labels.filter(l => l !== id)
-          : [...formState.labels, id]
-      );
-    }}
-    onCreate={(name, color) => addLabel(name, color || '#6B7280')}
-    onDelete={deleteLabel}
-    label="Labels"
-    cardPlaceholder="Add labels"
-    searchPlaceholder="Filter labels..."
-    createPlaceholder="Label name..."
-    showColorPicker
-    compact
-    className="flex-1"
-  />
-</MetaRow>
+          {/* Milestone */}
+          <MetaRow icon={<Milestone size={14} />} label="Milestone" isDarkMode={isDarkMode}>
+            <EntityPicker
+              items={milestoneItems}
+              selectedIds={formState.milestoneIds}
+              onToggle={(id) => {
+                updateFormField('milestoneIds',
+                  formState.milestoneIds.includes(id)
+                    ? formState.milestoneIds.filter(m => m !== id)
+                    : [...formState.milestoneIds, id]
+                );
+              }}
+              onCreate={(name, color) => addMilestone(name, color || '#6B7280')}
+              onDelete={deleteMilestone}
+              placeholder="Add milestone"
+              searchPlaceholder="Filter milestones..."
+              createPlaceholder="Milestone name..."
+              label='Milestone'
+              showColorPicker
+              compact
+              className="flex-1"
+            />
+          </MetaRow>
 
-
-        {/* Milestone */}
-        <MetaRow icon={<Milestone size={14} />} label="Milestone" isDarkMode={isDarkMode}>
-          <EntityPicker
-            items={milestoneItems}
-            selectedIds={formState.milestoneIds}
-            onToggle={(id) => {
-              updateFormField('milestoneIds',
-                formState.milestoneIds.includes(id)
-                  ? formState.milestoneIds.filter(m => m !== id)
-                  : [...formState.milestoneIds, id]
-              );
-            }}
-            onCreate={(name, color) => addMilestone(name, color || '#6B7280')}
-            onDelete={deleteMilestone}
-            placeholder="Add milestone"
-            searchPlaceholder="Filter milestones..."
-            createPlaceholder="Milestone name..."
-            label='Milestone'
-            showColorPicker
-            compact
-            className="flex-1"
-          />
-        </MetaRow>
-
-        {/* Project */}
-        <MetaRow icon={<FolderKanban size={14} />} label="Project" isDarkMode={isDarkMode}>
-          <EntityPicker
-            items={projectItems}
-            selectedIds={formState.projectIds}
-            onToggle={(id) => {
-              updateFormField('projectIds',
-                formState.projectIds.includes(id)
-                  ? formState.projectIds.filter(p => p !== id)
-                  : [...formState.projectIds, id]
-              );
-            }}
-            onCreate={(name, color) => addProject(name, color || '#3B82F6')}
-            onDelete={deleteProject}
-            label='Project'
-            placeholder="Add project"
-            searchPlaceholder="Filter projects..."
-            createPlaceholder="Project name..."
-            showColorPicker
-            compact
-            className="flex-1"
-          />
-        </MetaRow>
+          {/* Project */}
+          <MetaRow icon={<FolderKanban size={14} />} label="Project" isDarkMode={isDarkMode}>
+            <EntityPicker
+              items={projectItems}
+              selectedIds={formState.projectIds}
+              onToggle={(id) => {
+                updateFormField('projectIds',
+                  formState.projectIds.includes(id)
+                    ? formState.projectIds.filter(p => p !== id)
+                    : [...formState.projectIds, id]
+                );
+              }}
+              onCreate={(name, color) => addProject(name, color || '#3B82F6')}
+              onDelete={deleteProject}
+              label='Project'
+              placeholder="Add project"
+              searchPlaceholder="Filter projects..."
+              createPlaceholder="Project name..."
+              showColorPicker
+              compact
+              className="flex-1"
+            />
+          </MetaRow>
         </div>
 
       </div>

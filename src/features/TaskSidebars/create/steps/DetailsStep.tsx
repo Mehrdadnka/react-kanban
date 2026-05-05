@@ -34,15 +34,15 @@ export const DetailsStep: React.FC<DetailsStepProps> = ({
       </div>
 
       <div className={cn(
-        "flex-1 min-h-[300px] lg:min-h-[500px] rounded-xl overflow-hidden border",
-        isDarkMode ? "border-gray-700" : "border-gray-200"
+        "flex-1 min-h-[300px] lg:min-h-[500px] rounded-xl overflow-hidden",
       )}>
         <MarkdownEditor
           value={value}
-          onChange={(rawMarkdown) => onChange(rawMarkdown)} // ✅ raw markdown
+          onChange={(rawMarkdown) => onChange(rawMarkdown)} 
           placeholder={placeholder}
           disabled={disabled}
           className="h-full"
+          minHeight={'480px'}
         />
       </div>
     </div>

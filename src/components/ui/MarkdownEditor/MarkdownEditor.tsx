@@ -69,11 +69,10 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   placeholder = 'Write something...',
   disabled = false,
   className,
-  minHeight = '300px',
+  minHeight = '450px',
 }) => {
   const { isDarkMode } = useApp();
   const fileInputRef = useRef<HTMLInputElement>(null);
-// const fileInputRef = useRef<HTMLInputElement>(null);
 
 const stripHtml = (html: string) => {
   const tmp = document.createElement('DIV');
@@ -116,17 +115,17 @@ const stripHtml = (html: string) => {
       FontSize
     ],
     content: value,
+    editable: !disabled,
     onUpdate: ({ editor }) => {
-      editable: !disabled;
-      onChange(editor.getText()); 
+      onChange(editor.getHTML()); 
     },
     editorProps: {
       attributes: {
-        class: cn(
+        class: [
           'prose prose-sm max-w-none focus:outline-none',
           isDarkMode ? 'prose-invert' : '',
-          'p-4 min-h-[250px] lg:min-h-[400px]'
-        ),
+          `p-4 min-h-[${minHeight}]`
+        ].filter(Boolean).join(' '),
       },
     },
   });
