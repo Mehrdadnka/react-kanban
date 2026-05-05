@@ -1,4 +1,3 @@
-// components/EntityCreateForm.tsx
 import React from 'react';
 import { Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';

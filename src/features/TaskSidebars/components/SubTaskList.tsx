@@ -1,5 +1,3 @@
-// src/features/TaskSidebar/components/SubTaskList.tsx
-
 import React from 'react';
 import { Plus, Trash2, CheckCircle2, Circle, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';

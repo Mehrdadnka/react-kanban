@@ -1,4 +1,3 @@
-// src/features/sidebar/components/SidebarItem.tsx
 import { cn } from '@/lib/utils';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import React from 'react'

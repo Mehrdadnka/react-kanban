@@ -1,4 +1,3 @@
-// entityPicker.types.ts
 export interface EntityItem {
   id: string;
   name: string;

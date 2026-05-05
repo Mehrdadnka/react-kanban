@@ -1,5 +1,3 @@
-// src/components/board/FilterSidebar.tsx
-
 import React, { useState } from 'react';
 import { Filter, ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/utils';

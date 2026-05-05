@@ -1,6 +1,5 @@
-// hooks/useEntityPicker.ts
 import { useState, useCallback, useMemo } from 'react';
-import { EntityItem, EntityPickerProps } from '../entityPicker.types';
+import { EntityPickerProps } from '../entityPicker.types';
 import { DEFAULT_COLORS, filterItemsBySearch, getSelectedItems } from '../utils';
 
 export const useEntityPicker = (props: EntityPickerProps) => {
@@ -9,7 +8,6 @@ export const useEntityPicker = (props: EntityPickerProps) => {
     selectedIds,
     onCreate,
     presetColors = DEFAULT_COLORS,
-    showColorPicker,
   } = props;
 
   const [isOpen, setIsOpen] = useState(false);

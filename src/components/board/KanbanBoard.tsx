@@ -1,5 +1,3 @@
-// src/components/board/KanbanBoard.tsx
-
 import React, { useState, useCallback, useMemo } from 'react';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { TooltipProvider } from '@radix-ui/react-tooltip';
@@ -127,7 +125,6 @@ export const KanbanBoard: React.FC = () => {
                       className={cn(
                         'hover:bg-gray-100 dark:hover:bg-gray-800',
                         'transition-all duration-200 border-none hover:shadow-md group',
-                        // اندازه‌های responsive برای دکمه‌ها
                         'w-10 h-10 md:w-12 md:h-12'
                       )}
                     >
@@ -152,7 +149,6 @@ export const KanbanBoard: React.FC = () => {
                       className={cn(
                         'hover:bg-gray-100 dark:hover:bg-gray-800',
                         'transition-all duration-200 hover:shadow-md group',
-                        // اندازه‌های responsive
                         'w-10 h-10 md:w-12 md:h-12'
                       )}
                       onClick={handleQuickAdd}

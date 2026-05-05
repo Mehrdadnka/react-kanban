@@ -1,5 +1,3 @@
-// src/components/ui/MarkdownEditor/EditorToolbar.tsx
-
 import React from 'react';
 import {
   Bold, Italic, Underline, Strikethrough, Code, Quote,

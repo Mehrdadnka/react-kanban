@@ -1,5 +1,3 @@
-// src/types/task.types.ts
-
 // ──── Enums & Constants ────
 
 export type AttachmentType = 'image' | 'video' | 'document' | 'file' | 'code' | 'other';

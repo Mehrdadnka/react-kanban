@@ -17,7 +17,6 @@ const MegaTaskSidebarRegistrar: React.FC = () => {
   });
   return null;
 };
-// 2. اضافه کردن رجیسترار جدید برای CreateTaskSidebar
 const CreateTaskSidebarRegistrar: React.FC = () => {
   useSidebarPanel({
     id: 'create-task-sidebar',

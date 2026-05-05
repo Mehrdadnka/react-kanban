@@ -1,4 +1,3 @@
-// src/features/TaskSidebars/create/schemas/task.schema.ts
 import { z } from 'zod';
 
 export const attachmentSchema = z.object({
@@ -9,7 +8,6 @@ export const attachmentSchema = z.object({
   content: z.string().optional(),
 });
 
-// ✅ Base schema بدون refinement
 const baseTaskSchema = z.object({
   // Step 1: Quick Create (Required)
   title: z.string()
@@ -45,7 +43,6 @@ const baseTaskSchema = z.object({
   assigneeId: z.string().nullable().optional(),
 });
 
-// ✅ Full schema با refinement
 export const taskFormSchema = baseTaskSchema.refine(
   (data) => {
     if (data.startDate && data.dueDate) {
@@ -61,7 +58,6 @@ export const taskFormSchema = baseTaskSchema.refine(
 
 export type TaskFormValues = z.infer<typeof taskFormSchema>;
 
-// ✅ Step-specific schemas از baseTaskSchema (بدون refinement)
 export const quickCreateSchema = baseTaskSchema.pick({
   title: true,
   shortDescription: true,

@@ -1,5 +1,3 @@
-// src/components/pickers/ProjectPicker.tsx
-
 import React from 'react';
 import { FolderKanban } from 'lucide-react';
 import { EntityPicker } from '@/components/ui/EntityPicker/EntityPicker';

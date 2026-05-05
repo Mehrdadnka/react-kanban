@@ -1,5 +1,3 @@
-// src/features/SearchSidebar/SearchSidebar.tsx
-
 import React, { useEffect, useRef, memo } from 'react';
 import { Search, X, ArrowRight } from 'lucide-react';
 import { PanelProps } from '@/stores/sidebar-engine/sidebar-engine.types';

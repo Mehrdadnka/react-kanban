@@ -1,4 +1,3 @@
-// src/features/TaskSidebars/create/steps/DetailsStep.tsx
 import React from 'react';
 import { FileText } from 'lucide-react';
 import { MarkdownEditor } from '@/components/ui/MarkdownEditor/MarkdownEditor';

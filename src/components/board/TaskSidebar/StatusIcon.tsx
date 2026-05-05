@@ -1,5 +1,3 @@
-// src/components/board/TaskSidebar/StatusIcon.tsx
-
 import { ClipboardList, Zap, CheckCircle2 } from "lucide-react";
 
 const iconMap: Record<string, React.FC<{ size?: number; className?: string }>> = {

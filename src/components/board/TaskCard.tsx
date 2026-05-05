@@ -1,5 +1,3 @@
-// ──── src/components/board/TaskCard.tsx ────
-
 import React, { useState, useMemo } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';

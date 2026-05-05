@@ -1,4 +1,3 @@
-// src/features/TaskSidebars/create/steps/MetaStep.tsx
 import React from 'react';
 import { FileText, Trash2, Upload, Tag } from 'lucide-react';
 import { SidebarInput } from '@/components/sidebar-ui-engine/SidebarInput';

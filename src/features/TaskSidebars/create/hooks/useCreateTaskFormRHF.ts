@@ -77,7 +77,7 @@ export const useCreateTaskFormRHF = (onSuccess: () => void) => {
     handleDrop: handleAttachmentDrop,
     handleRemove: handleAttachmentRemove,
   } = useAttachments({
-    attachments: (watchAttachments || []) as any, // ✅ quick fix
+    attachments: (watchAttachments || []) as any,
     onUpdate: (attachments) => setValue('attachments', attachments as any, { shouldValidate: true }),
     disabled: false,
   });

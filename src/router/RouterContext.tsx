@@ -41,7 +41,7 @@ function normalizePath(pathname: string, base: string): string {
   if (pathname.startsWith(base)) {
     return pathname.slice(base.length) || '/';
   }
-  return pathname; // fallback, in case running without base
+  return pathname;
 }
 
 export function useRouter() {

@@ -1,4 +1,3 @@
-// src/features/TaskSidebars/create/steps/ScheduleStep.tsx
 import React from 'react';
 import { Calendar, Clock, AlertCircle } from 'lucide-react';
 import { DatePicker } from '@/components/ui/DatePicker/DatePicker';

@@ -1,4 +1,3 @@
-// src/features/sidebar/components/CollapseButton.tsx
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { CollapseIcon } from '@/components/sidebar-ui-engine/CollapseIcon';

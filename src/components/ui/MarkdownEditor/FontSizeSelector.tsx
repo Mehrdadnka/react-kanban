@@ -1,5 +1,3 @@
-// src/components/ui/MarkdownEditor/FontSizeSelector.tsx
-
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { AlignLeft } from 'lucide-react';
 import { Editor } from '@tiptap/react';

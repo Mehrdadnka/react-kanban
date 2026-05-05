@@ -1,8 +1,6 @@
-// src/features/sidebar/components/CloseButton.tsx
 import React from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useApp } from '@/providers/AppProvider';
 
 interface CloseButtonProps {
   onClick: () => void;

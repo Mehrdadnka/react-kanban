@@ -1,4 +1,3 @@
-// src/features/sidebar/components/SidebarToolsSection.tsx
 import React from 'react';
 import { Moon, Sun } from 'lucide-react';
 import { Separator } from '@/components/ui/separator/Separator';

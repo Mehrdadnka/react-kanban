@@ -1,5 +1,3 @@
-// src/stores/sidebar-engine/task-sidebar.store.ts
-
 import { create } from 'zustand';
 import { Task, TaskPriority, TaskType, Attachment } from '@/types/task.types';
 import { useSidebarEngineStore } from '@/stores/sidebar-engine/sidebar-engine.store';
@@ -24,17 +22,15 @@ export interface BreadcrumbItem {
   onClick?: () => void;
 }
 
-// ──── Form State (هماهنگ با Task interface) ────
 export interface TaskFormState {
-  // Quick Create (اجباری)
   title: string;
   shortDescription: string;
   type: TaskType;
   priority: TaskPriority;
   columnId: string;
   labels: string[];
-  milestoneIds: string[];  // تغییر از milestone به آرایه
-  projectIds: string[];    // تغییر از project به آرایه
+  milestoneIds: string[];
+  projectIds: string[];   
   
   // Full Details
   description: string;
@@ -209,7 +205,7 @@ export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
       completedSteps: ['quick-create', 'full-details', 'schedule', 'meta'],
       formState: taskToFormState(task),
     });
-    useSidebarEngineStore.getState().open('task-sidebar', { 
+    useSidebarEngineStore.getState().open('create-task-sidebar', { 
       mode: 'view', 
       taskId: task.id 
     });
@@ -231,7 +227,7 @@ export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
       completedSteps: [], // Start fresh for editing
       formState: taskToFormState(task),
     });
-    useSidebarEngineStore.getState().open('task-sidebar', { 
+    useSidebarEngineStore.getState().open('create-task-sidebar', { 
       mode: 'edit', 
       taskId: task.id 
     });
@@ -248,7 +244,7 @@ export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
       completedSteps: [],
       formState: { ...initialFormState },
     });
-    useSidebarEngineStore.getState().close('task-sidebar');
+    useSidebarEngineStore.getState().close('create-task-sidebar');
   },
 
   // ──── Update single field ────

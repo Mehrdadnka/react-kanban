@@ -1,4 +1,3 @@
-// src/features/TaskSidebars/create/CreateTaskSidebar.tsx (UPDATED)
 import React, { useRef, useEffect, useState, memo, useCallback } from 'react';
 import { 
   Save, ArrowLeft, ArrowRight, AlertCircle, 

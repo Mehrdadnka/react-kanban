@@ -16,7 +16,7 @@ export interface PanelIconConfig {
 }
 
 export const PANEL_ICONS: Record<string, PanelIconConfig> = {
-  'task-sidebar': {
+  'create-task-sidebar': {
     icon: CheckSquare,
     label: 'Task Panel',
     description: 'Create, view, and edit tasks',

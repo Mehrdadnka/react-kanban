@@ -1,4 +1,3 @@
-// EntityPicker.tsx
 import React, { useRef } from 'react';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { Settings } from 'lucide-react';

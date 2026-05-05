@@ -1,5 +1,3 @@
-// ──── src/components/board/FilterBar.tsx ────
-
 import React, { useState } from 'react';
 import { Filter, X, Tag, Flag, Layout } from 'lucide-react';
 import { useLabelStore } from '@/stores/label.store';

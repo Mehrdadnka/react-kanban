@@ -1,4 +1,3 @@
-// components/EntityPickerTrigger.tsx
 import React from 'react';
 import { Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -11,7 +10,6 @@ interface EntityPickerTriggerProps {
   placeholder?: string;
   icon?: React.ReactNode;
   isDarkMode: boolean;
-  showAsSettingsButton?: boolean;
   renderBadge?: (item: EntityItem) => React.ReactNode;
   onClick: () => void;
 }
@@ -19,10 +17,8 @@ interface EntityPickerTriggerProps {
 export const EntityPickerTrigger: React.FC<EntityPickerTriggerProps> = ({
   icon,
   isDarkMode,
-  showAsSettingsButton,
   onClick,
 }) => {
-  // فقط دکمه تنظیمات رو return می‌کنیم چون همیشه به صورت settings button استفاده میشه
   return (
     <button
       type="button"

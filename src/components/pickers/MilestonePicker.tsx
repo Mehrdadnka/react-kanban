@@ -1,5 +1,3 @@
-// src/components/pickers/MilestonePicker.tsx
-
 import React from 'react';
 import { Milestone } from 'lucide-react';
 import { EntityPicker } from '@/components/ui/EntityPicker/EntityPicker';

@@ -1,4 +1,3 @@
-// src/features/TaskSidebars/create/steps/index.ts
 export { BasicInfoStep } from './BasicInfoStep';
 export { BasicInfoStepRHF } from './BasicInfoStepRHF';
 export { DetailsStep } from './DetailsStep';

@@ -35,7 +35,7 @@ import PriorityBadge from './components/PriorityBadge';
 import ViewField from './components/ViewField';
 import { getColumnLabel } from './utils';
 import { MarkdownEditor } from '@/components/ui/MarkdownEditor/MarkdownEditor';
-import { QuickCreate } from './components/quickCreate/QuickCreate';
+import { QuickCreate, QuickCreateFormState } from './components/quickCreate/QuickCreate';
 
 const STEP_ICONS: Record<StepId, React.ReactNode> = {
   'quick-create': <Zap size={14} />,
@@ -57,7 +57,7 @@ export const MegaTaskSidebar: React.FC<PanelProps> = memo(({
     } = useTaskSidebarStore();
     
     const position = usePanelPosition(panelId);
-    const fileInputRef = useRef<HTMLInputElement>(null);  // ← بالای کامپوننت هست؟
+    const fileInputRef = useRef<HTMLInputElement>(null); 
     const inputRef = useRef<HTMLInputElement | null>(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -223,7 +223,9 @@ export const MegaTaskSidebar: React.FC<PanelProps> = memo(({
   const renderStepContent = () => {
     switch (activeStep) {
       case 'quick-create':
-        return <QuickCreate isViewMode={isViewMode} inputRef={inputRef} />;
+        return <QuickCreate isViewMode={isViewMode} inputRef={inputRef} formState={undefined} updateFormField={function <K extends keyof QuickCreateFormState>(field: K, value: QuickCreateFormState[K]): void {
+          throw new Error('Function not implemented.');
+        } } />;
 
       case 'full-details':
     return (
@@ -315,8 +317,6 @@ export const MegaTaskSidebar: React.FC<PanelProps> = memo(({
                   </>
                 )}
               </div>
-              {/* لیست attachments (بعداً اضافه می‌کنیم) */}
-              {/* داخل case 'meta'، بعد از div attachments */}
 <input
   ref={fileInputRef}
   type="file"

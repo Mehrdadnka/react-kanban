@@ -1,4 +1,3 @@
-// src/features/sidebar/hooks/useMinimizedPanelIcon.ts
 import { useMemo } from 'react';
 import { Plus, Eye, Edit3 } from 'lucide-react';
 import { useSidebarEngineStore } from '@/stores/sidebar-engine/sidebar-engine.store';
@@ -27,7 +26,7 @@ export const useMinimizedPanelIcon = (panelId: string): MinimizedPanelInfo | nul
     }
 
     // Task sidebar with specific mode
-    if (panelId === 'task-sidebar' && panel.metadata?.mode) {
+    if (panelId === 'create-task-sidebar' && panel.metadata?.mode) {
       const mode = panel.metadata.mode as string;
       switch (mode) {
         case 'create':

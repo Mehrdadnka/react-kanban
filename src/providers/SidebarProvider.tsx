@@ -42,7 +42,7 @@ const PanelRenderer: React.FC = memo(() => {
             panelId={panel.config.id}
             isOpen={isVisible} 
             zIndex={panel.zIndex}
-            isDarkMode={isDarkMode} // ← از AppProvider بگیر
+            isDarkMode={isDarkMode} 
             metadata={panel.metadata}
             onClose={() => useSidebarEngineStore.getState().close(panel.config.id)}
             onUpdateMetadata={(newMetadata) => {

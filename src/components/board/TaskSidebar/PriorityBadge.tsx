@@ -1,5 +1,3 @@
-// src/components/board/TaskSidebar/PriorityBadge.tsx
-
 import { Badge } from "@/components/ui/badge/Badge";
 import { PriorityColors } from "@/components/ui/PriorityColors";
 import { cn } from "@/lib/utils";

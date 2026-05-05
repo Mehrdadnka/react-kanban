@@ -1,5 +1,3 @@
-// src/components/ui/DatePicker/DatePicker.tsx
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Calendar, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
