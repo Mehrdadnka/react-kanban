@@ -33,7 +33,6 @@ interface QuickCreateProps {
 
 // ──── Component ────
 export const QuickCreate: React.FC<QuickCreateProps> = ({ 
-  isViewMode, 
   inputRef, 
   formState, 
   updateFormField 

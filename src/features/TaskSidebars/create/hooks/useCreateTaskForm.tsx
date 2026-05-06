@@ -3,6 +3,9 @@ import { TaskType, TaskPriority } from '@/types/task.types';
 import { useTaskStore } from '@/stores/task.store';
 import { useAttachments } from './useAttachments';
 import { StepId } from '@/stores/sidebar-engine/task-sidebar.store';
+import { toast } from 'sonner';
+import { AlertCircle } from 'lucide-react';
+import { metaSchema, quickCreateSchema, scheduleSchema } from '../schemas/task.schema';
 
 // ──── Types ────
 
@@ -61,50 +64,6 @@ const initialState: FormState = {
   assigneeId: undefined,
 };
 
-// ──── Step Validators ────
-
-const stepValidators: Record<StepId, (state: FormState) => { valid: boolean; error?: string }> = {
-  'quick-create': (state) => {
-    if (!state.title.trim()) {
-      return { valid: false, error: 'Title is required' };
-    }
-    if (state.title.length > 100) {
-      return { valid: false, error: 'Title must be under 100 characters' };
-    }
-    if (!state.shortDescription.trim()) {
-      return { valid: false, error: 'Short description is required' };
-    }
-    if (state.shortDescription.length > 200) {
-      return { valid: false, error: 'Short description must be under 200 characters' };
-    }
-    return { valid: true };
-  },
-
-  'full-details': () => {
-    // Description is always optional
-    return { valid: true };
-  },
-
-  'schedule': (state) => {
-    // All date fields are optional, but if both are set, validate order
-    if (state.startDate && state.dueDate && state.startDate > state.dueDate) {
-      return { valid: false, error: 'Start date must be before due date' };
-    }
-    return { valid: true };
-  },
-
-  'meta': (state) => {
-    // Estimated hours must be positive if provided
-    if (state.estimatedHours !== undefined && state.estimatedHours <= 0) {
-      return { valid: false, error: 'Estimated hours must be greater than 0' };
-    }
-    if (state.estimatedHours !== undefined && state.estimatedHours > 1000) {
-      return { valid: false, error: 'Estimated hours seems too high' };
-    }
-    return { valid: true };
-  },
-};
-
 // ──── Hook ────
 
 export const useCreateTaskForm = (onSuccess: () => void) => {
@@ -127,6 +86,68 @@ export const useCreateTaskForm = (onSuccess: () => void) => {
 
   // ──── Attachments ────
 
+
+const stepValidators: Record<StepId, (state: FormState) => boolean> = useMemo(() => ({
+  'quick-create': (state) => {
+    const result = quickCreateSchema.safeParse({
+      title: state.title,
+      shortDescription: state.shortDescription,
+      type: state.type,
+      priority: state.priority,
+      columnId: state.columnId,
+      labels: state.labels,
+      milestoneIds: state.milestoneIds,
+      projectIds: state.projectIds,
+    });
+    
+    if (!result.success) {
+      const firstError = result.error.issues[0];
+      toast.error(firstError.message || 'Validation failed', {
+        icon: <AlertCircle size={16} />,
+      });
+      return false;
+    }
+    return true;
+  },
+
+  'full-details': () => true,
+
+  'schedule': (state) => {
+    const result = scheduleSchema.safeParse({
+      startDate: state.startDate,
+      dueDate: state.dueDate,
+      reminderDate: state.reminderDate,
+    });
+    
+    if (!result.success) {
+      const firstError = result.error.issues[0];
+      toast.error(firstError.message || 'Invalid schedule', {
+        icon: <AlertCircle size={16} />,
+      });
+      return false;
+    }
+    return true;
+  },
+
+  'meta': (state) => {
+    const result = metaSchema.safeParse({
+      attachments: state.attachments,
+      estimatedHours: state.estimatedHours,
+      relatedTaskIds: state.relatedTaskIds,
+      assigneeId: state.assigneeId,
+    });
+    
+    if (!result.success) {
+      const firstError = result.error.issues[0];
+      toast.error(firstError.message || 'Invalid meta data', {
+        icon: <AlertCircle size={16} />,
+      });
+      return false;
+    }
+    return true;
+  },
+}), []);
+
   const {
     fileInputRef,
     handleClick: handleAttachmentClick,
@@ -144,22 +165,22 @@ export const useCreateTaskForm = (onSuccess: () => void) => {
   const isStepValid = useCallback((stepId: StepId): boolean => {
     const validator = stepValidators[stepId];
     if (!validator) return true;
-    return validator(formState).valid;
+    return validator(formState);
   }, [formState]);
 
-  const getStepError = useCallback((stepId: StepId): string | undefined => {
+  const getStepError = useCallback((stepId: StepId): boolean => {
     const validator = stepValidators[stepId];
-    if (!validator) return undefined;
-    return validator(formState).error;
+    if (!validator) return false;
+    return !validator(formState);
   }, [formState]);
 
   const stepErrors = useMemo(() => {
-    const errors: Partial<Record<StepId, string>> = {};
+    const errors: Partial<Record<StepId, boolean>> = {};
 
     (Object.keys(stepValidators) as StepId[]).forEach((stepId) => {
-      const result = stepValidators[stepId](formState);
-      if (!result.valid && result.error) {
-        errors[stepId] = result.error;
+      const isValid = stepValidators[stepId](formState);
+      if (!isValid) {
+        errors[stepId] = true; // Just track if step has error, no message needed
       }
     });
 

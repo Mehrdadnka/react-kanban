@@ -1,7 +1,8 @@
 import React, { useRef, useEffect, useState, memo, useCallback } from 'react';
 import { 
   Save, ArrowLeft, ArrowRight, AlertCircle, 
-  Loader2, Sparkles 
+  Loader2, Sparkles, 
+  Plus
 } from 'lucide-react';
 import { FormProvider } from 'react-hook-form';
 import { PanelProps } from '@/stores/sidebar-engine/sidebar-engine.types';
@@ -14,6 +15,7 @@ import { MetaStepRHF } from './steps/MetaStepRHF';
 import { StepId, STEPS } from '@/stores/sidebar-engine/task-sidebar.store';
 import { STEP_ICONS } from '@/features/TaskSidebars/utils';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 export const CreateTaskSidebar: React.FC<PanelProps> = memo(({
   zIndex, 
@@ -82,10 +84,53 @@ export const CreateTaskSidebar: React.FC<PanelProps> = memo(({
       setActiveStep(stepId);
     }
   }, [canNavigateToStep]);
-
+  
   const handleNext = useCallback(async () => {
-    const isValidStep = await validateStep(activeStep);
-    if (!isValidStep) return;
+    const stepErrorFields: Record<StepId, Array<{ field: string; label: string }>> = {
+      'quick-create': [
+        { field: 'title', label: 'Title' },
+        { field: 'shortDescription', label: 'Short Description' },
+      ],
+      'full-details': [],
+      'schedule': [],
+      'meta': [],
+    };
+  
+    const stepFields = stepErrorFields[activeStep] || [];
+    const fieldNames = stepFields.map(f => f.field);
+  
+    if (fieldNames.length === 0) {
+      if (currentStepIndex < totalSteps - 1) {
+        setCompletedSteps(prev => 
+          prev.includes(activeStep) ? prev : [...prev, activeStep]
+        );
+        setActiveStep(STEPS[currentStepIndex + 1].id);
+      }
+      return;
+    }
+  
+    const isValid = await form.trigger(fieldNames as any);
+  
+    if (!isValid) {
+      const allErrors = form.formState.errors;
+    
+      const firstErrorField = stepFields.find(
+        ({ field }) => !!allErrors[field as keyof typeof allErrors]
+      );
+    
+      if (firstErrorField) {
+        const errorMessage = allErrors[firstErrorField.field as keyof typeof allErrors]?.message;
+      
+        if (errorMessage) {
+          toast.error(`${firstErrorField.label} is required`, {
+            description: `Please fill in the ${firstErrorField.label.toLowerCase()} field in the ${STEPS[currentStepIndex].label} step`,
+            duration: 3500,
+            icon: <AlertCircle size={18} />,
+          });
+        }
+      }
+      return;
+    }
 
     if (currentStepIndex < totalSteps - 1) {
       setCompletedSteps(prev => 
@@ -93,8 +138,8 @@ export const CreateTaskSidebar: React.FC<PanelProps> = memo(({
       );
       setActiveStep(STEPS[currentStepIndex + 1].id);
     }
-  }, [activeStep, currentStepIndex, totalSteps, validateStep]);
-
+  }, [activeStep, currentStepIndex, totalSteps, form, STEPS]);
+  
   const handleBack = useCallback(() => {
     if (currentStepIndex > 0) {
       setActiveStep(STEPS[currentStepIndex - 1].id);
@@ -139,7 +184,7 @@ export const CreateTaskSidebar: React.FC<PanelProps> = memo(({
         onClose={handleClose}
         panelId={panelId}
         title="Create New Task"
-        icon={<Sparkles size={20} className="text-blue-500" />}
+        icon={<Plus size={20} />}
         activeStep={activeStep}
         completedSteps={completedSteps}
         steps={stepConfig}
@@ -170,20 +215,6 @@ export const CreateTaskSidebar: React.FC<PanelProps> = memo(({
               )}
             </div>
           </div>
-
-          {/* Error Message */}
-          {firstError && (
-            <div className={cn(
-              "flex items-center gap-2 px-3 py-2 mx-1 mt-2 rounded-lg text-xs font-medium flex-shrink-0",
-              isDarkMode
-                ? "bg-red-900/30 text-red-300 border border-red-800/50"
-                : "bg-red-50 text-red-600 border border-red-200"
-            )}>
-              <AlertCircle size={14} className="flex-shrink-0" />
-              <span className="truncate">{String(firstError)}</span>
-            </div>
-          )}
-
           {/* Footer Navigation */}
           <div className={cn(
             "flex-shrink-0 pt-3 mt-3 border-t",

@@ -10,12 +10,8 @@ export const attachmentSchema = z.object({
 
 const baseTaskSchema = z.object({
   // Step 1: Quick Create (Required)
-  title: z.string()
-    .min(1, 'Title is required')
-    .max(100, 'Title must be under 100 characters'),
-  shortDescription: z.string()
-    .min(1, 'Short description is required')
-    .max(200, 'Short description must be under 200 characters'),
+  title: z.string().min(1).max(100),
+  shortDescription: z.string().min(1).max(200),
   
   type: z.enum(['task', 'bug', 'milestone', 'epic']).optional().default('task'),
   priority: z.enum(['low', 'medium', 'high', 'urgent']).optional().default('medium'),
@@ -34,11 +30,7 @@ const baseTaskSchema = z.object({
 
   // Step 4: Meta (Optional)
   attachments: z.array(attachmentSchema).optional().default([]),
-  estimatedHours: z.number()
-    .positive('Must be greater than 0')
-    .max(1000, 'Estimated hours seems too high')
-    .nullable()
-    .optional(),
+  estimatedHours: z.number().positive().max(1000).nullable().optional(),
   relatedTaskIds: z.array(z.string()).default([]),
   assigneeId: z.string().nullable().optional(),
 });
@@ -49,10 +41,6 @@ export const taskFormSchema = baseTaskSchema.refine(
       return data.startDate <= data.dueDate;
     }
     return true;
-  },
-  {
-    message: 'Start date must be before due date',
-    path: ['dueDate'],
   }
 );
 
@@ -83,12 +71,9 @@ export const scheduleSchema = baseTaskSchema.pick({
       return data.startDate <= data.dueDate;
     }
     return true;
-  },
-  {
-    message: 'Start date must be before due date',
-    path: ['dueDate'],
   }
 );
+
 
 export const metaSchema = baseTaskSchema.pick({
   attachments: true,

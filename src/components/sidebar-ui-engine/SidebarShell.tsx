@@ -55,7 +55,7 @@ const positionAnimation: Record<PanelPosition, { open: string; closed: string }>
 
 export const SidebarShell: React.FC<SidebarShellProps> = memo(({
   isOpen,
-  zIndex = 50,
+  zIndex = 40,
   onClose,
   panelId,
   showMinimize = true,
