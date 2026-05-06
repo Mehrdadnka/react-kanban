@@ -11,12 +11,14 @@ interface DatePickerProps {
   disabled?: boolean;
   className?: string;
   isDarkMode?: boolean;
+  numberOfMonths?: number;
 }
 
 export const DatePicker: React.FC<DatePickerProps> = ({
   value,
   onChange,
   label,
+  numberOfMonths,
   disabled = false,
   className,
   isDarkMode = false,
@@ -91,8 +93,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         getDayClassName={getDayClassName}
         isDarkMode={isDarkMode}
         disabled={disabled}
-        numberOfMonths={1}
-        calendarHeight="340px"
+        numberOfMonths={numberOfMonths}
       />
 
       {/* Actions */}

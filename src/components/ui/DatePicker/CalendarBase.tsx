@@ -45,7 +45,7 @@ export const CalendarBase: React.FC<CalendarBaseProps> = ({
   numberOfMonths = 1,
   isDarkMode = false,
   disabled = false,
-  calendarHeight = '340px',
+  calendarHeight = '380px',
   showNavigation = true,
 }) => {
   const getMonthDays = useCallback((date: Date) => {
@@ -119,12 +119,16 @@ export const CalendarBase: React.FC<CalendarBaseProps> = ({
   };
 
   return (
-    <div className={cn(
-      'rounded-xl border p-4',
-      calendarHeight && `h-[${calendarHeight}]`,
-      isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200',
-      disabled && 'opacity-50 pointer-events-none'
-    )}>
+    <div 
+    className={cn(
+        'rounded-xl border p-4',
+        isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200',
+        disabled && 'opacity-50 pointer-events-none'
+      )}
+      style={{
+        minHeight: calendarHeight
+      }}
+    >
       {/* Navigation */}
       {showNavigation && (
         <div className="flex items-center justify-between mb-4">

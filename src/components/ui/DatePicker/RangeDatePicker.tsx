@@ -1,43 +1,36 @@
+// components/ui/DatePicker/RangeDatePicker.tsx (بازنویسی شده)
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { ChevronLeft, ChevronRight, Clock, RotateCcw, Calendar } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths, isSameDay, isWithinInterval, isBefore, isAfter } from 'date-fns';
+import { Calendar, RotateCcw } from 'lucide-react';
+import { format, isSameDay, isBefore, isAfter } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { CalendarBase } from './CalendarBase';
 
 interface DateRange {
   from: Date | undefined;
   to: Date | undefined;
 }
 
-interface DatePickerProps {
+interface RangeDatePickerProps {
   value?: DateRange;
   onChange: (range: DateRange | undefined) => void;
   label?: string;
   disabled?: boolean;
-  includeTime?: boolean;
   numberOfMonths?: number;
   className?: string;
   isDarkMode?: boolean;
 }
 
-const DAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
-
-export const RangeDatePicker: React.FC<DatePickerProps> = ({
+export const RangeDatePicker: React.FC<RangeDatePickerProps> = ({
   value,
   onChange,
   label,
   disabled = false,
-  includeTime = false,
   numberOfMonths = 2,
   className,
   isDarkMode = false,
 }) => {
   const [range, setRange] = useState<DateRange>(value || { from: undefined, to: undefined });
   const [currentMonth, setCurrentMonth] = useState(value?.from || new Date());
-  const [hours, setHours] = useState(12);
-  const [minutes, setMinutes] = useState(0);
-  const [showTimePicker, setShowTimePicker] = useState(false);
-  
-  // درگ state
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState<Date | null>(null);
   const [dragEnd, setDragEnd] = useState<Date | null>(null);
@@ -46,23 +39,12 @@ export const RangeDatePicker: React.FC<DatePickerProps> = ({
   useEffect(() => {
     if (value) {
       setRange(value);
-      if (value.from) {
-        setHours(value.from.getHours());
-        setMinutes(value.from.getMinutes());
-        setCurrentMonth(value.from);
-      }
+      if (value.from) setCurrentMonth(value.from);
     }
   }, [value]);
 
-  // گرفتن روزهای ماه
-  const getMonthDays = (date: Date) => {
-    const start = startOfMonth(date);
-    const end = endOfMonth(date);
-    return eachDayOfInterval({ start, end });
-  };
-
   // شروع درگ
-  const handleMouseDown = (day: Date) => {
+  const handleDayMouseDown = (day: Date) => {
     if (disabled) return;
     setIsDragging(true);
     setDragStart(day);
@@ -71,9 +53,8 @@ export const RangeDatePicker: React.FC<DatePickerProps> = ({
   };
 
   // حرکت موس در حین درگ
-  const handleMouseEnter = (day: Date) => {
+  const handleDayMouseEnter = (day: Date) => {
     if (!isDragging || !dragStart || disabled) return;
-    
     setDragEnd(day);
     const from = isBefore(day, dragStart) ? day : dragStart;
     const to = isAfter(day, dragStart) ? day : dragStart;
@@ -89,12 +70,7 @@ export const RangeDatePicker: React.FC<DatePickerProps> = ({
       const to = isAfter(dragEnd, dragStart) ? dragEnd : dragStart;
       const finalRange = { from, to };
       setRange(finalRange);
-      
-      if (includeTime) {
-        setShowTimePicker(true);
-      } else {
-        onChange(finalRange);
-      }
+      onChange(finalRange);
     } else if (dragStart) {
       setRange({ from: dragStart, to: undefined });
     }
@@ -103,7 +79,14 @@ export const RangeDatePicker: React.FC<DatePickerProps> = ({
     setDragEnd(null);
   };
 
-  const handleClick = (day: Date) => {
+  // Handle global mouse up
+  useEffect(() => {
+    const handleGlobalMouseUp = () => handleMouseUp();
+    window.addEventListener('mouseup', handleGlobalMouseUp);
+    return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
+  }, [isDragging, dragStart, dragEnd]);
+
+  const handleDayClick = (day: Date) => {
     if (disabled || isDragging) return;
     
     if (!range.from) {
@@ -116,53 +99,20 @@ export const RangeDatePicker: React.FC<DatePickerProps> = ({
       const to = isAfter(day, range.from) ? day : range.from;
       const finalRange = { from, to };
       setRange(finalRange);
-      
-      if (includeTime) {
-        setShowTimePicker(true);
-      } else {
-        onChange(finalRange);
-      }
+      onChange(finalRange);
       return;
     }
     
     setRange({ from: day, to: undefined });
   };
-  
-
-  // Handle global mouse up
-  useEffect(() => {
-    const handleGlobalMouseUp = () => handleMouseUp();
-    window.addEventListener('mouseup', handleGlobalMouseUp);
-    return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
-  }, [isDragging, dragStart, dragEnd]);
-
-  const goNextMonth = () => setCurrentMonth(prev => addMonths(prev, 1));
-  const goPrevMonth = () => setCurrentMonth(prev => subMonths(prev, 1));
-
-  const handleTimeConfirm = () => {
-    if (range.from && range.to) {
-      const fromWithTime = new Date(range.from);
-      fromWithTime.setHours(hours, minutes);
-      
-      const toWithTime = new Date(range.to);
-      toWithTime.setHours(hours + 2, minutes);
-
-      const newRange = { from: fromWithTime, to: toWithTime };
-      setRange(newRange);
-      onChange(newRange);
-    }
-    setShowTimePicker(false);
-  };
 
   const handleClear = () => {
     setRange({ from: undefined, to: undefined });
     onChange(undefined);
-    setShowTimePicker(false);
   };
 
   const handleToday = () => {
     const today = new Date();
-    today.setHours(hours, minutes, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
     
@@ -171,80 +121,30 @@ export const RangeDatePicker: React.FC<DatePickerProps> = ({
     onChange(newRange);
   };
 
-  const renderMonth = (monthOffset: number) => {
-    const monthDate = addMonths(currentMonth, monthOffset);
-    const days = getMonthDays(monthDate);
-    const startDay = getDay(monthDate);
-    const today = new Date();
-
-    return (
-      <div key={monthOffset} className="flex-1 min-w-0">
-        <div className="text-center text-sm font-medium mb-3">
-          {format(monthDate, 'MMMM yyyy')}
-        </div>
-        <div className="grid grid-cols-7 gap-0.5">
-          {DAYS.map(day => (
-            <div key={day} className="text-center text-[10px] font-medium text-gray-400 py-1">
-              {day}
-            </div>
-          ))}
-          
-          {/* Empty cells */}
-          {Array.from({ length: startDay }).map((_, i) => (
-            <div key={`empty-${i}`} />
-          ))}
-          
-          {/* Day cells */}
-          {days.map(day => {
-            const isToday = isSameDay(day, today);
-            const isRangeStart = range.from && isSameDay(day, range.from);
-            const isRangeEnd = range.to && isSameDay(day, range.to);
-            const isInRange = range.from && range.to && 
-              isAfter(day, range.from) && isBefore(day, range.to);
-            const isDisabled = disabled;
-
-            return (
-              <button
-                key={day.toISOString()}
-                type="button"
-                onMouseDown={() => handleMouseDown(day)}
-                onMouseEnter={() => handleMouseEnter(day)}
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (!isDragging) handleClick(day);
-                }}
-                disabled={isDisabled}
-                className={cn(
-                  'w-8 h-8 text-xs rounded-full flex items-center justify-center transition-all select-none',
-                  'hover:bg-gray-100 dark:hover:bg-gray-700',
-                  isRangeStart && 'bg-blue-500 text-white font-bold rounded-r-none',
-                  isRangeEnd && 'bg-blue-500 text-white font-bold rounded-l-none',
-                  isInRange && !isRangeStart && !isRangeEnd && 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-none',
-                  isRangeStart && isRangeEnd && 'rounded-full',
-                  !isRangeStart && !isRangeEnd && !isInRange && cn(
-                    isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                  ),
-                  isToday && !isRangeStart && !isRangeEnd && 'border border-blue-500 text-blue-500',
-                  isDisabled && 'opacity-50 cursor-not-allowed'
-                )}
-              >
-                {format(day, 'd')}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    );
+  const getDayClassName = (day: Date, isToday: boolean) => {
+    const isRangeStart = range.from && isSameDay(day, range.from);
+    const isRangeEnd = range.to && isSameDay(day, range.to);
+    const isInRange = range.from && range.to && 
+      isAfter(day, range.from) && isBefore(day, range.to);
+    
+    if (isRangeStart && isRangeEnd) return 'bg-blue-500 text-white font-bold rounded-full';
+    if (isRangeStart) return 'bg-blue-500 text-white font-bold rounded-r-none';
+    if (isRangeEnd) return 'bg-blue-500 text-white font-bold rounded-l-none';
+    if (isInRange) return 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-none';
+    if (isToday) return 'border border-blue-500 text-blue-500';
+    return '';
   };
+
+  const selectedDays = [
+    ...(range.from ? [range.from] : []),
+    ...(range.to ? [range.to] : [])
+  ];
 
   const formatRangeDisplay = useCallback(() => {
     if (!range.from) return 'Select date range';
     if (!range.to) return `${format(range.from, 'MMM dd, yyyy')} — ...`;
-    
-    let display = `${format(range.from, 'MMM dd, yyyy')} — ${format(range.to, 'MMM dd, yyyy')}`;
-    if (includeTime) display += ` at ${format(range.from, 'HH:mm')}`;
-    return display;
-  }, [range, includeTime]);
+    return `${format(range.from, 'MMM dd, yyyy')} — ${format(range.to, 'MMM dd, yyyy')}`;
+  }, [range]);
 
   return (
     <div ref={containerRef} className={cn('flex flex-col select-none', className)}>
@@ -264,68 +164,21 @@ export const RangeDatePicker: React.FC<DatePickerProps> = ({
       )}>
         <Calendar size={16} className={range.from ? 'text-blue-500' : 'text-gray-400'} />
         <span className="flex-1 truncate">{formatRangeDisplay()}</span>
-        <Clock size={16} className="text-gray-400" />
       </div>
 
-      {/* Calendar container */}
-      <div className={cn(
-        'rounded-xl border p-4',
-        'h-[400px]',
-        isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200',
-        disabled && 'opacity-50 pointer-events-none'
-      )}>
-        {/* Navigation */}
-        <div className="flex items-center justify-between mb-4">
-          <button
-            type="button"
-            onClick={goPrevMonth}
-            className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
-          >
-            <ChevronLeft size={16} />
-          </button>
-          <button
-            type="button"
-            onClick={goNextMonth}
-            className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
-          >
-            <ChevronRight size={16} />
-          </button>
-        </div>
-
-        {/* Months grid */}
-        <div className="flex gap-4">
-          {Array.from({ length: numberOfMonths }).map((_, i) => renderMonth(i))}
-        </div>
-
-        {/* Time picker */}
-        {includeTime && showTimePicker && range.from && range.to && (
-          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <div className="flex items-center gap-3">
-              <Clock size={14} className="text-gray-400" />
-              <span className="text-xs font-medium">Start time:</span>
-              <select
-                value={hours}
-                onChange={(e) => setHours(Number(e.target.value))}
-                className={cn(
-                  'px-2 py-1 rounded border text-xs',
-                  isDarkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
-                )}
-              >
-                {Array.from({ length: 24 }).map((_, h) => (
-                  <option key={h} value={h}>{String(h).padStart(2, '0')}:00</option>
-                ))}
-              </select>
-              <button
-                type="button"
-                onClick={handleTimeConfirm}
-                className="ml-auto text-xs px-3 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-              >
-                Apply
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+      {/* Calendar */}
+      <CalendarBase
+        currentMonth={currentMonth}
+        onMonthChange={setCurrentMonth}
+        selectedDays={selectedDays}
+        onDayMouseDown={handleDayMouseDown}
+        onDayMouseEnter={handleDayMouseEnter}
+        onDayClick={handleDayClick}
+        getDayClassName={getDayClassName}
+        isDarkMode={isDarkMode}
+        disabled={disabled}
+        numberOfMonths={numberOfMonths}
+      />
 
       {/* Actions */}
       <div className="flex gap-2 mt-3">

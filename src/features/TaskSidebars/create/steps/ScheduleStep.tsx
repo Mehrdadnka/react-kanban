@@ -1,9 +1,13 @@
+// ScheduleStep.tsx
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, AlertCircle, Bell } from 'lucide-react';
 import { RangeDatePicker } from '@/components/ui/DatePicker/RangeDatePicker';
 import { calculateDuration } from '@/features/TaskSidebars/utils';
 import { cn } from '@/lib/utils';
 import { DatePicker } from '@/components/ui/DatePicker/DatePicker';
+import { TimeRangePicker } from '@/components/ui/TimePicker/TimeRangePicker';
+import { Tab, TabItem } from '@/components/ui/tab/Tab';
+import { TimePicker } from '@/components/ui/TimePicker/TimePicker';
 
 interface ScheduleStepProps {
   startDate?: Date;
@@ -30,11 +34,23 @@ export const ScheduleStep: React.FC<ScheduleStepProps> = ({
     from: startDate,
     to: dueDate,
   });
+  
+  // State برای زمان reminder
+  const [reminderTime, setReminderTime] = useState('09:00');
 
   // Sync external props to internal state
   useEffect(() => {
     setRange({ from: startDate, to: dueDate });
   }, [startDate, dueDate]);
+
+  // Sync reminderDate to reminderTime
+  useEffect(() => {
+    if (reminderDate) {
+      const hours = String(reminderDate.getHours()).padStart(2, '0');
+      const minutes = String(reminderDate.getMinutes()).padStart(2, '0');
+      setReminderTime(`${hours}:${minutes}`);
+    }
+  }, [reminderDate]);
 
   const hasDateConflict = range.from && range.to && range.from > range.to;
   const durationDays = range.from && range.to && !hasDateConflict
@@ -42,7 +58,6 @@ export const ScheduleStep: React.FC<ScheduleStepProps> = ({
     : null;
 
   const handleRangeChange = (newRange: { from: Date | undefined; to: Date | undefined } | undefined) => {
-    console.log('Range changed:', newRange);
     if (newRange) {
       onStartDateChange?.(newRange.from);
       onDueDateChange?.(newRange.to);
@@ -52,12 +67,131 @@ export const ScheduleStep: React.FC<ScheduleStepProps> = ({
     }
   };
 
-  const handleReminderChange = (date: Date | undefined) => {
+  const handleReminderDateChange = (date: Date | undefined) => {
+    if (date) {
+      // اگر زمان قبلاً تنظیم شده، همان زمان رو نگه دار
+      const [hours, minutes] = reminderTime.split(':').map(Number);
+      date.setHours(hours, minutes, 0, 0);
+    }
     onReminderDateChange?.(date);
   };
 
+  const handleReminderTimeChange = (time: string) => {
+    setReminderTime(time);
+    
+    // اگر تاریخ reminder تنظیم شده، زمان رو بهش اضافه کن
+    if (reminderDate) {
+      const [hours, minutes] = time.split(':').map(Number);
+      const updatedDate = new Date(reminderDate);
+      updatedDate.setHours(hours, minutes, 0, 0);
+      onReminderDateChange?.(updatedDate);
+    }
+  };
+
+  const tabItems: TabItem[] = [
+    {
+      id: 'dates',
+      label: 'Date Range',
+      icon: <Calendar size={16} />,
+      content: (
+        <div className="space-y-2 flex flex-row items-start justify-center gap-4">
+          <div className="flex-2 flex flex-row h-fit w-fit">
+            <RangeDatePicker
+              value={range}
+              onChange={handleRangeChange}
+              disabled={disabled}
+              numberOfMonths={2}
+              isDarkMode={isDarkMode}
+            />
+          </div>          
+          <div className="flex-2 flex flex-row h-auto w-auto">
+            <TimeRangePicker
+              startTime="09:00"
+              endTime="17:00"
+              onChange={(start, end) => console.log(start, end)}
+              label="Working Hours"
+              size="md"
+              minDuration={30}
+              showDuration={false}
+              showPresets={false}
+              isDarkMode={isDarkMode}
+            />
+          </div>
+
+          {/* Duration Calculation */}
+          {durationDays !== null && (
+            <div className={cn(
+              'p-4 rounded-xl space-y-1 border',
+              isDarkMode
+                ? 'bg-blue-900/20 border-blue-800/50'
+                : 'bg-blue-50/50 border-blue-100'
+            )}>
+              <div className="flex items-center gap-2">
+                <Clock size={14} className="text-blue-500" />
+                <span className={cn("text-xs font-medium", isDarkMode ? "text-blue-300" : "text-blue-700")}>
+                  Duration
+                </span>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className={cn("text-2xl font-bold", isDarkMode ? "text-gray-100" : "text-gray-900")}>
+                  {durationDays}
+                </span>
+                <span className={cn("text-sm", isDarkMode ? "text-gray-400" : "text-gray-500")}>
+                  {durationDays === 1 ? 'day' : 'days'}
+                </span>
+              </div>
+              <div className={cn("text-xs", isDarkMode ? "text-gray-500" : "text-gray-400")}>
+                {range.from && range.to && 
+                  `${range.from.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} → ${range.to.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+                }
+              </div>
+            </div>
+          )}
+
+          {/* Date Conflict Warning */}
+          {hasDateConflict && (
+            <div className={cn(
+              "flex items-center gap-2 p-3 rounded-lg text-xs",
+              isDarkMode ? "bg-red-900/20 text-red-400" : "bg-red-50 text-red-600"
+            )}>
+              <AlertCircle size={14} />
+              Start date must be before due date
+            </div>
+          )}
+        </div>
+      ),
+    },
+    {
+      id: 'reminder',
+      label: 'Reminder',
+      icon: <Bell size={16} />,
+      content: (
+        <div className="space-y-2 flex flex-row items-start justify-center gap-4">
+          <div className="flex-2 flex flex-row h-fit w-fit">
+            <DatePicker
+              value={reminderDate}
+              numberOfMonths={2}
+              onChange={handleReminderDateChange}
+              disabled={disabled}
+              isDarkMode={isDarkMode}
+            />
+          </div>
+          <div className="flex-2 flex flex-row h-auto w-auto">
+            <TimePicker
+              value={reminderTime}
+              label="Reminder Time"
+              size="md"
+              isDarkMode={isDarkMode} 
+              onChange={handleReminderTimeChange}
+            />
+          </div>
+        </div>
+      ),
+    },
+  ];
+
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <div className="flex items-center gap-2">
         <Calendar size={16} className={isDarkMode ? "text-gray-400" : "text-gray-500"} />
         <div>
@@ -65,96 +199,18 @@ export const ScheduleStep: React.FC<ScheduleStepProps> = ({
             Schedule
           </h3>
           <p className={cn("text-xs", isDarkMode ? "text-gray-500" : "text-gray-400")}>
-            Select start and due date by dragging. All fields are optional.
+            Set up dates and reminders. All fields are optional.
           </p>
         </div>
       </div>
 
-<div className="flex flex-row items-start gap-4">
-  {/* Date Range Picker for Start + Due Date */}
-  <div className="space-y-2 flex-[2]">
-    <label className={cn(
-      "text-sm font-medium flex items-center gap-1.5",
-      isDarkMode ? "text-gray-300" : "text-gray-700"
-    )}>
-      <Calendar size={14} />
-      Date Range
-    </label>
-    <div className='flex items-center'>
-
-    <RangeDatePicker
-      value={range}
-      onChange={handleRangeChange}
-      disabled={disabled}
-      includeTime={false}
-      numberOfMonths={2}
-      isDarkMode={isDarkMode}
-    />
-  </div>
-  </div>
-
-  {/* Reminder Picker */}
-  <div className="space-y-2 flex-1 w-fit">
-    <label className={cn(
-      "text-sm font-medium !pt-0 flex items-center gap-1.5",
-      isDarkMode ? "text-gray-300" : "text-gray-700"
-    )}>
-      <Bell size={14} />
-      Reminder
-    </label>
-    <div className='flex items-center'>
-
-    <DatePicker
-      value={reminderDate}
-      onChange={handleReminderChange}
-      disabled={disabled}
-      includeTime={true}
-      isDarkMode={isDarkMode}
+      <Tab 
+        items={tabItems} 
+        defaultValue="dates" 
+        isDarkMode={isDarkMode} 
+        variant="underline" 
+        size="sm"
       />
-      </div>
-  </div>
-</div>
-
-      {/* Duration Calculation */}
-      {durationDays !== null && (
-        <div className={cn(
-          'p-4 rounded-xl space-y-1 border',
-          isDarkMode
-            ? 'bg-blue-900/20 border-blue-800/50'
-            : 'bg-blue-50/50 border-blue-100'
-        )}>
-          <div className="flex items-center gap-2">
-            <Clock size={14} className="text-blue-500" />
-            <span className={cn("text-xs font-medium", isDarkMode ? "text-blue-300" : "text-blue-700")}>
-              Duration
-            </span>
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className={cn("text-2xl font-bold", isDarkMode ? "text-gray-100" : "text-gray-900")}>
-              {durationDays}
-            </span>
-            <span className={cn("text-sm", isDarkMode ? "text-gray-400" : "text-gray-500")}>
-              {durationDays === 1 ? 'day' : 'days'}
-            </span>
-          </div>
-          <div className={cn("text-xs", isDarkMode ? "text-gray-500" : "text-gray-400")}>
-            {range.from && range.to && 
-              `${range.from.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} → ${range.to.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
-            }
-          </div>
-        </div>
-      )}
-
-      {/* Date Conflict Warning */}
-      {hasDateConflict && (
-        <div className={cn(
-          "flex items-center gap-2 p-3 rounded-lg text-xs",
-          isDarkMode ? "bg-red-900/20 text-red-400" : "bg-red-50 text-red-600"
-        )}>
-          <AlertCircle size={14} />
-          Start date must be before due date
-        </div>
-      )}
     </div>
   );
 };
