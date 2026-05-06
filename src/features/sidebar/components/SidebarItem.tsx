@@ -54,13 +54,6 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
           {label}
         </span>
       )}
-
-      {isActive && !isFull && (
-        <div className={cn(
-          'absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full',
-          isDarkMode ? 'bg-blue-400' : 'bg-blue-500'
-        )} />
-      )}
     </button>
   );
 
