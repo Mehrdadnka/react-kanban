@@ -80,7 +80,6 @@ export const RangeDatePicker: React.FC<DatePickerProps> = ({
     setRange({ from, to });
   };
 
-  // پایان درگ
   const handleMouseUp = () => {
     if (!isDragging) return;
     setIsDragging(false);
@@ -91,7 +90,9 @@ export const RangeDatePicker: React.FC<DatePickerProps> = ({
       const finalRange = { from, to };
       setRange(finalRange);
       
-      if (!includeTime) {
+      if (includeTime) {
+        setShowTimePicker(true);
+      } else {
         onChange(finalRange);
       }
     } else if (dragStart) {
@@ -102,17 +103,14 @@ export const RangeDatePicker: React.FC<DatePickerProps> = ({
     setDragEnd(null);
   };
 
-  // کلیک ساده روی روز
   const handleClick = (day: Date) => {
     if (disabled || isDragging) return;
     
-    // اگر شروع انتخاب نشده
     if (!range.from) {
       setRange({ from: day, to: undefined });
       return;
     }
     
-    // اگر شروع هست ولی پایان نیست
     if (range.from && !range.to) {
       const from = isBefore(day, range.from) ? day : range.from;
       const to = isAfter(day, range.from) ? day : range.from;
@@ -127,9 +125,9 @@ export const RangeDatePicker: React.FC<DatePickerProps> = ({
       return;
     }
     
-    // اگر هر دو انتخاب شده، ریست کن و شروع جدید
     setRange({ from: day, to: undefined });
   };
+  
 
   // Handle global mouse up
   useEffect(() => {
@@ -272,7 +270,7 @@ export const RangeDatePicker: React.FC<DatePickerProps> = ({
       {/* Calendar container */}
       <div className={cn(
         'rounded-xl border p-4',
-        'h-[340px]',
+        'h-[400px]',
         isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200',
         disabled && 'opacity-50 pointer-events-none'
       )}>

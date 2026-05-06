@@ -146,6 +146,7 @@ export const useCreateTaskFormRHF = (onSuccess: () => void) => {
         };
 
         await addTask(taskData as any);
+        console.log('task data: ',taskData)
         reset(defaultValues);
         onSuccess();
       } catch (error) {

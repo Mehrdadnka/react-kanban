@@ -41,7 +41,7 @@ export const DetailsStep: React.FC<DetailsStepProps> = ({
           placeholder={placeholder}
           disabled={disabled}
           className="h-full"
-          minHeight={'480px'}
+          minHeight={'400px'}
         />
       </div>
     </div>

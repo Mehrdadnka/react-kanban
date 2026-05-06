@@ -117,7 +117,7 @@ const stripHtml = (html: string) => {
     content: value,
     editable: !disabled,
     onUpdate: ({ editor }) => {
-      onChange(editor.getHTML()); 
+      onChange(editor.getText()); 
     },
     editorProps: {
       attributes: {

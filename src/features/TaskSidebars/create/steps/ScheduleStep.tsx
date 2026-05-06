@@ -42,11 +42,14 @@ export const ScheduleStep: React.FC<ScheduleStepProps> = ({
     : null;
 
   const handleRangeChange = (newRange: { from: Date | undefined; to: Date | undefined } | undefined) => {
-    const updatedRange = newRange || { from: undefined, to: undefined };
-    setRange(updatedRange);
-    
-    onStartDateChange?.(updatedRange.from);
-    onDueDateChange?.(updatedRange.to);
+    console.log('Range changed:', newRange);
+    if (newRange) {
+      onStartDateChange?.(newRange.from);
+      onDueDateChange?.(newRange.to);
+    } else {
+      onStartDateChange?.(undefined);
+      onDueDateChange?.(undefined);
+    }
   };
 
   const handleReminderChange = (date: Date | undefined) => {
@@ -83,7 +86,7 @@ export const ScheduleStep: React.FC<ScheduleStepProps> = ({
       value={range}
       onChange={handleRangeChange}
       disabled={disabled}
-      includeTime={true}
+      includeTime={false}
       numberOfMonths={2}
       isDarkMode={isDarkMode}
     />
