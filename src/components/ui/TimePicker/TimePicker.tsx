@@ -96,7 +96,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({
   // Scroll to center on mount
   useEffect(() => {
     const scrollToCenter = (
-      ref: React.RefObject<HTMLDivElement>,
+      ref: React.RefObject<HTMLDivElement | null>,
       items: number[],
       selected: number,
       itemHeight: number
@@ -114,7 +114,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({
   }, []);
 
   const renderScrollable = (
-    ref: React.RefObject<HTMLDivElement>,
+    ref: React.RefObject<HTMLDivElement | null>,
     items: number[],
     selected: number,
     onSelect: (val: number) => void,
