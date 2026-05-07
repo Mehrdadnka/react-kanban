@@ -99,7 +99,7 @@ export const QuickCreate: React.FC<QuickCreateProps> = ({
 
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 px-2">
       {/* ──── Main Inputs (Always visible, prominent) ──── */}
       <div className="space-y-4">
         {/* Title */}

@@ -44,7 +44,7 @@ export const SidebarInput: React.FC<SidebarInputProps> = ({
         disabled={disabled}
         required={required}
         className={cn(
-          'mt-1.5 text-base',
+          'mt-1.5 text-base box-border',
           disabled && 'bg-transparent border-transparent px-0',
           isDarkMode && !disabled && 'bg-gray-800 border-gray-700 text-gray-100 placeholder:text-gray-500'
         )}
