@@ -33,7 +33,7 @@ export const SidebarMinimizedSection: React.FC<SidebarMinimizedSectionProps> = (
       <Separator isDarkMode={isDarkMode} className={cn(
         'mx-auto',
         variant === 'full' ? 'w-full' : 'w-10'
-      )} size='2' />
+      )} size='3' />
       <div className={cn(
         'flex flex-col gap-2 mt-4',
         variant === 'full' ? 'px-3' : 'items-center'
