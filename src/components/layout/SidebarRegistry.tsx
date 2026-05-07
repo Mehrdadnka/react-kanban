@@ -4,6 +4,7 @@ import { SearchSidebar } from '@/components/search/SearchSidebar/SearchSidebar';
 import { useSidebarPanel } from '@/hooks/useSidebarPanel';
 import { MegaTaskSidebar } from '@/features/TaskSidebars/MegaTaskSidebar';
 import { CreateTaskSidebar } from '@/features/TaskSidebars/create/CreateTaskSidebar';
+import { QuickNotesSidebar } from '@/features/QuickNotesSidebar/QuickNotesSidebar';
 
 
 const SIDEBAR_POSITION = 'left';
@@ -35,7 +36,15 @@ const DashboardSidebarRegistrar: React.FC = () => {
   });
   return null;
 };
-
+const QuickNotesSidebarRegistrar: React.FC = () => {
+  useSidebarPanel({
+    id: 'quick-notes-sidebar',
+    component: QuickNotesSidebar,
+    priority: 18, 
+    position: 'left',
+  });
+  return null;
+};
 const SearchSidebarRegistrar: React.FC = () => {
   useSidebarPanel({
     id: 'search-sidebar',
@@ -52,6 +61,7 @@ export const SidebarRegistry: React.FC = () => {
       <MegaTaskSidebarRegistrar />
       <CreateTaskSidebarRegistrar />
       <DashboardSidebarRegistrar />
+      <QuickNotesSidebarRegistrar />
       <SearchSidebarRegistrar />
     </>
   );

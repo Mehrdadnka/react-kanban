@@ -26,6 +26,11 @@ export const PANEL_ICONS: Record<string, PanelIconConfig> = {
     label: 'Dashboard',
     description: 'Task overview and statistics',
   },
+  'quick-notes-sidebar': {
+    icon: FileText,
+    label: 'Quick Notes',
+    description: 'Write and manage quick notes',
+  },
   'search-sidebar': {
     icon: Search,
     label: 'Search',
