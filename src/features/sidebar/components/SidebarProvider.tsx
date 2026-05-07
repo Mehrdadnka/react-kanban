@@ -16,7 +16,7 @@ export const useSidebar = () => {
   return context;
 };
 
-const MOBILE_BREAKPOINT = 768;
+const MOBILE_BREAKPOINT = 1024;
 
 export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isMobileOpen, setMobileOpen] = useState(false);

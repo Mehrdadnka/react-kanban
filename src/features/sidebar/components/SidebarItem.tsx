@@ -1,4 +1,3 @@
-// src/features/sidebar/components/SidebarItem.tsx
 import { cn } from '@/lib/utils';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import React from 'react'
@@ -31,6 +30,7 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
       onClick={onClick}
       className={cn(
         'rounded-xl flex items-center transition-all duration-200 relative group',
+        'hover:shadow-sm group',
         'hover:scale-[1.02]',
         isFull 
           ? 'w-full gap-3 px-3 py-2.5' 
@@ -54,13 +54,6 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
         <span className="text-sm font-medium truncate">
           {label}
         </span>
-      )}
-
-      {isActive && !isFull && (
-        <div className={cn(
-          'absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full',
-          isDarkMode ? 'bg-blue-400' : 'bg-blue-500'
-        )} />
       )}
     </button>
   );

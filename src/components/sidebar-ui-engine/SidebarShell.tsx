@@ -19,7 +19,7 @@ interface SidebarShellProps {
   icon?: React.ReactNode;
   breadcrumbs?: BreadcrumbItem[];
   children: React.ReactNode;
-  maxWidth?: 'sm' | 'md' | 'lg' | 'xl';
+  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
   position?: PanelPosition;
   isDarkMode?: boolean
 }
@@ -29,6 +29,7 @@ const maxWidthClasses = {
   md: 'max-w-md',
   lg: 'lg:max-w-lg',
   xl: 'max-w-xl',
+  full: 'max-w-full w-[96vw] left-1/2 -translate-x-1/2',
 };
 
 const positionClasses: Record<PanelPosition, string> = {
@@ -54,7 +55,7 @@ const positionAnimation: Record<PanelPosition, { open: string; closed: string }>
 
 export const SidebarShell: React.FC<SidebarShellProps> = memo(({
   isOpen,
-  zIndex = 50,
+  zIndex = 40,
   onClose,
   panelId,
   showMinimize = true,
@@ -164,7 +165,7 @@ export const SidebarShell: React.FC<SidebarShellProps> = memo(({
         <Breadcrumb items={breadcrumbs} isDarkMode={isDarkMode} />
       )}
 
-      <div className="overflow-y-auto h-[calc(100vh-130px)] p-6">
+      <div className="overflow-y-auto h-[calc(100vh-10vh)] p-6">
         {children}
       </div>
     </div>

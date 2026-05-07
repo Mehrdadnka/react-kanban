@@ -1,4 +1,3 @@
-// src/features/sidebar/components/MinimizeButton.tsx
 import React from 'react';
 import { Minus } from 'lucide-react';
 import { cn } from '@/lib/utils';

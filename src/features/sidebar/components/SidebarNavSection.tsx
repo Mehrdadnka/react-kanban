@@ -1,4 +1,3 @@
-// src/features/sidebar/components/SidebarNavSection.tsx
 import React from 'react';
 import { useRouter } from '@/router';
 import { useApp } from '@/providers/AppProvider';

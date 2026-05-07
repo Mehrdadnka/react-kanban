@@ -1,4 +1,3 @@
-// src/features/sidebar/components/SidebarMinimizedSection.tsx
 import React, { useCallback } from 'react';
 import { useSidebarEngineStore } from '@/stores/sidebar-engine/sidebar-engine.store';
 import { useShallow } from 'zustand/react/shallow';

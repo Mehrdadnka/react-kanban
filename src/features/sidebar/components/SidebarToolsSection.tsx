@@ -1,11 +1,13 @@
-// src/features/sidebar/components/SidebarToolsSection.tsx
 import React from 'react';
-import { Moon, Sun } from 'lucide-react';
+import { FileText, Moon, Sun } from 'lucide-react';
 import { Separator } from '@/components/ui/separator/Separator';
 import { SidebarItem } from './SidebarItem';
 import { useApp } from '@/providers/AppProvider';
 import { useSearchControl } from '../hooks/useSearchControl';
 import { cn } from '@/lib/utils';
+import { useQuickNotesStore } from '@/stores/quick-notes.store';
+import { useSidebarEngineStore } from '@/stores/sidebar-engine/sidebar-engine.store'; // اضافه کن
+import { useQuickNotesControl } from '../hooks/useQuickNotesControl';
 
 interface SidebarToolsSectionProps {
   variant?: 'icon-only' | 'full';
@@ -14,12 +16,44 @@ interface SidebarToolsSectionProps {
 export const SidebarToolsSection: React.FC<SidebarToolsSectionProps> = ({ variant = 'icon-only' }) => {
   const { isDarkMode, toggleDarkMode } = useApp();
   const { SearchIcon, isSearchOpen, isSearchMinimized, handleSearchClick, searchLabel } = useSearchControl();
+    const { 
+    QuickNotesIcon, 
+    isQuickNotesOpen, 
+    isQuickNotesMinimized, 
+    handleQuickNotesClick, 
+    quickNotesLabel 
+  } = useQuickNotesControl();
+  const { openQuickNotes } = useQuickNotesStore();
+  const { isPanelOpen } = useSidebarEngineStore();
 
   return (
     <div className={cn(
       'mx-auto gap-2 mb-4',
       variant === 'full' ? 'px-3 w-full' : ''
     )}>
+      
+      <SidebarItem
+        id="quick-notes"
+        icon={<QuickNotesIcon size={variant === 'full' ? 20 : 22} />}
+        label={quickNotesLabel}
+        isDarkMode={isDarkMode}
+        isActive={isQuickNotesOpen}
+        onClick={handleQuickNotesClick}
+        variant={variant}
+        className={cn(
+          'text-gray-400',
+          isQuickNotesOpen
+            ? ''
+            : isQuickNotesMinimized
+              ? isDarkMode
+                ? 'ring-1 hover:text-gray-200 hover:bg-gray-800 bg-gray-800/30 ring-gray-500'
+                : 'ring-1 hover:text-gray-700 hover:bg-gray-100 bg-gray-100/50 ring-gray-400'
+              : isDarkMode
+                ? 'hover:text-gray-200 hover:bg-gray-800'
+                : 'hover:text-gray-700 hover:bg-gray-100'
+        )}
+      />
+      
       <SidebarItem
         id="search"
         icon={<SearchIcon size={variant === 'full' ? 20 : 22} />}
@@ -29,13 +63,13 @@ export const SidebarToolsSection: React.FC<SidebarToolsSectionProps> = ({ varian
         onClick={handleSearchClick}
         variant={variant}
         className={cn(
-          'text-gray-400 ring-1',
+          'text-gray-400',
           isSearchOpen
             ? ''
             : isSearchMinimized
               ? isDarkMode
-                ? 'hover:text-gray-200 hover:bg-gray-800 bg-gray-800/30 ring-gray-500'
-                : 'hover:text-gray-700 hover:bg-gray-100 bg-gray-100/50 ring-gray-400'
+                ? 'ring-1 hover:text-gray-200 hover:bg-gray-800 bg-gray-800/30 ring-gray-500'
+                : 'ring-1 hover:text-gray-700 hover:bg-gray-100 bg-gray-100/50 ring-gray-400'
               : isDarkMode
                 ? 'hover:text-gray-200 hover:bg-gray-800'
                 : 'hover:text-gray-700 hover:bg-gray-100'

@@ -1,9 +1,8 @@
-import { Task } from "@/types/task.types";
-import { statusLabels } from "../utils";
+import { getColumnLabel } from "@/features/TaskSidebars/utils";
 import { cn } from "@/lib/utils";
 import { useApp } from "@/providers/AppProvider";
 
-const ViewField: React.FC<{ label: string; icon?: React.ReactNode; value: React.ReactNode }> = ({ label, icon, value }) => {
+export const ViewField: React.FC<{ label: string; icon?: React.ReactNode; value: React.ReactNode }> = ({ label, icon, value }) => {
   const { isDarkMode } = useApp();
   return (
     <div>
@@ -13,11 +12,11 @@ const ViewField: React.FC<{ label: string; icon?: React.ReactNode; value: React.
       <div className="mt-1.5 flex items-center gap-2 py-2 px-3 rounded-md border border-transparent">
         {icon}
         <span className="text-sm font-medium">
-          {typeof value === 'string' ? statusLabels[value as Task['status']] || value : value}
+          {typeof value === 'string' ? getColumnLabel(value) || value : value}
         </span>
       </div>
     </div>
   );
 };
 
-export default ViewField
+export default ViewField;

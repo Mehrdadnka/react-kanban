@@ -13,7 +13,6 @@ export const HamburgerMenu: React.FC = () => {
       onClick={toggleMobile}
       className={cn(
         'fixed top-4 left-4 z-50 p-2 rounded-lg',
-        'md:hidden',
         isDarkMode ? 'bg-gray-800 text-gray-200' : 'bg-white shadow-md text-gray-700'
       )}
     >

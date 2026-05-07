@@ -1,4 +1,3 @@
-// src/components/layout/Sidebar.tsx
 import React from 'react';
 import { SidebarProvider } from '@/features/sidebar/components/SidebarProvider';
 import { SidebarContainer } from '@/features/sidebar/components/SidebarContainer';

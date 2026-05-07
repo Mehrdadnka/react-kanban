@@ -11,6 +11,7 @@ interface SidebarInputProps {
   onChange: (value: string) => void;
   placeholder?: string;
   disabled?: boolean;
+  required?: boolean;
   inputRef?: React.RefObject<HTMLInputElement | null>; 
 }
 
@@ -21,6 +22,7 @@ export const SidebarInput: React.FC<SidebarInputProps> = ({
   onChange,
   placeholder,
   disabled = false,
+  required = false,
   inputRef,  // rename to avoid conflict
 }) => {
   const { isDarkMode } = useApp();
@@ -40,8 +42,9 @@ export const SidebarInput: React.FC<SidebarInputProps> = ({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         disabled={disabled}
+        required={required}
         className={cn(
-          'mt-1.5 text-base',
+          'mt-1.5 text-base box-border',
           disabled && 'bg-transparent border-transparent px-0',
           isDarkMode && !disabled && 'bg-gray-800 border-gray-700 text-gray-100 placeholder:text-gray-500'
         )}
