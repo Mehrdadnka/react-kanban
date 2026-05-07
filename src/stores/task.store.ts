@@ -32,6 +32,8 @@ interface AddTaskInput {
   parentId?: string;
   assigneeId?: string;
   attachments?: Attachment[];
+  workingHoursStart?: string;
+  workingHoursEnd?: string; 
 }
 
 interface TaskStore {
@@ -214,6 +216,8 @@ export const useTaskStore = create<TaskStore>()(
           attachments: input.attachments || [],
           createdAt: new Date(),
           updatedAt: new Date(),
+          workingHoursStart: input.workingHoursStart,
+          workingHoursEnd: input.workingHoursEnd,
           activityLog: [createLog(id, 'created')],
         };
 

@@ -18,6 +18,9 @@ interface ScheduleStepProps {
   onReminderDateChange?: (date: Date | undefined) => void;
   disabled?: boolean;
   isDarkMode?: boolean;
+  workingHoursStart?: string;
+  workingHoursEnd?: string;
+  onWorkingHoursChange?: (startTime: string, endTime: string) => void;
 }
 
 export const ScheduleStep: React.FC<ScheduleStepProps> = ({
@@ -27,15 +30,18 @@ export const ScheduleStep: React.FC<ScheduleStepProps> = ({
   onStartDateChange,
   onDueDateChange,
   onReminderDateChange,
+  workingHoursStart, 
+  workingHoursEnd,
+  onWorkingHoursChange,
   disabled = false,
   isDarkMode = false,
+
 }) => {
   const [range, setRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
     from: startDate,
     to: dueDate,
   });
   
-  // State برای زمان reminder
   const [reminderTime, setReminderTime] = useState('09:00');
 
   // Sync external props to internal state
@@ -48,9 +54,10 @@ export const ScheduleStep: React.FC<ScheduleStepProps> = ({
     if (reminderDate) {
       const hours = String(reminderDate.getHours()).padStart(2, '0');
       const minutes = String(reminderDate.getMinutes()).padStart(2, '0');
-      setReminderTime(`${hours}:${minutes}`);
+      const newTime = `${hours}:${minutes}`;
+      setReminderTime(prev => prev === newTime ? prev : newTime);
     }
-  }, [reminderDate]);
+  }, [reminderDate?.getTime()]);
 
   const hasDateConflict = range.from && range.to && range.from > range.to;
   const durationDays = range.from && range.to && !hasDateConflict
@@ -69,17 +76,20 @@ export const ScheduleStep: React.FC<ScheduleStepProps> = ({
 
   const handleReminderDateChange = (date: Date | undefined) => {
     if (date) {
-      // اگر زمان قبلاً تنظیم شده، همان زمان رو نگه دار
       const [hours, minutes] = reminderTime.split(':').map(Number);
-      date.setHours(hours, minutes, 0, 0);
+      const newDate = new Date(date); // کپی
+      newDate.setHours(hours, minutes, 0, 0);
+      onReminderDateChange?.(newDate);
+    } else {
+      onReminderDateChange?.(undefined);
     }
-    onReminderDateChange?.(date);
   };
 
   const handleReminderTimeChange = (time: string) => {
+    if (time === reminderTime) return;
+    
     setReminderTime(time);
     
-    // اگر تاریخ reminder تنظیم شده، زمان رو بهش اضافه کن
     if (reminderDate) {
       const [hours, minutes] = time.split(':').map(Number);
       const updatedDate = new Date(reminderDate);
@@ -106,9 +116,9 @@ export const ScheduleStep: React.FC<ScheduleStepProps> = ({
           </div>          
           <div className="flex-2 flex flex-row h-auto w-auto">
             <TimeRangePicker
-              startTime="09:00"
-              endTime="17:00"
-              onChange={(start, end) => console.log(start, end)}
+              startTime={workingHoursStart || '09:00'}
+              endTime={workingHoursEnd || '17:00'}
+              onChange={(start, end) => onWorkingHoursChange?.(start, end)}
               label="Working Hours"
               size="md"
               minDuration={30}

@@ -27,7 +27,10 @@ const baseTaskSchema = z.object({
   startDate: z.date().nullable().optional(),
   dueDate: z.date().nullable().optional(),
   reminderDate: z.date().nullable().optional(),
-
+  // Time Range fields (NEW)
+  workingHoursStart: z.string().optional(), // "HH:mm"
+  workingHoursEnd: z.string().optional(),   // "HH:mm"
+  
   // Step 4: Meta (Optional)
   attachments: z.array(attachmentSchema).optional().default([]),
   estimatedHours: z.number().positive().max(1000).nullable().optional(),

@@ -80,18 +80,20 @@ export const TimePicker: React.FC<TimePickerProps> = ({
   
   const hourRef = useRef<HTMLDivElement>(null);
   const minuteRef = useRef<HTMLDivElement>(null);
-
+  const isInternalChange = useRef(false); 
   const hours = Array.from({ length: 12 }, (_, i) => i + 1);
   const minutes = Array.from({ length: 60 }, (_, i) => i);
 
   const s = sizeConfig[size];
 
   useEffect(() => {
+    if (!isInternalChange.current) return;
     const displayHour = isAM ? (hour === 12 ? 0 : hour) : (hour === 12 ? 12 : hour + 12);
     const formattedHour = String(displayHour).padStart(2, '0');
     const formattedMinute = String(minute).padStart(2, '0');
     onChange(`${formattedHour}:${formattedMinute}`);
-  }, [hour, minute, isAM, onChange]);
+    isInternalChange.current = false;
+  }, [hour, minute, isAM]);
 
   // Scroll to center on mount
   useEffect(() => {
@@ -168,7 +170,34 @@ export const TimePicker: React.FC<TimePickerProps> = ({
       <div className="h-[72px]" />
     </div>
   );
+    
+  useEffect(() => {
+    const [h, m] = value.split(':').map(Number);
+    const newHour = h % 12 || 12;
+    const newMinute = m;
+    const newIsAM = h < 12;
+    
+    if (newHour !== hour || newMinute !== minute || newIsAM !== isAM) {
+      setHour(newHour);
+      setMinute(newMinute);
+      setIsAM(newIsAM);
+    }
+  }, [value]);
 
+  const handleHourChange = (h: number) => {
+    isInternalChange.current = true;
+    setHour(h);
+  };
+
+  const handleMinuteChange = (m: number) => {
+    isInternalChange.current = true;
+    setMinute(m);
+  };
+
+  const handleAMPMChange = (am: boolean) => {
+    isInternalChange.current = true;
+    setIsAM(am);
+  };
   return (
     <div className={cn(
       s.container,
@@ -229,7 +258,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({
             {/* AM/PM Toggle */}
             <div className={cn('flex flex-col', `gap-1`, 'ml-3')}>
             <button
-                onClick={() => setIsAM(true)}
+                onClick={() => handleAMPMChange(true)}
                 className={cn(
                 s.ampm,
                 'font-medium border rounded-lg transition-all duration-200',
@@ -247,7 +276,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({
                 AM
             </button>
             <button
-                onClick={() => setIsAM(false)}
+                onClick={() => handleAMPMChange(false)}
                 className={cn(
                 s.ampm,
                 'font-medium rounded-lg border transition-all duration-200',
@@ -301,8 +330,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({
                     isDarkMode ? 'border-gray-600' : 'border-gray-200'
                 )} />
                 </div>
-
-                {renderScrollable(hourRef, hours, hour, setHour, true)}
+                {renderScrollable(hourRef, hours, hour, handleHourChange, true)}
             </div>
             </div>
 
@@ -338,8 +366,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({
                     isDarkMode ? 'border-gray-600' : 'border-gray-200'
                 )} />
                 </div>
-
-                {renderScrollable(minuteRef, minutes, minute, setMinute, true)}
+                {renderScrollable(minuteRef, minutes, minute, handleMinuteChange, true)}
             </div>
             </div>
         </div>

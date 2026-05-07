@@ -138,8 +138,11 @@ export const useCreateTaskFormRHF = (onSuccess: () => void) => {
           projectIds: data.projectIds,
           startDate: data.startDate || null,
           dueDate: data.dueDate || null,
+          workingHoursStart: data.workingHoursStart || undefined,
+          workingHoursEnd: data.workingHoursEnd || undefined,
           reminderDate: data.reminderDate || null,
           estimatedHours: data.estimatedHours ?? null,
+
           attachments: data.attachments || [],
           relatedTaskIds: data.relatedTaskIds || [],
           assigneeId: data.assigneeId || null,

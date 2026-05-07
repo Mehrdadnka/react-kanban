@@ -128,6 +128,8 @@ export interface Task {
   completedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
+  workingHoursStart?: string;  // "HH:mm"
+  workingHoursEnd?: string;    // "HH:mm"
   
   // ──── Time Tracking ────
   estimatedHours?: number;
@@ -197,6 +199,8 @@ export const createDefaultTask = (
     // Dates
     startDate: undefined,
     dueDate: undefined,
+    workingHoursStart: undefined,
+    workingHoursEnd: undefined,
     reminderDate: undefined,
     completedAt: undefined,
     

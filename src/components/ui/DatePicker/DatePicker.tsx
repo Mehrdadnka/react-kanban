@@ -28,8 +28,16 @@ export const DatePicker: React.FC<DatePickerProps> = ({
 
   useEffect(() => {
     if (value) {
-      setSelectedDate(value);
-      setCurrentMonth(value);
+      // If really changes
+      setSelectedDate(prev => {
+        if (prev && isSameDay(prev, value)) return prev;
+        return value;
+      });
+      
+      setCurrentMonth(prev => {
+        if (isSameDay(prev, value)) return prev;
+        return value;
+      });
     }
   }, [value]);
 
