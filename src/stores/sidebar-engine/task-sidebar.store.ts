@@ -205,7 +205,7 @@ export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
       completedSteps: ['quick-create', 'full-details', 'schedule', 'meta'],
       formState: taskToFormState(task),
     });
-    useSidebarEngineStore.getState().open('create-task-sidebar', { 
+    useSidebarEngineStore.getState().open('task-view-sidebar', { 
       mode: 'view', 
       taskId: task.id 
     });

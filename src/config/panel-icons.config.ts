@@ -4,7 +4,8 @@ import {
   Home, ListTodo, Clock, Flag,
   CheckCircle2, ClipboardList, Zap,
   LucideIcon, AlertTriangle, TrendingUp,
-  Activity, ArrowRight
+  Activity, ArrowRight,
+  Eye
 } from 'lucide-react';
 
 export type { LucideIcon } from 'lucide-react';
@@ -21,6 +22,11 @@ export const PANEL_ICONS: Record<string, PanelIconConfig> = {
     label: 'Task Panel',
     description: 'Create, view, and edit tasks',
   },
+  'task-view-sidebar': {
+    icon: Eye,
+    label: 'Task View',
+    description: 'View task details and information',
+  },
   'dashboard-sidebar': {
     icon: LayoutDashboard,
     label: 'Dashboard',
@@ -36,7 +42,7 @@ export const PANEL_ICONS: Record<string, PanelIconConfig> = {
     label: 'Search',
     description: 'Search across all tasks',
   },
-  'settings-panel': {
+  'settings-sidebar': {
     icon: Settings,
     label: 'Settings',
     description: 'Application settings',

@@ -2,22 +2,14 @@ import React from 'react';
 import { DashboardSidebar } from '@/features/DashboardSidebar/DashboardSidebar';
 import { SearchSidebar } from '@/components/search/SearchSidebar/SearchSidebar';
 import { useSidebarPanel } from '@/hooks/useSidebarPanel';
-import { MegaTaskSidebar } from '@/features/TaskSidebars/MegaTaskSidebar';
 import { CreateTaskSidebar } from '@/features/TaskSidebars/create/CreateTaskSidebar';
 import { QuickNotesSidebar } from '@/features/QuickNotesSidebar/QuickNotesSidebar';
+import { SettingsSidebar } from '@/features/SettingsSidebar/SettingsSidebar';
+import { TaskViewSidebar } from '@/features/TaskSidebars/view/TaskViewSidebar';
 
 
 const SIDEBAR_POSITION = 'left';
 
-const MegaTaskSidebarRegistrar: React.FC = () => {
-  useSidebarPanel({
-    id: 'task-sidebar',
-    component: MegaTaskSidebar,
-    priority: 12,
-    position: SIDEBAR_POSITION,
-  });
-  return null;
-};
 const CreateTaskSidebarRegistrar: React.FC = () => {
   useSidebarPanel({
     id: 'create-task-sidebar',
@@ -27,6 +19,16 @@ const CreateTaskSidebarRegistrar: React.FC = () => {
   });
   return null;
 };
+const TaskViewSidebarRegistrar: React.FC = () => {
+  useSidebarPanel({
+    id: 'task-view-sidebar',
+    component: TaskViewSidebar,
+    priority: 13,
+    position: SIDEBAR_POSITION,
+  });
+  return null;
+};
+
 const DashboardSidebarRegistrar: React.FC = () => {
   useSidebarPanel({
     id: 'dashboard-sidebar',
@@ -54,15 +56,24 @@ const SearchSidebarRegistrar: React.FC = () => {
   });
   return null;
 };
-
+const SettingsSidebarRegistrar: React.FC = () => {
+  useSidebarPanel({
+    id: 'settings-sidebar',
+    component: SettingsSidebar,
+    priority: 10, 
+    position: 'left',
+  });
+  return null;
+};
 export const SidebarRegistry: React.FC = () => {
   return (
     <>
-      <MegaTaskSidebarRegistrar />
       <CreateTaskSidebarRegistrar />
+      <TaskViewSidebarRegistrar />
       <DashboardSidebarRegistrar />
       <QuickNotesSidebarRegistrar />
       <SearchSidebarRegistrar />
+      <SettingsSidebarRegistrar />
     </>
   );
 };

@@ -30,6 +30,7 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
       onClick={onClick}
       className={cn(
         'rounded-xl flex items-center transition-all duration-200 relative group',
+        'hover:shadow-sm group',
         'hover:scale-[1.02]',
         isFull 
           ? 'w-full gap-3 px-3 py-2.5' 
