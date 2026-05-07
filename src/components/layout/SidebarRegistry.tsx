@@ -28,7 +28,6 @@ const TaskViewSidebarRegistrar: React.FC = () => {
   });
   return null;
 };
-
 const DashboardSidebarRegistrar: React.FC = () => {
   useSidebarPanel({
     id: 'dashboard-sidebar',

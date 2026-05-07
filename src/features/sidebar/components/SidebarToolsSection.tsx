@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { useQuickNotesStore } from '@/stores/quick-notes.store';
 import { useSidebarEngineStore } from '@/stores/sidebar-engine/sidebar-engine.store'; // اضافه کن
 import { useQuickNotesControl } from '../hooks/useQuickNotesControl';
+import { useSettingsControl } from '../hooks/useSettingsControl';
 
 interface SidebarToolsSectionProps {
   variant?: 'icon-only' | 'full';
@@ -23,8 +24,13 @@ export const SidebarToolsSection: React.FC<SidebarToolsSectionProps> = ({ varian
     handleQuickNotesClick, 
     quickNotesLabel 
   } = useQuickNotesControl();
-  const { openQuickNotes } = useQuickNotesStore();
-  const { isPanelOpen } = useSidebarEngineStore();
+  const { 
+    SettingsIcon, 
+    isSettingsOpen, 
+    isSettingsMinimized, 
+    handleSettingsClick, 
+    settingsLabel 
+  } = useSettingsControl();
 
   return (
     <div className={cn(
@@ -67,6 +73,29 @@ export const SidebarToolsSection: React.FC<SidebarToolsSectionProps> = ({ varian
           isSearchOpen
             ? ''
             : isSearchMinimized
+              ? isDarkMode
+                ? 'ring-1 hover:text-gray-200 hover:bg-gray-800 bg-gray-800/30 ring-gray-500'
+                : 'ring-1 hover:text-gray-700 hover:bg-gray-100 bg-gray-100/50 ring-gray-400'
+              : isDarkMode
+                ? 'hover:text-gray-200 hover:bg-gray-800'
+                : 'hover:text-gray-700 hover:bg-gray-100'
+        )}
+      />
+      
+      {/* Settings */}
+      <SidebarItem
+        id="settings"
+        icon={<SettingsIcon className='group-hover:rotate-90 transition-all duration-200' size={variant === 'full' ? 20 : 22} />}
+        label={settingsLabel}
+        isDarkMode={isDarkMode}
+        isActive={isSettingsOpen}
+        onClick={handleSettingsClick}
+        variant={variant}
+        className={cn(
+          'text-gray-400',
+          isSettingsOpen
+            ? ''
+            : isSettingsMinimized
               ? isDarkMode
                 ? 'ring-1 hover:text-gray-200 hover:bg-gray-800 bg-gray-800/30 ring-gray-500'
                 : 'ring-1 hover:text-gray-700 hover:bg-gray-100 bg-gray-100/50 ring-gray-400'
