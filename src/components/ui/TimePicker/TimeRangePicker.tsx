@@ -146,10 +146,10 @@ export const TimeRangePicker: React.FC<TimeRangePickerProps> = ({
 
   const [validationError, setValidationError] = useState<string | null>(null);
 
-  const startHourRef = useRef<HTMLDivElement>(null);
-  const startMinuteRef = useRef<HTMLDivElement>(null);
-  const endHourRef = useRef<HTMLDivElement>(null);
-  const endMinuteRef = useRef<HTMLDivElement>(null);
+  const startHourRef = useRef<HTMLDivElement | null>(null);
+  const startMinuteRef = useRef<HTMLDivElement | null>(null);
+  const endHourRef = useRef<HTMLDivElement | null>(null);
+  const endMinuteRef = useRef<HTMLDivElement | null>(null);
 
   const hours = Array.from({ length: 12 }, (_, i) => i + 1);
   const minutes = Array.from({ length: 60 }, (_, i) => i);
@@ -207,7 +207,7 @@ export const TimeRangePicker: React.FC<TimeRangePickerProps> = ({
 
   // Scroll to center on mount
   useEffect(() => {
-    const scrollRef = (ref: React.RefObject<HTMLDivElement>, items: number[], selected: number) => {
+    const scrollRef = (ref: React.RefObject<HTMLDivElement | null>, items: number[], selected: number) => {
       if (ref.current) {
         const itemHeightValue = parseInt(s.itemHeight.replace('h-[', '').replace('px]', ''));
         const index = items.findIndex(item => item === selected);
@@ -239,7 +239,7 @@ export const TimeRangePicker: React.FC<TimeRangePickerProps> = ({
   };
 
   const renderScrollable = (
-    ref: React.RefObject<HTMLDivElement>,
+    ref: React.RefObject<HTMLDivElement | null>,
     items: number[],
     selected: number,
     onSelect: (val: number) => void,
@@ -298,8 +298,8 @@ export const TimeRangePicker: React.FC<TimeRangePickerProps> = ({
     onHourChange: (h: number) => void,
     onMinuteChange: (m: number) => void,
     onAMPMChange: (isAM: boolean) => void,
-    hourRef: React.RefObject<HTMLDivElement>,
-    minuteRef: React.RefObject<HTMLDivElement>
+    hourRef: React.RefObject<HTMLDivElement | null>,
+    minuteRef: React.RefObject<HTMLDivElement | null>
   ) => (
     <div className="flex flex-col items-center">
       <span className={cn(
