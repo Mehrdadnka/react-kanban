@@ -107,7 +107,7 @@ export const KanbanBoard: React.FC = () => {
             'px-2 sm:px-3 md:px-4'
           )}
         >
-        <header className="mb-04 space-y-3">
+        <header className="mb-4 space-y-3">
           {/* Title row - responsive */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
             <div className="flex items-center gap-2 sm:gap-3">
