@@ -1,376 +1,312 @@
 // components/ui/TimePicker/TimePicker.tsx
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { sizeConfig } from './config/timePicker.sizeConfig';
+import { TimeObject, TimePickerProps } from './types/timePicker.types';
+import { parseTimeString, timeObjectToFormatted, timeObjectToMinutes } from './lib/utils';
+import { useTimePickerScroll } from './hooks/useTimePickerScroll';
 
-interface TimePickerProps {
-  value?: string; // "HH:mm" format
-  onChange: (time: string) => void;
-  label?: string;
-  isDarkMode?: boolean;
-  size?: 'sm' | 'md' | 'lg';
-  className?: string;
+// --- Scroll Column Component ---
+interface ScrollColumnProps {
+  label: string;
+  items: number[];
+  selectedIndex: number;
+  itemHeight: number;
+  visibleItems: number;
+  labelClass: string;
+  colors: {
+    selectedText: string;
+    selectedBackground: string;
+    unselectedText: string;
+  };
+  disabled: boolean;
+  padZero: boolean;
+  onChange: (index: number) => void;
+  gradientClass: string;
+  indicatorClass: string;
 }
 
-const sizeConfig = {
-  sm: {
-    container: 'rounded-xl p-2',
-    header: 'text-xs mb-3 gap-1.5',
-    icon: 14,
-    display: 'text-sm py-1 rounded-lg',
-    colon: 'text-sm',
-    scroll: 'h-[80px]',
-    itemHeight: 'h-[28px]',
-    itemFont: 'text-sm',
-    itemSelectedFont: 'text-lg',
-    ampm: 'px-2 py-0.5 text-[10px]',
-    gradient: 'h-[35px]',
-    indicator: 'h-[28px]',
-    label: 'text-[10px]',
-    gap: 4,
-  },
-  md: {
-    container: 'rounded-2xl p-5',
-    header: 'text-sm mb-4 gap-2',
-    icon: 16,
-    display: 'text-3xl px-3 py-1.5 rounded-xl',
-    colon: 'text-xl',
-    scroll: 'h-[150px]',
-    itemHeight: 'h-[32px]',
-    itemFont: 'text-base',
-    itemSelectedFont: 'text-xl',
-    ampm: 'px-2.5 py-1 text-[11px]',
-    gradient: 'h-[42px]',
-    indicator: 'h-[32px]',
-    label: 'text-[11px]',
-    gap: 6,
-  },
-  lg: {
-    container: 'rounded-3xl p-6',
-    header: 'text-base mb-5 gap-2',
-    icon: 18,
-    display: 'text-4xl px-4 py-2 rounded-xl',
-    colon: 'text-2xl',
-    scroll: 'h-[180px]',
-    itemHeight: 'h-[36px]',
-    itemFont: 'text-lg',
-    itemSelectedFont: 'text-2xl',
-    ampm: 'px-3 py-1 text-xs',
-    gradient: 'h-[50px]',
-    indicator: 'h-[36px]',
-    label: 'text-xs',
-    gap: 8,
-  },
+const ScrollColumn: React.FC<ScrollColumnProps> = ({
+  label,
+  items,
+  selectedIndex,
+  itemHeight,
+  visibleItems,
+  labelClass,
+  colors,
+  disabled,
+  padZero,
+  onChange,
+  gradientClass,
+  indicatorClass,
+}) => {
+  const {
+    containerRef,
+    virtualItems,
+    isDragging,
+    focusedIndex,
+    containerHeight,
+    handlers,
+  } = useTimePickerScroll({
+    items,
+    selectedIndex,
+    itemHeight,
+    visibleItems,
+    onChange,
+    disabled,
+    padZero,
+  });
+
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <span className={labelClass}>{label}</span>
+      <div
+        ref={containerRef}
+        className={cn(
+          'relative overflow-hidden select-none rounded-lg',
+          'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500',
+          isDragging ? 'cursor-grabbing' : 'cursor-grab'
+        )}
+        style={{ height: containerHeight, width: 64 }}
+        tabIndex={disabled ? -1 : 0}
+        role="listbox"
+        aria-label={label}
+        onMouseDown={handlers.onMouseDown}
+        onWheel={handlers.onWheel}
+        onTouchStart={handlers.onTouchStart}
+        onKeyDown={handlers.onKeyDown}
+      >
+        {/* Gradient Overlays */}
+        <div
+          className={cn(
+            gradientClass,
+            'absolute top-0 left-0 right-0 z-10 pointer-events-none'
+          )}
+        />
+        <div
+          className={cn(
+            gradientClass,
+            'absolute bottom-0 left-0 right-0 z-10 pointer-events-none rotate-180'
+          )}
+        />
+
+        {/* Center Indicator */}
+        <div
+          className={cn(
+            indicatorClass,
+            'absolute top-1/2 left-0 right-0 -translate-y-1/2 pointer-events-none z-5',
+            'mx-2 border-t border-b border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50/30 dark:bg-gray-600/5'
+          )}
+          style={{ height: itemHeight }}
+        />
+
+        {/* Virtual Items Container */}
+        <div className="relative w-full h-full overflow-hidden">
+          {virtualItems.map(({ index, value, label, offset, isSelected, opacity, scale }) => (
+            <div
+              key={value}
+              role="option"
+              aria-selected={isSelected}
+              className={cn(
+                'absolute left-0 right-0 flex items-center justify-center',
+                'transition-opacity duration-150',
+                isSelected ? cn('font-bold', colors.selectedText) : cn('font-medium', colors.unselectedText),
+                disabled && 'opacity-40 cursor-not-allowed'
+              )}
+              style={{
+                height: itemHeight,
+                top: offset,
+                opacity: disabled ? 0.4 : opacity,
+                transform: `scale(${scale})`,
+                fontSize: isSelected ? '1.1em' : '0.95em',
+              }}
+              onClick={() => !disabled && handlers.onItemClick(index)}
+            >
+              {label}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 };
 
+// --- Main TimePicker Component ---
 export const TimePicker: React.FC<TimePickerProps> = ({
   value = '09:00',
   onChange,
   label,
-  isDarkMode = false,
   size = 'md',
   className,
+  disabled = false,
+  visualConfig,
 }) => {
-  const [hour, setHour] = useState(() => parseInt(value.split(':')[0]) || 9);
-  const [minute, setMinute] = useState(() => parseInt(value.split(':')[1]) || 0);
-  const [isAM, setIsAM] = useState(() => {
-    const h = parseInt(value.split(':')[0]) || 9;
-    return h < 12;
-  });
+  const [timeObject, setTimeObject] = useState<TimeObject>(() => parseTimeString(value));
   
-  const hourRef = useRef<HTMLDivElement>(null);
-  const minuteRef = useRef<HTMLDivElement>(null);
-  const isInternalChange = useRef(false); 
-  const hours = Array.from({ length: 12 }, (_, i) => i + 1);
-  const minutes = Array.from({ length: 60 }, (_, i) => i);
+  const hours = useMemo(() => Array.from({ length: 24 }, (_, i) => i), []);
+  const minutes = useMemo(() => Array.from({ length: 60 }, (_, i) => i), []);
+  const s = useMemo(() => sizeConfig[size], [size]);
 
-  const s = sizeConfig[size];
+  // Parse itemHeight as number
+  const itemHeight = useMemo(() => {
+    const match = s.itemHeight.match(/h-\[(\d+)px\]/);
+    return match ? parseInt(match[1]) : 32;
+  }, [s.itemHeight]);
 
-  useEffect(() => {
-    if (!isInternalChange.current) return;
-    const displayHour = isAM ? (hour === 12 ? 0 : hour) : (hour === 12 ? 12 : hour + 12);
-    const formattedHour = String(displayHour).padStart(2, '0');
-    const formattedMinute = String(minute).padStart(2, '0');
-    onChange(`${formattedHour}:${formattedMinute}`);
-    isInternalChange.current = false;
-  }, [hour, minute, isAM]);
-
-  // Scroll to center on mount
-  useEffect(() => {
-    const scrollToCenter = (
-      ref: React.RefObject<HTMLDivElement | null>,
-      items: number[],
-      selected: number,
-      itemHeight: number
-    ) => {
-      if (ref.current) {
-        const selectedIndex = items.findIndex(item => item === selected);
-        const scrollTo = selectedIndex * itemHeight - itemHeight * 2;
-        ref.current.scrollTop = Math.max(0, scrollTo);
-      }
-    };
-
-    const itemHeight = parseInt(s.itemHeight.replace('h-[', '').replace('px]', ''));
-    scrollToCenter(hourRef, hours, hour, itemHeight);
-    scrollToCenter(minuteRef, minutes, minute, itemHeight);
-  }, []);
-
-  const renderScrollable = (
-    ref: React.RefObject<HTMLDivElement | null>,
-    items: number[],
-    selected: number,
-    onSelect: (val: number) => void,
-    padZero: boolean = true
-  ) => (
-    <div
-      ref={ref}
-      className={cn(
-        s.scroll,
-        'overflow-y-auto snap-y snap-mandatory scroll-smooth',
-        'scrollbar-hide',
-        'px-4'
-      )}
-      style={{
-        scrollSnapType: 'y mandatory',
-        WebkitOverflowScrolling: 'touch',
-      }}
-    >
-      {/* Top padding */}
-      <div className="h-[72px]" />
-      
-      {items.map((item) => {
-        const isSelected = item === selected;
-        return (
-          <div
-            key={item}
-            onClick={() => onSelect(item)}
-            className={cn(
-              s.itemHeight,
-              'flex items-center justify-center cursor-pointer snap-center',
-              'transition-all duration-200 select-none',
-              isSelected
-                ? cn(
-                    s.itemSelectedFont,
-                    'font-bold scale-110',
-                    isDarkMode ? 'text-white' : 'text-gray-900'
-                  )
-                : cn(
-                    s.itemFont,
-                    isDarkMode ? 'text-gray-600' : 'text-gray-400',
-                    'hover:text-gray-600 dark:hover:text-gray-300'
-                  )
-            )}
-          >
-            {padZero ? String(item).padStart(2, '0') : item}
-          </div>
-        );
-      })}
-
-      {/* Bottom padding */}
-      <div className="h-[72px]" />
-    </div>
+  const colors = useMemo(
+    () => ({
+      selectedText: 'text-blue-600 dark:text-blue-400',
+      selectedBackground: 'bg-blue-50 dark:bg-blue-500/10',
+      unselectedText: 'text-gray-400 dark:text-gray-600',
+      ...visualConfig?.colors,
+    }),
+    [visualConfig]
   );
-    
+
+  // Sync external value
   useEffect(() => {
-    const [h, m] = value.split(':').map(Number);
-    const newHour = h % 12 || 12;
-    const newMinute = m;
-    const newIsAM = h < 12;
-    
-    if (newHour !== hour || newMinute !== minute || newIsAM !== isAM) {
-      setHour(newHour);
-      setMinute(newMinute);
-      setIsAM(newIsAM);
+    const newTimeObj = parseTimeString(value);
+    if (newTimeObj.hour !== timeObject.hour || newTimeObj.minute !== timeObject.minute) {
+      setTimeObject(newTimeObj);
     }
   }, [value]);
 
-  const handleHourChange = (h: number) => {
-    isInternalChange.current = true;
-    setHour(h);
-  };
+  // Fire onChange
+  const fireChange = useCallback(
+    (newTimeObj: TimeObject) => {
+      const formatted = timeObjectToFormatted(newTimeObj);
+      const totalMinutes = timeObjectToMinutes(newTimeObj);
+      onChange({
+        formatted24: formatted,
+        timeObject: newTimeObj,
+        totalMinutes,
+      });
+    },
+    [onChange]
+  );
 
-  const handleMinuteChange = (m: number) => {
-    isInternalChange.current = true;
-    setMinute(m);
-  };
+  // Column change handlers
+  const handleHourChange = useCallback(
+    (index: number) => {
+      const newTimeObj = { ...timeObject, hour: hours[index] };
+      setTimeObject(newTimeObj);
+      fireChange(newTimeObj);
+    },
+    [timeObject, hours, fireChange]
+  );
 
-  const handleAMPMChange = (am: boolean) => {
-    isInternalChange.current = true;
-    setIsAM(am);
-  };
+  const handleMinuteChange = useCallback(
+    (index: number) => {
+      const newTimeObj = { ...timeObject, minute: minutes[index] };
+      setTimeObject(newTimeObj);
+      fireChange(newTimeObj);
+    },
+    [timeObject, minutes, fireChange]
+  );
+
+  // Gradient class
+  const gradientClass = useMemo(
+    () =>
+      cn(
+        s.gradient,
+        'bg-gradient-to-b',
+        'from-white dark:from-gray-900',
+        'via-white/80 dark:via-gray-900/80',
+        'to-transparent'
+      ),
+    [s.gradient]
+  );
+
+  // Label class
+  const labelClass = useMemo(
+    () => cn(s.label, 'uppercase tracking-wider font-semibold text-gray-400 dark:text-gray-500'),
+    [s.label]
+  );
+
   return (
-    <div className={cn(
-      s.container,
-      'w-fit',
-      className
-    )}>
+    <div
+      className={cn(
+        s.container,
+        'w-fit bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700',
+        'shadow-xl shadow-gray-200/50 dark:shadow-gray-900/50',
+        'select-none',
+        disabled && 'opacity-60 pointer-events-none',
+        className
+      )}
+    >
       {/* Header */}
       {label && (
-        <div className={cn('flex items-center py-2 px-1 rounded-lg',
-              isDarkMode ? 'bg-gray-800/50' : 'bg-white',
-      'backdrop-blur-sm border',
-      isDarkMode ? 'border-gray-700' : 'border-gray-200'
-        , s.header)}>
-          <Clock size={s.icon} className={isDarkMode ? 'text-blue-400' : 'text-blue-500'} />
-          <span className={cn(
-            'font-medium',
-            isDarkMode ? 'text-gray-300' : 'text-gray-600'
-          )}>
-            {label}
-          </span>
+        <div
+          className={cn(
+            s.header,
+            'flex items-center py-2 px-3 rounded-lg',
+            'bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700'
+          )}
+        >
+          <Clock size={s.icon} className="mr-2 text-blue-500 dark:text-blue-400" />
+          <span className="font-semibold text-gray-700 dark:text-gray-200">{label}</span>
         </div>
       )}
-      <div className={cn('flex flex-col items-center py-2 px-1 rounded-lg',
-              isDarkMode ? 'bg-gray-800/50' : 'bg-white',
-      'backdrop-blur-sm border',
-      isDarkMode ? 'border-gray-700' : 'border-gray-200')}>
 
-        {/* Time Display & AM/PM */}
-        <div className={cn('flex items-center justify-center', `gap-${s.gap / 2}`, 'mb-4')}>
-            {/* Hour Display */}
-            <div className={cn(
-            s.display,
-            'font-mono font-bold tracking-tight',
-            isDarkMode ? 'bg-gray-700/50 text-white' : 'bg-gray-100 text-gray-900',
-            'min-w-[60px] text-center'
-            )}>
-            {String(hour).padStart(2, '0')}
-            </div>
-            
-            <span className={cn(
-            s.colon,
-            'font-light',
-            isDarkMode ? 'text-gray-500' : 'text-gray-300'
-            )}>
-            :
-            </span>
-            
-            {/* Minute Display */}
-            <div className={cn(
-            s.display,
-            'font-mono font-bold tracking-tight',
-            isDarkMode ? 'bg-gray-700/50 text-white' : 'bg-gray-100 text-gray-900',
-            'min-w-[60px] text-center'
-            )}>
-            {String(minute).padStart(2, '0')}
-            </div>
-            
-            {/* AM/PM Toggle */}
-            <div className={cn('flex flex-col', `gap-1`, 'ml-3')}>
-            <button
-                onClick={() => handleAMPMChange(true)}
-                className={cn(
-                s.ampm,
-                'font-medium border rounded-lg transition-all duration-200',
-                isAM 
-                    ? cn(
-                        'border-blue-500 text-white',
-                    )
-                    : cn(
-                        'border-transparent',
-                        isDarkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600',
-                        'hover:bg-gray-100 dark:hover:bg-gray-700'
-                    )
-                )}
-            >
-                AM
-            </button>
-            <button
-                onClick={() => handleAMPMChange(false)}
-                className={cn(
-                s.ampm,
-                'font-medium rounded-lg border transition-all duration-200',
-                !isAM 
-                    ? cn(
-                        'border border-blue-500 text-white',
-                    )
-                    : cn(
-                        'border-transparent',
-                        isDarkMode ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600',
-                        'hover:bg-gray-100 dark:hover:bg-gray-700'
-                    )
-                )}
-            >
-                PM
-            </button>
-            </div>
+      {/* Main Picker */}
+      <div className="flex flex-col items-center">
+        {/* Time Display */}
+        <div className={cn('flex items-center justify-center mb-4', `gap-${s.gap / 2}`)}>
+          <div
+            className={cn(
+              s.display,
+              'font-mono font-bold tracking-tight text-center min-w-[64px]',
+              'bg-gray-100 dark:bg-gray-700/50 text-gray-900 dark:text-white',
+              'rounded-lg'
+            )}
+          >
+            {String(timeObject.hour).padStart(2, '0')}
+          </div>
+          <span className={cn(s.colon, 'font-light text-gray-300 dark:text-gray-500')}>:</span>
+          <div
+            className={cn(
+              s.display,
+              'font-mono font-bold tracking-tight text-center min-w-[64px]',
+              'bg-gray-100 dark:bg-gray-700/50 text-gray-900 dark:text-white',
+              'rounded-lg'
+            )}
+          >
+            {String(timeObject.minute).padStart(2, '0')}
+          </div>
         </div>
 
         {/* Scrollable Pickers */}
         <div className={cn('flex justify-center', `gap-${s.gap}`)}>
-            {/* Hours */}
-            <div className="flex flex-col items-center gap-2">
-            <span className={cn(
-                s.label,
-                'uppercase tracking-wider font-semibold',
-                isDarkMode ? 'text-gray-500' : 'text-gray-400'
-            )}>
-                Hour
-            </span>
-            <div className="relative">
-                {/* Gradient overlays */}
-                <div className={cn(
-                s.gradient,
-                'absolute top-0 left-0 right-0 z-10 pointer-events-none',
-                'bg-gradient-to-b from-gray-800/50 via-transparent to-transparent',
-                isDarkMode ? 'from-gray-800/50' : 'from-white/80'
-                )} />
-                <div className={cn(
-                s.gradient,
-                'absolute bottom-0 left-0 right-0 z-10 pointer-events-none',
-                'bg-gradient-to-t from-gray-800/50 via-transparent to-transparent',
-                isDarkMode ? 'from-gray-800/50' : 'from-white/80'
-                )} />
-                
-                {/* Center line indicator */}
-                <div className="absolute top-1/2 left-0 right-0 -translate-y-1/2 pointer-events-none">
-                <div className={cn(
-                    s.indicator,
-                    'border-t border-b',
-                    isDarkMode ? 'border-gray-600' : 'border-gray-200'
-                )} />
-                </div>
-                {renderScrollable(hourRef, hours, hour, handleHourChange, true)}
-            </div>
-            </div>
-
-            {/* Minutes */}
-            <div className="flex flex-col items-center gap-2">
-            <span className={cn(
-                s.label,
-                'uppercase tracking-wider font-semibold',
-                isDarkMode ? 'text-gray-500' : 'text-gray-400'
-            )}>
-                Minute
-            </span>
-            <div className="relative">
-                {/* Gradient overlays */}
-                <div className={cn(
-                s.gradient,
-                'absolute top-0 left-0 right-0 z-10 pointer-events-none',
-                'bg-gradient-to-b from-gray-800/50 via-transparent to-transparent',
-                isDarkMode ? 'from-gray-800/50' : 'from-white/80'
-                )} />
-                <div className={cn(
-                s.gradient,
-                'absolute bottom-0 left-0 right-0 z-10 pointer-events-none',
-                'bg-gradient-to-t from-gray-800/50 via-transparent to-transparent',
-                isDarkMode ? 'from-gray-800/50' : 'from-white/80'
-                )} />
-                
-                {/* Center line indicator */}
-                <div className="absolute top-1/2 left-0 right-0 -translate-y-1/2 pointer-events-none">
-                <div className={cn(
-                    s.indicator,
-                    'border-t border-b',
-                    isDarkMode ? 'border-gray-600' : 'border-gray-200'
-                )} />
-                </div>
-                {renderScrollable(minuteRef, minutes, minute, handleMinuteChange, true)}
-            </div>
-            </div>
+          <ScrollColumn
+            label="Hour"
+            items={hours}
+            selectedIndex={timeObject.hour}
+            itemHeight={itemHeight}
+            visibleItems={5}
+            labelClass={labelClass}
+            colors={colors}
+            disabled={disabled}
+            padZero={true}
+            onChange={handleHourChange}
+            gradientClass={gradientClass}
+            indicatorClass={s.indicator}
+          />
+          <ScrollColumn
+            label="Minute"
+            items={minutes}
+            selectedIndex={timeObject.minute}
+            itemHeight={itemHeight}
+            visibleItems={5}
+            labelClass={labelClass}
+            colors={colors}
+            disabled={disabled}
+            padZero={true}
+            onChange={handleMinuteChange}
+            gradientClass={gradientClass}
+            indicatorClass={s.indicator}
+          />
         </div>
-
       </div>
     </div>
   );

@@ -85,7 +85,10 @@ export const ScheduleStep: React.FC<ScheduleStepProps> = ({
     }
   };
 
-  const handleReminderTimeChange = (time: string) => {
+  // ScheduleStep.tsx
+  const handleReminderTimeChange = (event: { formatted24: string }) => {
+    const time = event.formatted24; // استخراج string از event
+    
     if (time === reminderTime) return;
     
     setReminderTime(time);
@@ -124,7 +127,7 @@ export const ScheduleStep: React.FC<ScheduleStepProps> = ({
               minDuration={30}
               showDuration={false}
               showPresets={false}
-              isDarkMode={isDarkMode}
+              // isDarkMode={isDarkMode}
             />
           </div>
 
@@ -191,7 +194,7 @@ export const ScheduleStep: React.FC<ScheduleStepProps> = ({
               value={reminderTime}
               label="Reminder Time"
               size="md"
-              isDarkMode={isDarkMode} 
+              // isDarkMode={isDarkMode} 
               onChange={handleReminderTimeChange}
             />
           </div>
