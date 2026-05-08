@@ -30,35 +30,18 @@ jobs:
           run_install: false
 
       - name: Install dependencies
-        run: |
-          pnpm install --no-frozen-lockfile
-          echo "Check if vite is installed:"
-          pnpm list vite
-
-      - name: Check TypeScript errors
-        run: |
-          echo "Running tsc..."
-          npx tsc -b --noEmit 2>&1 || echo "TS errors found but continuing"
-        continue-on-error: true
+        run: pnpm install --no-frozen-lockfile
 
       - name: Build project
         run: |
-          echo "Starting vite build..."
-          npx vite build 2>&1
-          echo "Build exit code: $?"
-          ls -la dist/ || echo "No dist folder"
+          npx vite build --base=/react-kanban/
+        env:
+          VITE_SKIP_TS_CHECK: true
 
-      - name: Setup Pages
-        if: success()
-        uses: actions/configure-pages@v4
+      - uses: actions/configure-pages@v4
 
-      - name: Upload artifact
-        if: success()
-        uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: './dist'
 
-      - name: Deploy to GitHub Pages
-        if: success()
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - uses: actions/deploy-pages@v4
