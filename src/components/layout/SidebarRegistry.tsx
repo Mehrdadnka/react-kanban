@@ -6,10 +6,20 @@ import { CreateTaskSidebar } from '@/features/TaskSidebars/create/CreateTaskSide
 import { QuickNotesSidebar } from '@/features/QuickNotesSidebar/QuickNotesSidebar';
 import { SettingsSidebar } from '@/features/SettingsSidebar/SettingsSidebar';
 import { TaskViewSidebar } from '@/features/TaskSidebars/view/TaskViewSidebar';
+import { CreateBoardSidebar } from '../board/CreateBoardSidebar';
 
 
 const SIDEBAR_POSITION = 'left';
 
+const CreateBoardSidebarRegistrar: React.FC = () => {
+  useSidebarPanel({
+    id: 'create-board-sidebar',
+    component: CreateBoardSidebar,
+    priority: 14,
+    position: 'left',
+  });
+  return null;
+};
 const CreateTaskSidebarRegistrar: React.FC = () => {
   useSidebarPanel({
     id: 'create-task-sidebar',
@@ -67,6 +77,7 @@ const SettingsSidebarRegistrar: React.FC = () => {
 export const SidebarRegistry: React.FC = () => {
   return (
     <>
+      <CreateBoardSidebarRegistrar />
       <CreateTaskSidebarRegistrar />
       <TaskViewSidebarRegistrar />
       <DashboardSidebarRegistrar />

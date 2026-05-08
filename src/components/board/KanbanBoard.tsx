@@ -33,13 +33,25 @@ const DEFAULT_FILTERS: FilterState = {
   search: '',
 };
 
-export const KanbanBoard: React.FC = () => {
+interface KanbanBoardProps {
+  boardId: string;
+}
+
+export const KanbanBoard: React.FC<KanbanBoardProps> = ({ boardId }) => {
   const { isDarkMode } = useApp();
   const { tasks } = useTaskStore();
   const { columns } = useColumnStore();
   const { openCreateSidebar, openViewSidebar } = useTaskSidebarStore();
   const [showColumnManager, setShowColumnManager] = useState(false);
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
+  
+  const boardTasks = useMemo(() => {
+    return tasks.filter(t => t.boardId === boardId);
+  }, [tasks, boardId]);
+
+    const getColumnTasks = useCallback((columnId: string) => {
+    return boardTasks.filter(t => t.columnId === columnId);
+  }, [boardTasks]);
 
   const sortedColumns = useMemo(() => [...columns].sort((a, b) => a.order - b.order), [columns]);
   const columnIds = useMemo(() => sortedColumns.map(c => c.id), [sortedColumns]);
@@ -82,10 +94,6 @@ export const KanbanBoard: React.FC = () => {
     });
   }, [sortedColumns, openCreateSidebar]);
 
-  const getColumnTasks = useCallback((columnId: string) => {
-    return filteredTasks.filter(t => t.columnId === columnId);
-  }, [filteredTasks]);
-
   return (
     <>
       <DndProvider columns={columnIds.map(id => ({ id }))}>
@@ -99,7 +107,7 @@ export const KanbanBoard: React.FC = () => {
         <div 
           className={cn(
             'transition-all duration-300',
-            'w-full',
+            'w-full mt-4',
             'md:max-w-[calc(100%-5rem)]', 
             isFilterExpanded ? 'md:max-w-[calc(100%-18rem)]' : 'md:max-w-[calc(100%-5rem)]',
             'lg:max-w-[calc(100%-5rem)]',
@@ -175,7 +183,7 @@ export const KanbanBoard: React.FC = () => {
           'flex flex-col gap-4',
           'md:flex-row md:gap-4',
           'lg:gap-6',
-          'h-[calc(100vh-120px)] sm:h-[calc(100vh-110px)] md:h-[calc(100vh-100px)]',
+          'lg:h-[calc(100vh-120px)] sm:h-[calc(100vh-110px)] md:h-[calc(100vh-100px)]',
           'overflow-x-auto pb-4'
         )}>
           {sortedColumns.map((column) => (

@@ -168,6 +168,8 @@ export interface Task {
   branchName?: string;
   commitSha?: string;
   pullRequestUrl?: string;
+
+  boardId: string;
 }
 
 // ──── Factory Functions ────
@@ -175,6 +177,7 @@ export interface Task {
 export const createDefaultTask = (
   columnId: string, 
   order: number,
+  boardId: string = 'board-1',
   overrides?: Partial<Omit<Task, 'id' | 'createdAt' | 'updatedAt'>>
 ): Omit<Task, 'id' | 'createdAt' | 'updatedAt'> => {
   const now = new Date();
@@ -184,7 +187,7 @@ export const createDefaultTask = (
     title: '',
     shortDescription: '',
     description: '',
-    
+    boardId,    
     // Classification
     type: 'task',
     priority: 'medium',

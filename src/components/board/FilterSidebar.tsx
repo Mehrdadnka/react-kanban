@@ -1,7 +1,9 @@
+// components/board/FilterSidebar.tsx
 import React, { useState } from 'react';
-import { Filter, ChevronUp } from 'lucide-react';
+import { Filter, ChevronUp, Home, ChevronRight, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useApp } from '@/providers/AppProvider';
+import { useBoardStore } from '@/stores/board.store';
 import { FilterBar, FilterState } from './FilterBar';
 import { CollapseIcon } from '../sidebar-ui-engine/CollapseIcon';
 
@@ -19,12 +21,19 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
   onToggleExpand,
 }) => {
   const { isDarkMode } = useApp();
+  const { getActiveBoard, setActiveBoard } = useBoardStore();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  
+  const activeBoard = getActiveBoard();
 
   const activeCount =
     filters.labels.length + filters.priorities.length +
     filters.columns.length + filters.types.length +
     (filters.search ? 1 : 0);
+
+  const handleBackToBoards = () => {
+    setActiveBoard(null);
+  };
 
   return (
     <>
@@ -66,9 +75,22 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
                 )}
               </div>
               <div className='m-auto'>
-              <div className="w-10 h-1 rounded-full bg-gray-300 dark:bg-gray-600 mb-1" />
-                
+                <div className="w-10 h-1 rounded-full bg-gray-300 dark:bg-gray-600 mb-1" />
               </div>
+              
+              {/* Mobile Breadcrumb */}
+              {activeBoard && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleBackToBoards();
+                  }}
+                  className="absolute right-4 flex items-center gap-1 text-xs text-blue-500"
+                >
+                  <ArrowLeft size={12} />
+                  Back
+                </button>
+              )}
             </button>
 
             {/* Content */}
@@ -110,24 +132,87 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
 
         {isExpanded && (
           <div className={cn(
-            'h-full border-l overflow-y-auto',
+            'h-full border-l flex flex-col',
             isDarkMode ? 'border-gray-800 bg-gray-900' : 'border-gray-200 bg-white'
           )}>
-            {/* Header */}
-            <div className="flex items-center gap-2 px-5 py-4 border-b border-gray-200 dark:border-gray-800">
+            {/* ====== BREADCRUMB HEADER ====== */}
+            {activeBoard && (
+              <div className={cn(
+                'flex-shrink-0 px-4 pt-4 pb-3 border-b',
+                isDarkMode ? 'border-gray-800' : 'border-gray-200'
+              )}>
+                <button
+                  onClick={handleBackToBoards}
+                  className={cn(
+                    'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium',
+                    'transition-all duration-200',
+                    'hover:bg-gray-100 dark:hover:bg-gray-800',
+                    isDarkMode 
+                      ? 'text-gray-400 hover:text-gray-200' 
+                      : 'text-gray-600 hover:text-gray-900'
+                  )}
+                >
+                  <ArrowLeft size={14} />
+                  <Home size={14} />
+                  <span>All Boards</span>
+                  <ChevronRight size={12} className="ml-auto text-gray-400" />
+                  <div className="flex items-center gap-1.5">
+                    <div 
+                      className="w-3 h-3 rounded-sm flex-shrink-0"
+                      style={{ backgroundColor: activeBoard.color }}
+                    />
+                    <span className="max-w-[120px] truncate font-semibold">
+                      {activeBoard.title}
+                    </span>
+                  </div>
+                </button>
+              </div>
+            )}
+
+            {/* ====== FILTER HEADER ====== */}
+            <div className={cn(
+              'flex-shrink-0 flex items-center gap-2 px-5 py-3',
+              !activeBoard && 'border-b border-gray-200 dark:border-gray-800'
+            )}>
               <Filter size={16} className="text-blue-500" />
               <h3 className="font-semibold text-sm">Filters</h3>
               {activeCount > 0 && (
                 <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-                  {activeCount} active
+                  {activeCount}
                 </span>
               )}
             </div>
 
-            {/* Content */}
-            <div className="p-4">
+            {/* ====== FILTER CONTENT ====== */}
+            <div className="flex-1 overflow-y-auto p-4">
               <FilterBar filters={filters} onFilterChange={onFilterChange} variant="sidebar" />
             </div>
+
+            {/* ====== BOARD QUICK INFO (Optional) ====== */}
+            {activeBoard && (
+              <div className={cn(
+                'flex-shrink-0 p-4 border-t',
+                isDarkMode ? 'border-gray-800' : 'border-gray-200'
+              )}>
+                <div className={cn(
+                  'rounded-lg p-3',
+                  isDarkMode ? 'bg-gray-800' : 'bg-gray-50'
+                )}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div 
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: activeBoard.color }}
+                    />
+                    <span className="text-xs font-medium">{activeBoard.title}</span>
+                  </div>
+                  {activeBoard.description && (
+                    <p className="text-[10px] text-gray-500 line-clamp-2">
+                      {activeBoard.description}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
