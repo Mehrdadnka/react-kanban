@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { Clock, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { sizeConfig } from './config/timePicker.sizeConfig';
-import { TimeObject, TimePickerProps } from './types/timePicker.types';
+import { TimeObject, TimePickerChangeEvent, TimePickerProps } from './types/timePicker.types';
 import { parseTimeString, timeObjectToFormatted, timeObjectToMinutes } from './lib/utils';
 import { ScrollColumn } from './components/ScrollColumn';
 
