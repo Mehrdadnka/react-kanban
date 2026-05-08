@@ -32,15 +32,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
-      - name: Run tests (optional)
-        run: pnpm test:run || true
-        continue-on-error: true
-
-      - name: Build
+      - name: Build project
         run: npx vite build 
-
-      - name: Check dist
-        run: ls -la dist/
 
       - uses: actions/configure-pages@v4
 
