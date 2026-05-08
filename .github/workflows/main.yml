@@ -30,15 +30,35 @@ jobs:
           run_install: false
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: |
+          pnpm install --no-frozen-lockfile
+          echo "Check if vite is installed:"
+          pnpm list vite
+
+      - name: Check TypeScript errors
+        run: |
+          echo "Running tsc..."
+          npx tsc -b --noEmit 2>&1 || echo "TS errors found but continuing"
+        continue-on-error: true
 
       - name: Build project
-        run: npx vite build 
+        run: |
+          echo "Starting vite build..."
+          npx vite build 2>&1
+          echo "Build exit code: $?"
+          ls -la dist/ || echo "No dist folder"
 
-      - uses: actions/configure-pages@v4
+      - name: Setup Pages
+        if: success()
+        uses: actions/configure-pages@v4
 
-      - uses: actions/upload-pages-artifact@v3
+      - name: Upload artifact
+        if: success()
+        uses: actions/upload-pages-artifact@v3
         with:
           path: './dist'
 
-      - uses: actions/deploy-pages@v4
+      - name: Deploy to GitHub Pages
+        if: success()
+        id: deployment
+        uses: actions/deploy-pages@v4
