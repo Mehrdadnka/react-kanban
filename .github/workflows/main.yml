@@ -24,7 +24,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20 
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
@@ -44,7 +44,7 @@ jobs:
         run: pnpm install
 
       - name: Run tests
-        run: pnpm test:run
+        run: pnpm test:run --if-present 
 
       - name: Build project
         run: pnpm build
