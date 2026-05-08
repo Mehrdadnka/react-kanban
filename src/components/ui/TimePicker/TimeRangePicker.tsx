@@ -1,5 +1,6 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { ArrowRight, Timer, AlertCircle, Zap, Coffee, Moon, Sunrise } from 'lucide-react';
+// components/ui/TimePicker/TimeRangePicker.tsx
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { ArrowRight, Timer, AlertCircle, Zap, Coffee, Moon, Sunrise, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TimePicker } from '@/components/ui/TimePicker/TimePicker';
 import { TimePickerChangeEvent } from './types/timePicker.types';
@@ -15,6 +16,7 @@ interface TimeRangePickerProps {
   maxDuration?: number; // minutes
   showDuration?: boolean;
   showPresets?: boolean;
+  showConfirmButtons?: boolean;
   className?: string;
   error?: string;
 }
@@ -39,9 +41,41 @@ const presets: Preset[] = [
 
 // --- Sizes for range container ---
 const rangeSizeConfig = {
-  sm: { container: 'rounded-xl p-3', gap: 3, preset: 'text-[10px] px-2 py-1', duration: 'text-xs', arrow: 12 },
-  md: { container: 'rounded-2xl p-5', gap: 6, preset: 'text-[11px] px-2.5 py-1.5', duration: 'text-sm', arrow: 16 },
-  lg: { container: 'rounded-3xl p-6', gap: 8, preset: 'text-xs px-3 py-2', duration: 'text-base', arrow: 20 },
+  sm: { container: 'rounded-xl p-3', gap: 3, preset: 'text-[10px] px-2 py-1', duration: 'text-xs', arrow: 12, button: 'text-xs px-2 py-1' },
+  md: { container: 'rounded-2xl p-5', gap: 6, preset: 'text-[11px] px-2.5 py-1.5', duration: 'text-sm', arrow: 16, button: 'text-xs px-3 py-1.5' },
+  lg: { container: 'rounded-3xl p-6', gap: 8, preset: 'text-xs px-3 py-2', duration: 'text-base', arrow: 20, button: 'text-sm px-4 py-2' },
+};
+
+// --- Helpers ---
+const timeStrToMinutes = (timeStr: string): number => {
+  const [h, m] = timeStr.split(':').map(Number);
+  return (h ?? 0) * 60 + (m ?? 0);
+};
+
+const minutesToTimeStr = (mins: number): string => {
+  const h = Math.floor(mins / 60) % 24;
+  const m = mins % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+};
+
+const calculateDuration = (startMin: number, endMin: number) => {
+  let diff = endMin - startMin;
+  if (diff <= 0) diff += 24 * 60;
+  return {
+    hours: Math.floor(diff / 60),
+    minutes: diff % 60,
+    totalMinutes: diff,
+  };
+};
+
+const validateRange = (startMin: number, endMin: number, min?: number, max?: number): string | null => {
+  let diff = endMin - startMin;
+  if (diff <= 0) diff += 24 * 60;
+
+  if (diff <= 0) return 'End time must be after start time';
+  if (min && diff < min) return `Minimum duration is ${min} minutes`;
+  if (max && diff > max) return `Maximum duration is ${Math.floor(max / 60)}h ${max % 60}m`;
+  return null;
 };
 
 // --- Component ---
@@ -55,72 +89,84 @@ export const TimeRangePicker: React.FC<TimeRangePickerProps> = ({
   maxDuration,
   showDuration = true,
   showPresets = true,
+  showConfirmButtons = false,
   className,
   error,
 }) => {
-  const [startMinutes, setStartMinutes] = useState(() => {
-    const [h, m] = startTime.split(':').map(Number);
-    return (h ?? 9) * 60 + (m ?? 0);
-  });
-  const [endMinutes, setEndMinutes] = useState(() => {
-    const [h, m] = endTime.split(':').map(Number);
-    return (h ?? 17) * 60 + (m ?? 0);
-  });
-
+  // Draft state (before confirm)
+  const [draftStartMinutes, setDraftStartMinutes] = useState(() => timeStrToMinutes(startTime));
+  const [draftEndMinutes, setDraftEndMinutes] = useState(() => timeStrToMinutes(endTime));
+  
+  // Committed values
+  const committedStartRef = useRef(draftStartMinutes);
+  const committedEndRef = useRef(draftEndMinutes);
+  
   const [validationError, setValidationError] = useState<string | null>(null);
   const rs = rangeSizeConfig[size];
 
-  // Convert minutes to "HH:mm"
-  const minutesToTimeStr = (mins: number): string => {
-    const h = Math.floor(mins / 60) % 24;
-    const m = mins % 60;
-    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-  };
-
   // Duration calculation
-  const duration = useMemo(() => {
-    let diff = endMinutes - startMinutes;
-    if (diff <= 0) diff += 24 * 60; // next day
-    return {
-      hours: Math.floor(diff / 60),
-      minutes: diff % 60,
-      totalMinutes: diff,
-    };
-  }, [startMinutes, endMinutes]);
+  const duration = useMemo(
+    () => calculateDuration(draftStartMinutes, draftEndMinutes),
+    [draftStartMinutes, draftEndMinutes]
+  );
 
-  // Validation
+  // Validation on draft changes
   useEffect(() => {
-    let diff = endMinutes - startMinutes;
-    if (diff <= 0) diff += 24 * 60;
+    const err = validateRange(draftStartMinutes, draftEndMinutes, minDuration, maxDuration);
+    setValidationError(err);
+  }, [draftStartMinutes, draftEndMinutes, minDuration, maxDuration]);
 
-    if (diff <= 0) {
-      setValidationError('End time must be after start time');
-    } else if (minDuration && diff < minDuration) {
-      setValidationError(`Minimum duration is ${minDuration} minutes`);
-    } else if (maxDuration && diff > maxDuration) {
-      setValidationError(`Maximum duration is ${Math.floor(maxDuration / 60)}h ${maxDuration % 60}m`);
-    } else {
-      setValidationError(null);
-      onChange(minutesToTimeStr(startMinutes), minutesToTimeStr(endMinutes));
+  // Emit committed values
+  const commitChange = useCallback(
+    (startMin: number, endMin: number) => {
+      committedStartRef.current = startMin;
+      committedEndRef.current = endMin;
+      onChange(minutesToTimeStr(startMin), minutesToTimeStr(endMin));
+    },
+    [onChange]
+  );
+
+  // Auto-commit when no confirm buttons
+  useEffect(() => {
+    if (!showConfirmButtons && !validationError) {
+      commitChange(draftStartMinutes, draftEndMinutes);
     }
-  }, [startMinutes, endMinutes, minDuration, maxDuration, onChange]);
+  }, [draftStartMinutes, draftEndMinutes, showConfirmButtons, validationError, commitChange]);
 
-  // Handlers
+  // TimePicker change handlers (update draft)
   const handleStartChange = useCallback((event: TimePickerChangeEvent) => {
-    setStartMinutes(event.totalMinutes);
+    setDraftStartMinutes(event.totalMinutes);
   }, []);
 
   const handleEndChange = useCallback((event: TimePickerChangeEvent) => {
-    setEndMinutes(event.totalMinutes);
+    setDraftEndMinutes(event.totalMinutes);
   }, []);
 
-  // Apply preset
-  const applyPreset = (preset: Preset) => {
-    const [sh, sm] = preset.start.split(':').map(Number);
-    const [eh, em] = preset.end.split(':').map(Number);
-    setStartMinutes((sh ?? 9) * 60 + (sm ?? 0));
-    setEndMinutes((eh ?? 17) * 60 + (em ?? 0));
-  };
+  // Apply preset (updates draft)
+  const applyPreset = useCallback((preset: Preset) => {
+    setDraftStartMinutes(timeStrToMinutes(preset.start));
+    setDraftEndMinutes(timeStrToMinutes(preset.end));
+  }, []);
+
+  // Confirm button
+  const handleConfirm = useCallback(() => {
+    if (!validationError) {
+      commitChange(draftStartMinutes, draftEndMinutes);
+    }
+  }, [validationError, draftStartMinutes, draftEndMinutes, commitChange]);
+
+  // Cancel button
+  const handleCancel = useCallback(() => {
+    setDraftStartMinutes(timeStrToMinutes(startTime));
+    setDraftEndMinutes(timeStrToMinutes(endTime));
+  }, [startTime, endTime]);
+
+  // Is dirty?
+  const isDirty = useMemo(
+    () => draftStartMinutes !== timeStrToMinutes(startTime) || 
+           draftEndMinutes !== timeStrToMinutes(endTime),
+    [draftStartMinutes, draftEndMinutes, startTime, endTime]
+  );
 
   return (
     <div
@@ -134,10 +180,11 @@ export const TimeRangePicker: React.FC<TimeRangePickerProps> = ({
       {/* Main Range Picker */}
       <div className="flex items-start justify-center gap-2">
         <TimePicker
-          value={minutesToTimeStr(startMinutes)}
+          value={minutesToTimeStr(draftStartMinutes)}
           onChange={handleStartChange}
           label="Start Time"
           size={size}
+          showConfirmButtons={false} // Range خودش مدیریت می‌کنه
         />
 
         {/* Arrow Connector */}
@@ -148,20 +195,23 @@ export const TimeRangePicker: React.FC<TimeRangePickerProps> = ({
         </div>
 
         <TimePicker
-          value={minutesToTimeStr(endMinutes)}
+          value={minutesToTimeStr(draftEndMinutes)}
           onChange={handleEndChange}
           label="End Time"
           size={size}
+          showConfirmButtons={false}
         />
       </div>
 
       {/* Duration Display */}
       {showDuration && (
-        <div className={cn(
-          'flex items-center justify-center gap-2 mt-4 px-4 py-2 rounded-xl border',
-          'bg-gray-50 dark:bg-gray-800/20 border-gray-200 dark:border-gray-700',
-          rs.duration
-        )}>
+        <div
+          className={cn(
+            'flex items-center justify-center gap-2 mt-4 px-4 py-2 rounded-xl border',
+            'bg-gray-50 dark:bg-gray-800/20 border-gray-200 dark:border-gray-700',
+            rs.duration
+          )}
+        >
           <Timer size={14} className="text-blue-500 dark:text-blue-400" />
           <span className="font-medium text-gray-600 dark:text-gray-300">
             Duration:{' '}
@@ -175,11 +225,61 @@ export const TimeRangePicker: React.FC<TimeRangePickerProps> = ({
         </div>
       )}
 
-      {/* Error Message */}
-      {(error || validationError) && (
+      {/* Validation Error */}
+      {validationError && (
         <div className="flex items-center gap-2 mt-3 px-3 py-2 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm">
           <AlertCircle size={14} />
-          <span>{error || validationError}</span>
+          <span>{validationError}</span>
+        </div>
+      )}
+
+      {/* External Error */}
+      {error && !validationError && (
+        <div className="flex items-center gap-2 mt-3 px-3 py-2 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm">
+          <AlertCircle size={14} />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {/* Confirm / Cancel Buttons */}
+      {showConfirmButtons && (
+        <div className="flex items-center gap-2 mt-4">
+          <button
+            type="button"
+            onClick={handleCancel}
+            disabled={!isDirty}
+            className={cn(
+              rs.button,
+              'flex-1 flex items-center justify-center gap-1.5 rounded-lg',
+              'border border-gray-200 dark:border-gray-600',
+              'text-gray-600 dark:text-gray-400',
+              'hover:bg-gray-50 dark:hover:bg-gray-800',
+              'active:scale-95 transition-all duration-150',
+              'font-medium',
+              !isDirty && 'opacity-50 cursor-not-allowed'
+            )}
+          >
+            <X size={14} />
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={handleConfirm}
+            disabled={!!validationError || !isDirty}
+            className={cn(
+              rs.button,
+              'flex-1 flex items-center justify-center gap-1.5 rounded-lg',
+              'bg-blue-500 text-white',
+              'hover:bg-blue-600',
+              'active:scale-95 transition-all duration-150',
+              'font-medium',
+              'shadow-lg shadow-blue-500/25',
+              (!!validationError || !isDirty) && 'opacity-50 cursor-not-allowed hover:bg-blue-500'
+            )}
+          >
+            <Check size={14} />
+            Confirm
+          </button>
         </div>
       )}
 
@@ -194,17 +294,23 @@ export const TimeRangePicker: React.FC<TimeRangePickerProps> = ({
             {presets.map((preset) => (
               <button
                 key={preset.label}
+                type="button"
                 onClick={() => applyPreset(preset)}
                 className={cn(
                   'flex items-center gap-2 rounded-lg border transition-all duration-200 hover:scale-[1.02] active:scale-95',
-                  preset.bg, preset.border, preset.color,
-                  rs.preset, 'font-medium'
+                  preset.bg,
+                  preset.border,
+                  preset.color,
+                  rs.preset,
+                  'font-medium'
                 )}
               >
                 <preset.icon size={12} />
                 <div className="flex flex-col items-start">
                   <span className="font-semibold">{preset.label}</span>
-                  <span className="opacity-70 text-[10px]">{preset.start} - {preset.end}</span>
+                  <span className="opacity-70 text-[10px]">
+                    {preset.start} - {preset.end}
+                  </span>
                 </div>
               </button>
             ))}

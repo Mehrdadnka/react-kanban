@@ -1,6 +1,6 @@
 // components/ui/TimePicker/TimePicker.tsx
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Clock } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { Clock, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { sizeConfig } from './config/timePicker.sizeConfig';
 import { TimeObject, TimePickerProps } from './types/timePicker.types';
@@ -14,9 +14,16 @@ export const TimePicker: React.FC<TimePickerProps> = ({
   size = 'md',
   className,
   disabled = false,
+  showConfirmButtons = false,
+  onConfirm,
+  onCancel,
   visualConfig,
 }) => {
-  const [timeObject, setTimeObject] = useState<TimeObject>(() => parseTimeString(value));
+  // State for current "draft" value (before confirm)
+  const [draftTimeObject, setDraftTimeObject] = useState<TimeObject>(() => parseTimeString(value));
+  
+  // Store the last committed value to compare
+  const lastCommittedValue = useRef<string>(value);
   
   const hours = useMemo(() => Array.from({ length: 24 }, (_, i) => i), []);
   const minutes = useMemo(() => Array.from({ length: 60 }, (_, i) => i), []);
@@ -40,9 +47,10 @@ export const TimePicker: React.FC<TimePickerProps> = ({
 
   // Sync external value
   useEffect(() => {
-    const newTimeObj = parseTimeString(value);
-    if (newTimeObj.hour !== timeObject.hour || newTimeObj.minute !== timeObject.minute) {
-      setTimeObject(newTimeObj);
+    if (value !== lastCommittedValue.current) {
+      const newTimeObj = parseTimeString(value);
+      setDraftTimeObject(newTimeObj);
+      lastCommittedValue.current = value;
     }
   }, [value]);
 
@@ -51,33 +59,67 @@ export const TimePicker: React.FC<TimePickerProps> = ({
     (newTimeObj: TimeObject) => {
       const formatted = timeObjectToFormatted(newTimeObj);
       const totalMinutes = timeObjectToMinutes(newTimeObj);
-      onChange({
+      const event: TimePickerChangeEvent = {
         formatted24: formatted,
         timeObject: newTimeObj,
         totalMinutes,
-      });
+      };
+      
+      onChange(event);
+      lastCommittedValue.current = formatted;
     },
     [onChange]
   );
 
-  // Column change handlers
+  // Column change handlers - فقط draft رو آپدیت می‌کنن
   const handleHourChange = useCallback(
     (index: number) => {
-      const newTimeObj = { ...timeObject, hour: hours[index] };
-      setTimeObject(newTimeObj);
-      fireChange(newTimeObj);
+      const newTimeObj = { ...draftTimeObject, hour: hours[index] };
+      setDraftTimeObject(newTimeObj);
+      
+      // اگه confirm buttons نباشه، همون موقع emit کن
+      if (!showConfirmButtons) {
+        fireChange(newTimeObj);
+      }
     },
-    [timeObject, hours, fireChange]
+    [draftTimeObject, hours, fireChange, showConfirmButtons]
   );
 
   const handleMinuteChange = useCallback(
     (index: number) => {
-      const newTimeObj = { ...timeObject, minute: minutes[index] };
-      setTimeObject(newTimeObj);
-      fireChange(newTimeObj);
+      const newTimeObj = { ...draftTimeObject, minute: minutes[index] };
+      setDraftTimeObject(newTimeObj);
+      
+      if (!showConfirmButtons) {
+        fireChange(newTimeObj);
+      }
     },
-    [timeObject, minutes, fireChange]
+    [draftTimeObject, minutes, fireChange, showConfirmButtons]
   );
+
+  // Confirm handler
+  const handleConfirm = useCallback(() => {
+    fireChange(draftTimeObject);
+    onConfirm?.({
+      formatted24: timeObjectToFormatted(draftTimeObject),
+      timeObject: draftTimeObject,
+      totalMinutes: timeObjectToMinutes(draftTimeObject),
+    });
+  }, [draftTimeObject, fireChange, onConfirm]);
+
+  // Cancel/Reset handler
+  const handleCancel = useCallback(() => {
+    const originalTimeObj = parseTimeString(value);
+    setDraftTimeObject(originalTimeObj);
+    onCancel?.();
+  }, [value, onCancel]);
+
+  // Is dirty? (آیا تغییراتی داده شده)
+  const isDirty = useMemo(() => {
+    const originalTime = parseTimeString(value);
+    return draftTimeObject.hour !== originalTime.hour || 
+           draftTimeObject.minute !== originalTime.minute;
+  }, [draftTimeObject, value]);
 
   // Gradient class
   const gradientClass = useMemo(
@@ -98,8 +140,17 @@ export const TimePicker: React.FC<TimePickerProps> = ({
     [s.label]
   );
 
+  // Button size based on picker size
+  const buttonSize = useMemo(() => {
+    switch (size) {
+      case 'sm': return 'text-xs px-2 py-1';
+      case 'lg': return 'text-sm px-4 py-2';
+      default: return 'text-xs px-3 py-1.5';
+    }
+  }, [size]);
+
   return (
-    <div className='flex flex-col'>
+    <div className="flex flex-col">
       {/* Header */}
       {label && (
         <div
@@ -113,76 +164,118 @@ export const TimePicker: React.FC<TimePickerProps> = ({
           <span className="font-semibold text-gray-700 dark:text-gray-200">{label}</span>
         </div>
       )}
-    <div
-      className={cn(
-        s.container,
-        'w-fit bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700',
-        'shadow-xl shadow-gray-200/50 dark:shadow-gray-900/50',
-        'select-none',
-        disabled && 'opacity-60 pointer-events-none',
-        className
-      )}
-    >
-      {/* Main Picker */}
-      <div className="flex flex-col items-center">
-        {/* Time Display */}
-        <div className={cn('flex items-center justify-center mb-4', `gap-${s.gap / 2}`)}>
-          <div
-            className={cn(
-              s.display,
-              'font-mono font-bold tracking-tight text-center min-w-[64px]',
-              'bg-gray-100 dark:bg-gray-700/50 text-gray-900 dark:text-white',
-              'rounded-lg'
-            )}
-          >
-            {String(timeObject.hour).padStart(2, '0')}
+      
+      <div
+        className={cn(
+          s.container,
+          'w-fit bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700',
+          'shadow-xl shadow-gray-200/50 dark:shadow-gray-900/50',
+          'select-none',
+          disabled && 'opacity-60 pointer-events-none',
+          className
+        )}
+      >
+        {/* Main Picker */}
+        <div className="flex flex-col items-center">
+          {/* Time Display */}
+          <div className={cn('flex items-center justify-center mb-4', `gap-${s.gap / 2}`)}>
+            <div
+              className={cn(
+                s.display,
+                'font-mono font-bold tracking-tight text-center min-w-[64px]',
+                'bg-gray-100 dark:bg-gray-700/50 text-gray-900 dark:text-white',
+                'rounded-lg'
+              )}
+            >
+              {String(draftTimeObject.hour).padStart(2, '0')}
+            </div>
+            <span className={cn(s.colon, 'font-light text-gray-300 dark:text-gray-500')}>:</span>
+            <div
+              className={cn(
+                s.display,
+                'font-mono font-bold tracking-tight text-center min-w-[64px]',
+                'bg-gray-100 dark:bg-gray-700/50 text-gray-900 dark:text-white',
+                'rounded-lg'
+              )}
+            >
+              {String(draftTimeObject.minute).padStart(2, '0')}
+            </div>
           </div>
-          <span className={cn(s.colon, 'font-light text-gray-300 dark:text-gray-500')}>:</span>
-          <div
-            className={cn(
-              s.display,
-              'font-mono font-bold tracking-tight text-center min-w-[64px]',
-              'bg-gray-100 dark:bg-gray-700/50 text-gray-900 dark:text-white',
-              'rounded-lg'
-            )}
-          >
-            {String(timeObject.minute).padStart(2, '0')}
-          </div>
-        </div>
 
-        {/* Scrollable Pickers */}
-        <div className={cn('flex justify-center', `gap-${s.gap}`)}>
-          <ScrollColumn
-            label="Hour"
-            items={hours}
-            selectedIndex={timeObject.hour}
-            itemHeight={itemHeight}
-            visibleItems={5}
-            labelClass={labelClass}
-            colors={colors}
-            disabled={disabled}
-            padZero={true}
-            onChange={handleHourChange}
-            gradientClass={gradientClass}
-            indicatorClass={s.indicator}
-          />
-          <ScrollColumn
-            label="Minute"
-            items={minutes}
-            selectedIndex={timeObject.minute}
-            itemHeight={itemHeight}
-            visibleItems={5}
-            labelClass={labelClass}
-            colors={colors}
-            disabled={disabled}
-            padZero={true}
-            onChange={handleMinuteChange}
-            gradientClass={gradientClass}
-            indicatorClass={s.indicator}
-          />
+          {/* Scrollable Pickers */}
+          <div className={cn('flex justify-center', `gap-${s.gap}`)}>
+            <ScrollColumn
+              label="Hour"
+              items={hours}
+              selectedIndex={draftTimeObject.hour}
+              itemHeight={itemHeight}
+              visibleItems={5}
+              labelClass={labelClass}
+              colors={colors}
+              disabled={disabled}
+              padZero={true}
+              onChange={handleHourChange}
+              gradientClass={gradientClass}
+              indicatorClass={s.indicator}
+            />
+            <ScrollColumn
+              label="Minute"
+              items={minutes}
+              selectedIndex={draftTimeObject.minute}
+              itemHeight={itemHeight}
+              visibleItems={5}
+              labelClass={labelClass}
+              colors={colors}
+              disabled={disabled}
+              padZero={true}
+              onChange={handleMinuteChange}
+              gradientClass={gradientClass}
+              indicatorClass={s.indicator}
+            />
+          </div>
+
+          {/* Confirm / Cancel Buttons */}
+          {showConfirmButtons && (
+            <div className="flex items-center gap-2 mt-4 w-full">
+              <button
+                type="button"
+                onClick={handleCancel}
+                disabled={disabled}
+                className={cn(
+                  buttonSize,
+                  'flex-1 flex items-center justify-center gap-1.5 rounded-lg',
+                  'border border-gray-200 dark:border-gray-600',
+                  'text-gray-600 dark:text-gray-400',
+                  'hover:bg-gray-50 dark:hover:bg-gray-800',
+                  'active:scale-95 transition-all duration-150',
+                  'font-medium'
+                )}
+              >
+                <X size={14} />
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirm}
+                disabled={disabled || !isDirty}
+                className={cn(
+                  buttonSize,
+                  'flex-1 flex items-center justify-center gap-1.5 rounded-lg',
+                  'bg-blue-500 text-white',
+                  'hover:bg-blue-600',
+                  'active:scale-95 transition-all duration-150',
+                  'font-medium',
+                  'shadow-lg shadow-blue-500/25',
+                  (!isDirty || disabled) && 'opacity-50 cursor-not-allowed hover:bg-blue-500'
+                )}
+              >
+                <Check size={14} />
+                Confirm
+              </button>
+            </div>
+          )}
         </div>
       </div>
-    </div>
     </div>
   );
 };

@@ -1,5 +1,5 @@
 // ScheduleStep.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Calendar, Clock, AlertCircle, Bell } from 'lucide-react';
 import { RangeDatePicker } from '@/components/ui/DatePicker/RangeDatePicker';
 import { calculateDuration } from '@/features/TaskSidebars/utils';
@@ -30,18 +30,17 @@ export const ScheduleStep: React.FC<ScheduleStepProps> = ({
   onStartDateChange,
   onDueDateChange,
   onReminderDateChange,
-  workingHoursStart, 
+  workingHoursStart,
   workingHoursEnd,
   onWorkingHoursChange,
   disabled = false,
   isDarkMode = false,
-
 }) => {
   const [range, setRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
     from: startDate,
     to: dueDate,
   });
-  
+
   const [reminderTime, setReminderTime] = useState('09:00');
 
   // Sync external props to internal state
@@ -55,50 +54,94 @@ export const ScheduleStep: React.FC<ScheduleStepProps> = ({
       const hours = String(reminderDate.getHours()).padStart(2, '0');
       const minutes = String(reminderDate.getMinutes()).padStart(2, '0');
       const newTime = `${hours}:${minutes}`;
-      setReminderTime(prev => prev === newTime ? prev : newTime);
+      setReminderTime((prev) => (prev === newTime ? prev : newTime));
     }
   }, [reminderDate?.getTime()]);
 
   const hasDateConflict = range.from && range.to && range.from > range.to;
-  const durationDays = range.from && range.to && !hasDateConflict
-    ? calculateDuration(range.from, range.to)
-    : null;
+  const durationDays =
+    range.from && range.to && !hasDateConflict ? calculateDuration(range.from, range.to) : null;
 
-  const handleRangeChange = (newRange: { from: Date | undefined; to: Date | undefined } | undefined) => {
-    if (newRange) {
-      onStartDateChange?.(newRange.from);
-      onDueDateChange?.(newRange.to);
-    } else {
+  // تابع کمکی برای set کردن ساعت روی تاریخ
+  const applyTimeToDate = useCallback((date: Date, timeStr: string): Date => {
+    const [h, m] = timeStr.split(':').map(Number);
+    const newDate = new Date(date);
+    newDate.setHours(h ?? 0, m ?? 0, 0, 0);
+    return newDate;
+  }, []);
+
+  // Working hours confirm - سینک با startDate/dueDate
+  const handleWorkingHoursConfirm = useCallback(
+    (startTime: string, endTime: string) => {
+      // ۱. emit working hours
+      onWorkingHoursChange?.(startTime, endTime);
+
+      // ۲. apply ساعت به startDate/dueDate
+      if (range.from) {
+        const updatedStart = applyTimeToDate(range.from, startTime);
+        onStartDateChange?.(updatedStart);
+      }
+      if (range.to) {
+        const updatedDue = applyTimeToDate(range.to, endTime);
+        onDueDateChange?.(updatedDue);
+      }
+    },
+    [range.from, range.to, onWorkingHoursChange, onStartDateChange, onDueDateChange, applyTimeToDate]
+  );
+
+  // Range date change - history رو با working hours ترکیب کن
+  const handleRangeChange = (
+    newRange: { from: Date | undefined; to: Date | undefined } | undefined
+  ) => {
+    if (!newRange) {
       onStartDateChange?.(undefined);
       onDueDateChange?.(undefined);
+      return;
     }
+
+    const ws = workingHoursStart || '09:00';
+    const we = workingHoursEnd || '17:00';
+
+    // Apply working hours to new dates
+    const fromWithTime = newRange.from ? applyTimeToDate(newRange.from, ws) : undefined;
+    const toWithTime = newRange.to ? applyTimeToDate(newRange.to, we) : undefined;
+
+    onStartDateChange?.(fromWithTime);
+    onDueDateChange?.(toWithTime);
   };
 
+  // Reminder handlers
   const handleReminderDateChange = (date: Date | undefined) => {
-    if (date) {
-      const [hours, minutes] = reminderTime.split(':').map(Number);
-      const newDate = new Date(date); // کپی
-      newDate.setHours(hours, minutes, 0, 0);
-      onReminderDateChange?.(newDate);
+    if (date && reminderTime) {
+      const updatedDate = applyTimeToDate(date, reminderTime);
+      onReminderDateChange?.(updatedDate);
     } else {
       onReminderDateChange?.(undefined);
     }
   };
 
-  // ScheduleStep.tsx
-  const handleReminderTimeChange = (event: { formatted24: string }) => {
-    const time = event.formatted24; // استخراج string از event
-    
+  const handleReminderTimeConfirm = (event: { formatted24: string }) => {
+    const time = event.formatted24;
+
     if (time === reminderTime) return;
-    
+
     setReminderTime(time);
-    
+
     if (reminderDate) {
-      const [hours, minutes] = time.split(':').map(Number);
-      const updatedDate = new Date(reminderDate);
-      updatedDate.setHours(hours, minutes, 0, 0);
+      const updatedDate = applyTimeToDate(reminderDate, time);
       onReminderDateChange?.(updatedDate);
     }
+  };
+
+  // Format date display بدون ساعت midnight
+  const formatDateDisplay = (date?: Date): string => {
+    if (!date) return '';
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    });
   };
 
   const tabItems: TabItem[] = [
@@ -107,66 +150,118 @@ export const ScheduleStep: React.FC<ScheduleStepProps> = ({
       label: 'Date Range',
       icon: <Calendar size={16} />,
       content: (
-        <div className="space-y-2 flex flex-row items-start justify-center gap-4">
-          <div className="flex-2 flex flex-row h-fit w-fit">
-            <RangeDatePicker
-              value={range}
-              onChange={handleRangeChange}
-              disabled={disabled}
-              numberOfMonths={2}
-              isDarkMode={isDarkMode}
-            />
-          </div>          
-          <div className="flex-2 flex flex-row h-auto w-auto">
-            <TimeRangePicker
-              startTime={workingHoursStart || '09:00'}
-              endTime={workingHoursEnd || '17:00'}
-              onChange={(start, end) => onWorkingHoursChange?.(start, end)}
-              label="Working Hours"
-              size="md"
-              minDuration={30}
-              showDuration={false}
-              showPresets={false}
-              // isDarkMode={isDarkMode}
-            />
+        <div className="space-y-4">
+          <div className="flex flex-row items-start justify-center gap-4">
+            <div className="flex-2 flex flex-row h-fit w-fit">
+              <RangeDatePicker
+                value={range}
+                onChange={handleRangeChange}
+                disabled={disabled}
+                numberOfMonths={2}
+                isDarkMode={isDarkMode}
+              />
+            </div>
+            <div className="flex-2 flex flex-row h-auto w-auto">
+              <TimeRangePicker
+                startTime={workingHoursStart || '09:00'}
+                endTime={workingHoursEnd || '17:00'}
+                onChange={handleWorkingHoursConfirm}
+                label="Working Hours"
+                size="md"
+                minDuration={30}
+                showDuration={false}
+                showPresets={false}
+                showConfirmButtons
+              />
+            </div>
           </div>
+
+          {/* Date Summary - بدون at 12:00 AM */}
+          {range.from && range.to && !hasDateConflict && (
+            <div className="flex flex-col gap-2">
+              <div
+                className={cn(
+                  'p-3 rounded-lg border text-sm',
+                  isDarkMode
+                    ? 'bg-gray-800/50 border-gray-700 text-gray-300'
+                    : 'bg-gray-50 border-gray-200 text-gray-600'
+                )}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <Calendar size={14} className="text-blue-500" />
+                  <span className="font-medium">Start Date</span>
+                </div>
+                <span className={isDarkMode ? 'text-white' : 'text-gray-900'}>
+                  {formatDateDisplay(range.from)}
+                  {workingHoursStart && ` at ${workingHoursStart}`}
+                </span>
+              </div>
+
+              <div
+                className={cn(
+                  'p-3 rounded-lg border text-sm',
+                  isDarkMode
+                    ? 'bg-gray-800/50 border-gray-700 text-gray-300'
+                    : 'bg-gray-50 border-gray-200 text-gray-600'
+                )}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <Calendar size={14} className="text-orange-500" />
+                  <span className="font-medium">Due Date</span>
+                </div>
+                <span className={isDarkMode ? 'text-white' : 'text-gray-900'}>
+                  {formatDateDisplay(range.to)}
+                  {workingHoursEnd && ` at ${workingHoursEnd}`}
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* Duration Calculation */}
           {durationDays !== null && (
-            <div className={cn(
-              'p-4 rounded-xl space-y-1 border',
-              isDarkMode
-                ? 'bg-blue-900/20 border-blue-800/50'
-                : 'bg-blue-50/50 border-blue-100'
-            )}>
+            <div
+              className={cn(
+                'p-4 rounded-xl space-y-1 border',
+                isDarkMode ? 'bg-blue-900/20 border-blue-800/50' : 'bg-blue-50/50 border-blue-100'
+              )}
+            >
               <div className="flex items-center gap-2">
                 <Clock size={14} className="text-blue-500" />
-                <span className={cn("text-xs font-medium", isDarkMode ? "text-blue-300" : "text-blue-700")}>
+                <span
+                  className={cn(
+                    'text-xs font-medium',
+                    isDarkMode ? 'text-blue-300' : 'text-blue-700'
+                  )}
+                >
                   Duration
                 </span>
               </div>
               <div className="flex items-baseline gap-2">
-                <span className={cn("text-2xl font-bold", isDarkMode ? "text-gray-100" : "text-gray-900")}>
+                <span
+                  className={cn(
+                    'text-2xl font-bold',
+                    isDarkMode ? 'text-gray-100' : 'text-gray-900'
+                  )}
+                >
                   {durationDays}
                 </span>
-                <span className={cn("text-sm", isDarkMode ? "text-gray-400" : "text-gray-500")}>
+                <span
+                  className={cn('text-sm', isDarkMode ? 'text-gray-400' : 'text-gray-500')}
+                >
                   {durationDays === 1 ? 'day' : 'days'}
                 </span>
-              </div>
-              <div className={cn("text-xs", isDarkMode ? "text-gray-500" : "text-gray-400")}>
-                {range.from && range.to && 
-                  `${range.from.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} → ${range.to.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
-                }
               </div>
             </div>
           )}
 
           {/* Date Conflict Warning */}
           {hasDateConflict && (
-            <div className={cn(
-              "flex items-center gap-2 p-3 rounded-lg text-xs",
-              isDarkMode ? "bg-red-900/20 text-red-400" : "bg-red-50 text-red-600"
-            )}>
+            <div
+              className={cn(
+                'flex items-center gap-2 p-3 rounded-lg text-xs',
+                isDarkMode ? 'bg-red-900/20 text-red-400' : 'bg-red-50 text-red-600'
+              )}
+            >
               <AlertCircle size={14} />
               Start date must be before due date
             </div>
@@ -179,25 +274,52 @@ export const ScheduleStep: React.FC<ScheduleStepProps> = ({
       label: 'Reminder',
       icon: <Bell size={16} />,
       content: (
-        <div className="space-y-2 flex flex-row items-start justify-center gap-4">
-          <div className="flex-2 flex flex-row h-fit w-fit">
-            <DatePicker
-              value={reminderDate}
-              numberOfMonths={2}
-              onChange={handleReminderDateChange}
-              disabled={disabled}
-              isDarkMode={isDarkMode}
-            />
+        <div className="space-y-4">
+          <div className="flex flex-row items-start justify-center gap-4">
+            <div className="flex-2 flex flex-row h-fit w-fit">
+              <DatePicker
+                value={reminderDate}
+                numberOfMonths={2}
+                onChange={handleReminderDateChange}
+                disabled={disabled}
+                isDarkMode={isDarkMode}
+              />
+            </div>
+            <div className="flex-2 flex flex-row h-auto w-auto">
+              <TimePicker
+                value={reminderTime}
+                label="Reminder Time"
+                size="md"
+                showConfirmButtons
+                onConfirm={handleReminderTimeConfirm}
+                onChange={(e) => {
+                  console.log('draft changed:', e.formatted24);
+                }}
+              />
+            </div>
           </div>
-          <div className="flex-2 flex flex-row h-auto w-auto">
-            <TimePicker
-              value={reminderTime}
-              label="Reminder Time"
-              size="md"
-              // isDarkMode={isDarkMode} 
-              onChange={handleReminderTimeChange}
-            />
-          </div>
+
+          {/* Reminder Summary */}
+          {reminderDate && (
+            <div
+              className={cn(
+                'p-3 rounded-lg border text-sm',
+                isDarkMode
+                  ? 'bg-gray-800/50 border-gray-700 text-gray-300'
+                  : 'bg-gray-50 border-gray-200 text-gray-600'
+              )}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <Bell size={14} className="text-purple-500" />
+                <span className="font-medium">Reminder set for</span>
+              </div>
+              <span className={isDarkMode ? 'text-white' : 'text-gray-900'}>
+                {formatDateDisplay(reminderDate)} at{' '}
+                {String(reminderDate.getHours()).padStart(2, '0')}:
+                {String(reminderDate.getMinutes()).padStart(2, '0')}
+              </span>
+            </div>
+          )}
         </div>
       ),
     },
@@ -206,22 +328,30 @@ export const ScheduleStep: React.FC<ScheduleStepProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <Calendar size={16} className={isDarkMode ? "text-gray-400" : "text-gray-500"} />
+        <Calendar
+          size={16}
+          className={isDarkMode ? 'text-gray-400' : 'text-gray-500'}
+        />
         <div>
-          <h3 className={cn("text-sm font-semibold", isDarkMode ? "text-gray-200" : "text-gray-800")}>
+          <h3
+            className={cn(
+              'text-sm font-semibold',
+              isDarkMode ? 'text-gray-200' : 'text-gray-800'
+            )}
+          >
             Schedule
           </h3>
-          <p className={cn("text-xs", isDarkMode ? "text-gray-500" : "text-gray-400")}>
+          <p className={cn('text-xs', isDarkMode ? 'text-gray-500' : 'text-gray-400')}>
             Set up dates and reminders. All fields are optional.
           </p>
         </div>
       </div>
 
-      <Tab 
-        items={tabItems} 
-        defaultValue="dates" 
-        isDarkMode={isDarkMode} 
-        variant="underline" 
+      <Tab
+        items={tabItems}
+        defaultValue="dates"
+        isDarkMode={isDarkMode}
+        variant="underline"
         size="sm"
       />
     </div>
