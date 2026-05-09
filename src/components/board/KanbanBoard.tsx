@@ -49,8 +49,10 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ boardId }) => {
     return tasks.filter(t => t.boardId === boardId);
   }, [tasks, boardId]);
 
-    const getColumnTasks = useCallback((columnId: string) => {
-    return boardTasks.filter(t => t.columnId === columnId);
+  const getColumnTasks = useCallback((columnId: string) => {
+    return boardTasks
+      .filter(t => t.columnId === columnId)
+      .sort((a, b) => a.order - b.order);
   }, [boardTasks]);
 
   const sortedColumns = useMemo(() => [...columns].sort((a, b) => a.order - b.order), [columns]);
