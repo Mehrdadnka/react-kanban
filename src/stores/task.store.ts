@@ -1,4 +1,4 @@
-
+// stores/task.store.ts - REFACTORED VERSION
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
@@ -10,12 +10,11 @@ import {
   TaskType,
   TaskPriority,
   TaskUpdateData,
-  TaskCreateData 
 } from '@/types/task.types';
 import { useBoardStore } from './board.store';
+import { useEventBus } from './core/event-bus.store';
 
 // ──── Input Types ────
-
 interface AddTaskInput {
   title: string;
   shortDescription?: string;
@@ -40,7 +39,7 @@ interface AddTaskInput {
 
 interface TaskStore {
   tasks: Task[];
-
+  
   // ──── Core CRUD ────
   addTask: (input: AddTaskInput) => string;
   updateTask: (id: string, updates: TaskUpdateData) => void;
@@ -48,57 +47,56 @@ interface TaskStore {
   moveTask: (id: string, newColumnId: string, newOrder?: number) => void;
   reorderTasks: (activeId: string, overId: string) => void;
   duplicateTask: (id: string) => string;
-
+  
   // ──── Bulk Operations ────
   bulkMoveTasks: (taskIds: string[], targetColumnId: string) => void;
   bulkDeleteTasks: (taskIds: string[]) => void;
   bulkUpdateTasks: (taskIds: string[], updates: Partial<TaskUpdateData>) => void;
-
+  
   // ──── Sub-tasks ────
   addSubTask: (parentId: string, input: AddTaskInput) => string;
   removeSubTask: (parentId: string, subTaskId: string) => void;
   toggleSubTask: (subTaskId: string) => void;
   getSubTasks: (parentId: string) => Task[];
-
+  
   // ──── Related Tasks ────
   addRelatedTask: (taskId: string, relatedId: string) => void;
   removeRelatedTask: (taskId: string, relatedId: string) => void;
   getRelatedTasks: (taskId: string) => Task[];
-
+  
   // ──── Labels ────
   addLabel: (taskId: string, labelId: string) => void;
   removeLabel: (taskId: string, labelId: string) => void;
-
-  // ──── Milestones (NEW) ────
+  
+  // ──── Milestones ────
   addMilestone: (taskId: string, milestoneId: string) => void;
   removeMilestone: (taskId: string, milestoneId: string) => void;
-
-  // ──── Projects (NEW) ────
+  
+  // ──── Projects ────
   addProject: (taskId: string, projectId: string) => void;
   removeProject: (taskId: string, projectId: string) => void;
-
+  
   // ──── Attachments ────
   addAttachment: (taskId: string, attachment: Attachment) => void;
   removeAttachment: (taskId: string, attachmentId: string) => void;
-
-  // ──── Time Tracking (NEW) ────
+  
+  // ──── Time Tracking ────
   logTime: (taskId: string, hours: number, description?: string) => void;
-
+  
   // ──── Activity & Queries ────
   getTaskActivity: (taskId: string) => ActivityLog[];
   getTaskById: (id: string) => Task | undefined;
   getTasksByColumn: (columnId: string) => Task[];
   getTasksByMilestone: (milestoneId: string) => Task[];
   getTasksByProject: (projectId: string) => Task[];
-
-  // ──── Status Management (NEW) ────
+  
+  // ──── Status Management ────
   completeTask: (taskId: string) => void;
   archiveTask: (taskId: string) => void;
   reopenTask: (taskId: string) => void;
 }
 
 // ──── Helpers ────
-
 const createLog = (
   taskId: string, 
   action: ActivityLog['action'], 
@@ -115,239 +113,67 @@ const createLog = (
   timestamp: new Date(),
 });
 
-const MAX_ACTIVITY_LOGS = 100; // Limit activity log size
+const MAX_ACTIVITY_LOGS = 100;
 
-// ──── Initial Demo Tasks ────
-
+// 🎯 FIXED: Unique IDs for demo tasks
 const createDemoTasks = (): Task[] => {
   const now = new Date();
-  const todoId = 'demo-todo-1';
-  const doingId = 'demo-doing-1';
-  const doneId = 'demo-done-1';
+  
+  const makeTask = (
+    id: string,
+    title: string,
+    columnId: string,
+    boardId: string,
+    priority: TaskPriority = 'medium',
+    completedDaysAgo?: number,
+  ): Task => {
+    const task: Task = {
+      ...createDefaultTask(columnId, 0, boardId),
+      id,
+      title,
+      shortDescription: `Demo task: ${title}`,
+      description: `This is a demo task for ${boardId}`,
+      type: 'task',
+      priority,
+      labels: [],
+      milestoneIds: [],
+      projectIds: [],
+      createdAt: now,
+      updatedAt: now,
+      activityLog: [createLog(id, 'created')],
+      order: columnId === 'todo' ? 0 : columnId === 'in-progress' ? 1 : 2,
+    };
+
+    if (completedDaysAgo) {
+      task.completedAt = new Date(now.getTime() - completedDaysAgo * 24 * 60 * 60 * 1000);
+      task.activityLog.push(createLog(id, 'moved', 'column', 'in-progress', 'done'));
+    }
+
+    return task;
+  };
 
   return [
-    {
-      ...createDefaultTask('todo', 0, 'board-1'),
-      id: todoId,
-      title: 'Welcome to TaskFlow! 🎉',
-      shortDescription: 'Get started with your first task',
-      description: 'This is a demo task to help you get familiar with TaskFlow.\n\n**Try these:**\n- Drag and drop tasks between columns\n- Click the eye icon to view details\n- Add sub-tasks, labels, and attachments',
-      type: 'task',
-      priority: 'medium',
-      labels: [],
-      milestoneIds: [],
-      projectIds: [],
-      dueDate: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000), // 7 days
-      createdAt: now,
-      updatedAt: now,
-      activityLog: [createLog(todoId, 'created')],
-    },
-    {
-      ...createDefaultTask('done', 2, 'board-1'),
-      id: doneId,
-      title: 'Set up your workspace',
-      shortDescription: 'Customize columns and workflows',
-      description: 'You can customize your board by:\n- Adding/removing columns\n- Setting WIP limits\n- Changing column colors and icons',
-      type: 'task',
-      priority: 'low',
-      labels: [],
-      milestoneIds: [],
-      projectIds: [],
-      completedAt: now,
-      createdAt: new Date(now.getTime() - 24 * 60 * 60 * 1000),
-      updatedAt: now,
-      activityLog: [
-        createLog(doneId, 'created'),
-        createLog(doneId, 'moved', 'column', 'doing', 'done'),
-      ],
-    },
-    {
-      ...createDefaultTask('todo', 0, 'board-2'),
-      id: todoId,
-      title: 'Welcome to TaskFlow! 🎉',
-      shortDescription: 'Get started with your first task',
-      description: 'This is a demo task to help you get familiar with TaskFlow.\n\n**Try these:**\n- Drag and drop tasks between columns\n- Click the eye icon to view details\n- Add sub-tasks, labels, and attachments',
-      type: 'task',
-      priority: 'medium',
-      labels: [],
-      milestoneIds: [],
-      projectIds: [],
-      dueDate: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000), // 7 days
-      createdAt: now,
-      updatedAt: now,
-      activityLog: [createLog(todoId, 'created')],
-    },
-    {
-      ...createDefaultTask('done', 2, 'board-2'),
-      id: doneId,
-      title: 'Set up your workspace',
-      shortDescription: 'Customize columns and workflows',
-      description: 'You can customize your board by:\n- Adding/removing columns\n- Setting WIP limits\n- Changing column colors and icons',
-      type: 'task',
-      priority: 'low',
-      labels: [],
-      milestoneIds: [],
-      projectIds: [],
-      completedAt: now,
-      createdAt: new Date(now.getTime() - 24 * 60 * 60 * 1000),
-      updatedAt: now,
-      activityLog: [
-        createLog(doneId, 'created'),
-        createLog(doneId, 'moved', 'column', 'doing', 'done'),
-      ],
-    },
-    {
-      ...createDefaultTask('todo', 0, 'board-3'),
-      id: todoId,
-      title: 'Welcome to TaskFlow! 🎉',
-      shortDescription: 'Get started with your first task',
-      description: 'This is a demo task to help you get familiar with TaskFlow.\n\n**Try these:**\n- Drag and drop tasks between columns\n- Click the eye icon to view details\n- Add sub-tasks, labels, and attachments',
-      type: 'task',
-      priority: 'medium',
-      labels: [],
-      milestoneIds: [],
-      projectIds: [],
-      dueDate: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000), // 7 days
-      createdAt: now,
-      updatedAt: now,
-      activityLog: [createLog(todoId, 'created')],
-    },
-    {
-      ...createDefaultTask('done', 2, 'board-3'),
-      id: doneId,
-      title: 'Set up your workspace',
-      shortDescription: 'Customize columns and workflows',
-      description: 'You can customize your board by:\n- Adding/removing columns\n- Setting WIP limits\n- Changing column colors and icons',
-      type: 'task',
-      priority: 'low',
-      labels: [],
-      milestoneIds: [],
-      projectIds: [],
-      completedAt: now,
-      createdAt: new Date(now.getTime() - 24 * 60 * 60 * 1000),
-      updatedAt: now,
-      activityLog: [
-        createLog(doneId, 'created'),
-        createLog(doneId, 'moved', 'column', 'doing', 'done'),
-      ],
-    },
-       {
-      ...createDefaultTask('todo', 0, 'board-4'),
-      id: todoId,
-      title: 'Welcome to TaskFlow! 🎉',
-      shortDescription: 'Get started with your first task',
-      description: 'This is a demo task to help you get familiar with TaskFlow.\n\n**Try these:**\n- Drag and drop tasks between columns\n- Click the eye icon to view details\n- Add sub-tasks, labels, and attachments',
-      type: 'task',
-      priority: 'medium',
-      labels: [],
-      milestoneIds: [],
-      projectIds: [],
-      dueDate: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000), // 7 days
-      createdAt: now,
-      updatedAt: now,
-      activityLog: [createLog(todoId, 'created')],
-    },
-    {
-      ...createDefaultTask('done', 2, 'board-4'),
-      id: doneId,
-      title: 'Set up your workspace',
-      shortDescription: 'Customize columns and workflows',
-      description: 'You can customize your board by:\n- Adding/removing columns\n- Setting WIP limits\n- Changing column colors and icons',
-      type: 'task',
-      priority: 'low',
-      labels: [],
-      milestoneIds: [],
-      projectIds: [],
-      completedAt: now,
-      createdAt: new Date(now.getTime() - 24 * 60 * 60 * 1000),
-      updatedAt: now,
-      activityLog: [
-        createLog(doneId, 'created'),
-        createLog(doneId, 'moved', 'column', 'doing', 'done'),
-      ],
-    },
-   {
-      ...createDefaultTask('todo', 0, 'board-5'),
-      id: todoId,
-      title: 'Welcome to TaskFlow! 🎉',
-      shortDescription: 'Get started with your first task',
-      description: 'This is a demo task to help you get familiar with TaskFlow.\n\n**Try these:**\n- Drag and drop tasks between columns\n- Click the eye icon to view details\n- Add sub-tasks, labels, and attachments',
-      type: 'task',
-      priority: 'medium',
-      labels: [],
-      milestoneIds: [],
-      projectIds: [],
-      dueDate: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000), // 7 days
-      createdAt: now,
-      updatedAt: now,
-      activityLog: [createLog(todoId, 'created')],
-    },
-    {
-      ...createDefaultTask('done', 2, 'board-5'),
-      id: doneId,
-      title: 'Set up your workspace',
-      shortDescription: 'Customize columns and workflows',
-      description: 'You can customize your board by:\n- Adding/removing columns\n- Setting WIP limits\n- Changing column colors and icons',
-      type: 'task',
-      priority: 'low',
-      labels: [],
-      milestoneIds: [],
-      projectIds: [],
-      completedAt: now,
-      createdAt: new Date(now.getTime() - 24 * 60 * 60 * 1000),
-      updatedAt: now,
-      activityLog: [
-        createLog(doneId, 'created'),
-        createLog(doneId, 'moved', 'column', 'doing', 'done'),
-      ],
-    },
-   {
-      ...createDefaultTask('todo', 0, 'board-6'),
-      id: todoId,
-      title: 'Welcome to TaskFlow! 🎉',
-      shortDescription: 'Get started with your first task',
-      description: 'This is a demo task to help you get familiar with TaskFlow.\n\n**Try these:**\n- Drag and drop tasks between columns\n- Click the eye icon to view details\n- Add sub-tasks, labels, and attachments',
-      type: 'task',
-      priority: 'medium',
-      labels: [],
-      milestoneIds: [],
-      projectIds: [],
-      dueDate: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000), // 7 days
-      createdAt: now,
-      updatedAt: now,
-      activityLog: [createLog(todoId, 'created')],
-    },
-    {
-      ...createDefaultTask('done', 2, 'board-6'),
-      id: doneId,
-      title: 'Set up your workspace',
-      shortDescription: 'Customize columns and workflows',
-      description: 'You can customize your board by:\n- Adding/removing columns\n- Setting WIP limits\n- Changing column colors and icons',
-      type: 'task',
-      priority: 'low',
-      labels: [],
-      milestoneIds: [],
-      projectIds: [],
-      completedAt: now,
-      createdAt: new Date(now.getTime() - 24 * 60 * 60 * 1000),
-      updatedAt: now,
-      activityLog: [
-        createLog(doneId, 'created'),
-        createLog(doneId, 'moved', 'column', 'doing', 'done'),
-      ],
-    },
+    // Board 1 tasks (3 tasks)
+    makeTask('task-b1-1', 'Setup Project', 'done', 'board-1', 'high', 2),
+    makeTask('task-b1-2', 'Design Database Schema', 'in-progress', 'board-1', 'urgent'),
+    makeTask('task-b1-3', 'Write API Documentation', 'todo', 'board-1', 'medium'),
+    
+    // Board 2 tasks (2 tasks)
+    makeTask('task-b2-1', 'Implement Authentication', 'in-progress', 'board-2', 'high'),
+    makeTask('task-b2-2', 'Setup CI/CD Pipeline', 'todo', 'board-2', 'medium'),
+    
+    // Board 3 tasks (1 task)
+    makeTask('task-b3-1', 'Create Marketing Plan', 'todo', 'board-3', 'low'),
   ];
 };
 
 // ──── Store ────
-
 export const useTaskStore = create<TaskStore>()(
   persist(
     (set, get) => ({
       tasks: createDemoTasks(),
 
       // ──── CORE CRUD ────
-
       addTask: (input) => {
         const id = uuidv4();
         const tasks = get().tasks;
@@ -357,7 +183,7 @@ export const useTaskStore = create<TaskStore>()(
         );
 
         const newTask: Task = {
-          ...createDefaultTask(input.columnId, maxOrder + 1, input.boardId || useBoardStore.getState().activeBoardId || 'board-1'),
+          ...createDefaultTask(input.columnId, maxOrder + 1, input.boardId),
           id,
           title: input.title,
           shortDescription: input.shortDescription || '',
@@ -403,6 +229,14 @@ export const useTaskStore = create<TaskStore>()(
           return { tasks: updatedTasks };
         });
 
+        // 🎯 EMIT EVENT
+        useEventBus.getState().emit('task:created', {
+          id: newTask.id,
+          boardId: newTask.boardId,
+          columnId: newTask.columnId,
+          title: newTask.title,
+        });
+
         return id;
       },
 
@@ -418,23 +252,36 @@ export const useTaskStore = create<TaskStore>()(
               logs.push(createLog(id, 'updated', 'title', task.title, updates.title));
             if (updates.priority && updates.priority !== task.priority) 
               logs.push(createLog(id, 'priority_changed', 'priority', task.priority, updates.priority));
-            if (updates.dueDate && updates.dueDate?.getTime() !== task.dueDate?.getTime()) 
-              logs.push(createLog(id, 'due_date_changed', 'dueDate', 
-                task.dueDate?.toISOString(), updates.dueDate?.toISOString()));
-            if (updates.startDate && updates.startDate?.getTime() !== task.startDate?.getTime()) 
-              logs.push(createLog(id, 'start_date_changed', 'startDate', 
-                task.startDate?.toISOString(), updates.startDate?.toISOString()));
-            if (updates.columnId && updates.columnId !== task.columnId) 
-              logs.push(createLog(id, 'moved', 'column', task.columnId, updates.columnId));
             if (updates.description && updates.description !== task.description) 
               logs.push(createLog(id, 'description_updated', 'description'));
 
-            return {
+            const updatedTask = {
               ...task,
               ...updates,
               updatedAt: new Date(),
               activityLog: [...task.activityLog, ...logs].slice(-MAX_ACTIVITY_LOGS),
             };
+
+            // 🎯 EMIT EVENT if column changed
+            if (updates.columnId && updates.columnId !== task.columnId) {
+              const isCompleted = updates.columnId === 'done';
+              
+              useEventBus.getState().emit('task:moved', {
+                id: task.id,
+                from: task.columnId,
+                to: updates.columnId,
+                boardId: task.boardId,
+              });
+
+              if (isCompleted) {
+                useEventBus.getState().emit('task:completed', {
+                  id: task.id,
+                  boardId: task.boardId,
+                });
+              }
+            }
+
+            return updatedTask;
           }),
         }));
       },
@@ -442,6 +289,8 @@ export const useTaskStore = create<TaskStore>()(
       deleteTask: (id) => {
         const task = get().tasks.find(t => t.id === id);
         if (!task) return;
+        
+        const boardId = task.boardId;
 
         set(state => {
           let tasks = state.tasks.filter(t => t.id !== id);
@@ -481,14 +330,25 @@ export const useTaskStore = create<TaskStore>()(
 
           return { tasks };
         });
+
+        // 🎯 EMIT EVENT
+        useEventBus.getState().emit('task:deleted', {
+          id,
+          boardId,
+        });
       },
 
       moveTask: (id, newColumnId, newOrder?) => {
+        const task = get().tasks.find(t => t.id === id);
+        if (!task) return;
+
+        const oldColumnId = task.columnId;
+        const isCompleted = newColumnId === 'done';
+
         set(state => ({
-          tasks: state.tasks.map(task => {
-            if (task.id !== id) return task;
+          tasks: state.tasks.map(t => {
+            if (t.id !== id) return t;
             
-            const isCompleted = newColumnId === 'done';
             const updates: Partial<Task> = {
               columnId: newColumnId,
               updatedAt: new Date(),
@@ -498,15 +358,30 @@ export const useTaskStore = create<TaskStore>()(
             
             if (newOrder !== undefined) updates.order = newOrder;
             
-            const log = createLog(id, 'moved', 'column', task.columnId, newColumnId);
+            const log = createLog(id, 'moved', 'column', oldColumnId, newColumnId);
             
             return { 
-              ...task, 
+              ...t, 
               ...updates, 
-              activityLog: [...task.activityLog, log].slice(-MAX_ACTIVITY_LOGS) 
+              activityLog: [...t.activityLog, log].slice(-MAX_ACTIVITY_LOGS) 
             };
           }),
         }));
+
+        // 🎯 EMIT EVENTS
+        useEventBus.getState().emit('task:moved', {
+          id,
+          from: oldColumnId,
+          to: newColumnId,
+          boardId: task.boardId,
+        });
+
+        if (isCompleted && oldColumnId !== 'done') {
+          useEventBus.getState().emit('task:completed', {
+            id,
+            boardId: task.boardId,
+          });
+        }
       },
 
       reorderTasks: (activeId, overId) => {
@@ -545,19 +420,27 @@ export const useTaskStore = create<TaskStore>()(
           createdAt: new Date(),
           updatedAt: new Date(),
           activityLog: [createLog(newId, 'created')],
-          subTasks: [], // Don't duplicate sub-tasks
+          subTasks: [],
           parentId: undefined,
-          relatedTasks: [...original.relatedTasks], // Keep relations
-          columnId: original.columnId, // Stay in same column
+          relatedTasks: [...original.relatedTasks],
+          columnId: original.columnId,
           order: get().tasks.filter(t => t.columnId === original.columnId).length,
         };
         
         set(state => ({ tasks: [...state.tasks, duplicate] }));
+
+        // 🎯 EMIT EVENT
+        useEventBus.getState().emit('task:created', {
+          id: duplicate.id,
+          boardId: duplicate.boardId,
+          columnId: duplicate.columnId,
+          title: duplicate.title,
+        });
+
         return newId;
       },
 
       // ──── BULK OPERATIONS ────
-
       bulkMoveTasks: (taskIds, targetColumnId) => {
         set(state => ({
           tasks: state.tasks.map(task => {
@@ -577,9 +460,26 @@ export const useTaskStore = create<TaskStore>()(
             };
           }),
         }));
+
+        // 🎯 EMIT BULK EVENT
+        useEventBus.getState().emit('task:bulk-moved', {
+          taskIds,
+          targetColumnId,
+        });
       },
 
       bulkDeleteTasks: (taskIds) => {
+        // Emit before delete
+        taskIds.forEach(id => {
+          const task = get().tasks.find(t => t.id === id);
+          if (task) {
+            useEventBus.getState().emit('task:deleted', {
+              id,
+              boardId: task.boardId,
+            });
+          }
+        });
+        
         taskIds.forEach(id => get().deleteTask(id));
       },
 
@@ -588,7 +488,6 @@ export const useTaskStore = create<TaskStore>()(
       },
 
       // ──── SUB-TASKS ────
-
       addSubTask: (parentId, input) => {
         return get().addTask({ ...input, parentId });
       },
@@ -611,7 +510,6 @@ export const useTaskStore = create<TaskStore>()(
       },
 
       // ──── RELATED TASKS ────
-
       addRelatedTask: (taskId, relatedId) => {
         if (taskId === relatedId) return;
         set(state => ({
@@ -627,7 +525,6 @@ export const useTaskStore = create<TaskStore>()(
                 updatedAt: new Date(),
               };
             }
-            // Also add reverse relation
             if (t.id === relatedId && !t.relatedTasks.includes(taskId)) {
               return {
                 ...t,
@@ -673,7 +570,6 @@ export const useTaskStore = create<TaskStore>()(
       },
 
       // ──── LABELS ────
-
       addLabel: (taskId, labelId) => {
         set(state => ({
           tasks: state.tasks.map(t => {
@@ -708,8 +604,7 @@ export const useTaskStore = create<TaskStore>()(
         }));
       },
 
-      // ──── MILESTONES (NEW) ────
-
+      // ──── MILESTONES ────
       addMilestone: (taskId, milestoneId) => {
         set(state => ({
           tasks: state.tasks.map(t => {
@@ -744,8 +639,7 @@ export const useTaskStore = create<TaskStore>()(
         }));
       },
 
-      // ──── PROJECTS (NEW) ────
-
+      // ──── PROJECTS ────
       addProject: (taskId, projectId) => {
         set(state => ({
           tasks: state.tasks.map(t => {
@@ -781,7 +675,6 @@ export const useTaskStore = create<TaskStore>()(
       },
 
       // ──── ATTACHMENTS ────
-
       addAttachment: (taskId, attachment) => {
         set(state => ({
           tasks: state.tasks.map(t => {
@@ -812,8 +705,7 @@ export const useTaskStore = create<TaskStore>()(
         }));
       },
 
-      // ──── TIME TRACKING (NEW) ────
-
+      // ──── TIME TRACKING ────
       logTime: (taskId, hours, description) => {
         set(state => ({
           tasks: state.tasks.map(t => {
@@ -841,7 +733,6 @@ export const useTaskStore = create<TaskStore>()(
       },
 
       // ──── ACTIVITY & QUERIES ────
-
       getTaskActivity: (taskId) => {
         const task = get().tasks.find(t => t.id === taskId);
         return task?.activityLog || [];
@@ -863,8 +754,7 @@ export const useTaskStore = create<TaskStore>()(
         return get().tasks.filter(t => t.projectIds.includes(projectId));
       },
 
-      // ──── STATUS MANAGEMENT (NEW) ────
-
+      // ──── STATUS MANAGEMENT ────
       completeTask: (taskId) => {
         get().updateTask(taskId, { 
           status: 'completed', 
@@ -888,12 +778,10 @@ export const useTaskStore = create<TaskStore>()(
       },
     }),
     {
-      name: 'taskflow-storage-v6',
-      version: 6,
-      // Optional: migrate from previous versions
+      name: 'taskflow-storage-v7',
+      version: 7,
       migrate: (persistedState: any, version: number) => {
-        if (version < 6) {
-          // Add milestoneIds and projectIds to existing tasks
+        if (version < 7) {
           return {
             ...persistedState,
             tasks: persistedState.tasks.map((task: Task) => ({
