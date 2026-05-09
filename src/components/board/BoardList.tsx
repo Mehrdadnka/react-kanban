@@ -1,5 +1,5 @@
 // components/board/BoardList.tsx
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Plus, Search, Sparkles, TrendingUp, Calendar, CheckCircle2, Layout, BarChart3, Clock, Activity } from 'lucide-react';
 import { useBoardStore } from '@/stores/board.store';
 import { BoardCard } from './BoardCard';
@@ -20,6 +20,24 @@ export const BoardList: React.FC = () => {
       board.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       board.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const boardsLength = boards.length;
+  
+  const stats = useMemo(() => {
+    let total = 0, done = 0, todo = 0, doing = 0;
+    let lastUpdated: Date | null = null;
+
+    boards.forEach((board) => {
+      const s = useBoardStore.getState().getBoardStats(board.id);
+      total += s.total;
+      done += s.done;
+      todo += s.todo;
+      doing += s.doing;
+      if (!lastUpdated || board.updatedAt > lastUpdated) lastUpdated = board.updatedAt;
+    });
+
+    return { total, done, todo, doing, lastUpdated };
+  }, [boards]);
 
   // Calculate global stats
   let totalTasks = 0;
@@ -47,46 +65,20 @@ export const BoardList: React.FC = () => {
       <div className="h-full flex overflow-hidden">
         {/* ========== SIDEBAR ========== */}
         <BoardListStaticSidebar
-          queryValue={searchQuery} 
-          totalTasks={todoTasks} 
-          todoTasks={todoTasks} 
-          inProgressTasks={inProgressTasks} 
-          completedTasks={completedTasks} 
-          completionRate={completionRate} 
-          onQueryChange={(e) => setSearchQuery(e.target.value)}
-          onCreateBoardClick={openCreateBoard}
-          lastUpdated={lastUpdated} 
-          isDarkMode={isDarkMode} 
+            boardsLength={boards.length}
+            queryValue={searchQuery}
+            totalTasks={stats.total}
+            todoTasks={stats.todo}
+            inProgressTasks={stats.doing}
+            completedTasks={stats.done}
+            completionRate={stats.total > 0 ? Math.round((stats.done / stats.total) * 100) : 0}
+            onQueryChange={(e) => setSearchQuery(e.target.value)}
+            onCreateBoardClick={openCreateBoard}
+            lastUpdated={stats.lastUpdated}
         />
 
         {/* ========== MAIN CONTENT ========== */}
         <main className="flex-1 overflow-y-auto">
-          {/* Header */}
-          <div className={cn(
-            'sticky top-0 z-10 px-6 py-4 border-b backdrop-blur-sm',
-            isDarkMode ? 'bg-gray-900/80 border-gray-800' : 'bg-white/80 border-gray-200'
-          )}>
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-semibold">
-                  {searchQuery ? `Results for "${searchQuery}"` : 'All Boards'}
-                </h2>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  {filteredBoards.length} {filteredBoards.length === 1 ? 'board' : 'boards'} found
-                </p>
-              </div>
-              
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="text-xs text-blue-500 hover:text-blue-600 transition-colors"
-                >
-                  Clear search
-                </button>
-              )}
-            </div>
-          </div>
-
           {/* Boards Grid */}
           <div className="p-6">
             {filteredBoards.length > 0 ? (
