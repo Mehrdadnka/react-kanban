@@ -30,6 +30,7 @@ export const ProjectPicker: React.FC<ProjectPickerProps> = ({
 
   return (
     <EntityPicker
+      isTopPosition
       items={items}
       selectedIds={selectedProjects}
       onToggle={onToggle}

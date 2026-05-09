@@ -27,6 +27,7 @@ export const LabelPicker: React.FC<LabelPickerProps> = ({
   return (
     <EntityPicker
       items={items}
+      isTopPosition
       selectedIds={selectedLabels}
       onToggle={onToggle}
       onCreate={(name, color) => addLabel(name, color || '#6B7280')}

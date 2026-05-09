@@ -5,7 +5,8 @@ import {
   CheckCircle2, ClipboardList, Zap,
   LucideIcon, AlertTriangle, TrendingUp,
   Activity, ArrowRight,
-  Eye
+  Eye,
+  Layout
 } from 'lucide-react';
 
 export type { LucideIcon } from 'lucide-react';
@@ -17,10 +18,15 @@ export interface PanelIconConfig {
 }
 
 export const PANEL_ICONS: Record<string, PanelIconConfig> = {
+  'create-board-sidebar': {
+    icon: Layout,
+    label: 'Board Panel',
+    description: 'Create new boards',
+  },  
   'create-task-sidebar': {
     icon: CheckSquare,
     label: 'Task Panel',
-    description: 'Create, view, and edit tasks',
+    description: 'Create new tasks',
   },
   'task-view-sidebar': {
     icon: Eye,

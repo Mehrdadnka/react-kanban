@@ -1,3 +1,4 @@
+// components/ui/EntityPicker/components/EntityItem.tsx
 import React from 'react';
 import { CheckCircle, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -10,6 +11,7 @@ interface EntityItemProps {
   onToggle: (id: string) => void;
   onDelete?: (id: string) => void;
   renderItem?: (item: EntityItemType, isSelected: boolean) => React.ReactNode;
+  variant?: 'list' | 'grid'; // NEW
 }
 
 export const EntityItem: React.FC<EntityItemProps> = ({
@@ -19,9 +21,42 @@ export const EntityItem: React.FC<EntityItemProps> = ({
   onToggle,
   onDelete,
   renderItem,
+  variant = 'list',
 }) => {
   if (renderItem) return <>{renderItem(item, isSelected)}</>;
 
+  // Grid variant - compact, centered
+  if (variant === 'grid') {
+    return (
+      <button
+        type="button"
+        onClick={() => onToggle(item.id)}
+        className={cn(
+          "flex items-center justify-center rounded-lg transition-all duration-200",
+          "hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500",
+          isSelected && "ring-2 ring-blue-500 scale-105",
+          isDarkMode
+            ? "hover:bg-gray-700"
+            : "hover:bg-gray-100"
+        )}
+        title={item.name}
+      >
+        {item.color && (
+          <div
+            className="w-8 h-8 rounded-md ring-1 ring-inset ring-black/10"
+            style={{ backgroundColor: item.color }}
+          />
+        )}
+        {item.icon && (
+          <div className="p-2">
+            {item.icon}
+          </div>
+        )}
+      </button>
+    );
+  }
+
+  // Default list variant (existing code)
   return (
     <button
       type="button"

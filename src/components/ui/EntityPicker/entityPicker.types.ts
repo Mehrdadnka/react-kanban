@@ -10,6 +10,9 @@ export type EntityItemType = EntityItem;
 
 export interface EntityPickerProps {
   items: EntityItem[];
+  isTopPosition: boolean;
+  listVariant?: 'list' | 'grid'; 
+  gridColumns?: number;
   selectedIds: string[];
   onToggle: (id: string) => void;
   onCreate?: (name: string, color?: string, metadata?: Record<string, any>) => string | Promise<string>;

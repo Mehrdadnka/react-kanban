@@ -8,12 +8,13 @@ export type BoardStepId = 'basic-info' | 'appearance' | 'settings';
 export interface BoardStep {
   id: BoardStepId;
   label: string;
+  description?: string;
 }
 
 export const BOARD_STEPS: BoardStep[] = [
-  { id: 'basic-info', label: 'Basic Info' },
-  { id: 'appearance', label: 'Appearance' },
-  { id: 'settings', label: 'Settings' },
+  { id: 'basic-info', label: 'Basic Info', description: 'Name & description' },
+  { id: 'appearance', label: 'Appearance', description: 'Color & icon' },
+  { id: 'settings', label: 'Settings', description: 'Advanced options' },
 ];
 
 export interface BoardFormState {

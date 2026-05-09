@@ -135,6 +135,7 @@ export const QuickCreate: React.FC<QuickCreateProps> = ({
           {/* Type */}
           <MetaRow icon={<FileText size={14} />} label="Type" isDarkMode={isDarkMode}>
             <EntityPicker
+              isTopPosition
               items={typeItems}
               selectedIds={[formState.type]}
               onToggle={(id) => {
@@ -151,6 +152,7 @@ export const QuickCreate: React.FC<QuickCreateProps> = ({
 
           <MetaRow icon={<Columns3 size={14} />} label="Status" isDarkMode={isDarkMode}>
             <EntityPicker
+              isTopPosition
               items={columnItems}
               selectedIds={[formState.columnId]}
               onToggle={(id) => {
@@ -167,6 +169,7 @@ export const QuickCreate: React.FC<QuickCreateProps> = ({
 
           <MetaRow icon={<Flag size={14} />} label="Priority" isDarkMode={isDarkMode}>
             <EntityPicker
+              isTopPosition
               items={priorityItems}
               selectedIds={[formState.priority]}
               onToggle={(id) => {
@@ -184,6 +187,7 @@ export const QuickCreate: React.FC<QuickCreateProps> = ({
           {/* Labels */}
           <MetaRow icon={<Tag size={14} />} label="Labels" isDarkMode={isDarkMode}>
             <EntityPicker
+              isTopPosition
               items={labelItems}
               selectedIds={formState.labels}
               onToggle={(id) => {
@@ -208,6 +212,7 @@ export const QuickCreate: React.FC<QuickCreateProps> = ({
           {/* Milestone */}
           <MetaRow icon={<Milestone size={14} />} label="Milestone" isDarkMode={isDarkMode}>
             <EntityPicker
+              isTopPosition
               items={milestoneItems}
               selectedIds={formState.milestoneIds}
               onToggle={(id) => {
@@ -232,6 +237,7 @@ export const QuickCreate: React.FC<QuickCreateProps> = ({
           {/* Project */}
           <MetaRow icon={<FolderKanban size={14} />} label="Project" isDarkMode={isDarkMode}>
             <EntityPicker
+              isTopPosition
               items={projectItems}
               selectedIds={formState.projectIds}
               onToggle={(id) => {

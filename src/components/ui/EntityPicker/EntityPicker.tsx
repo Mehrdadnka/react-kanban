@@ -26,6 +26,7 @@ export const EntityPicker: React.FC<EntityPickerProps> = (props) => {
     onCreate,
     onDelete,
     onToggle,
+    isTopPosition,
     renderItem,
     compact = false,
   } = props;
@@ -175,6 +176,9 @@ export const EntityPicker: React.FC<EntityPickerProps> = (props) => {
 
       {/* Dropdown */}
       <EntityPickerDropdown
+        isTopPosition={isTopPosition}
+        listVariant={props.listVariant}
+        gridColumns={props.gridColumns}
         isOpen={isOpen}
         searchQuery={searchQuery}
         filteredItems={filteredItems}

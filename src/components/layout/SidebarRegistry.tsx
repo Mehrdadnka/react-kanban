@@ -6,7 +6,7 @@ import { CreateTaskSidebar } from '@/features/TaskSidebars/create/CreateTaskSide
 import { QuickNotesSidebar } from '@/features/QuickNotesSidebar/QuickNotesSidebar';
 import { SettingsSidebar } from '@/features/SettingsSidebar/SettingsSidebar';
 import { TaskViewSidebar } from '@/features/TaskSidebars/view/TaskViewSidebar';
-import { CreateBoardSidebar } from '../board/CreateBoardSidebar';
+import { CreateBoardSidebar } from '@/features/BoardSidebars/create/CreateBoardSidebar';
 
 
 const SIDEBAR_POSITION = 'left';

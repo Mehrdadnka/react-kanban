@@ -1,334 +1,299 @@
 // features/BoardSidebars/create/CreateBoardSidebar.tsx
-import React, { useEffect, useRef } from 'react';
-import { Sparkles, Check, Palette, Layout, Settings, Info } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import {
-  SidebarShell,
-  SidebarInput,
-  SidebarTextarea,
-  SidebarActionBar,
-  SidebarActionLeft,
-  SidebarActionRight,
-} from '@/components/sidebar-ui-engine';
-import { Button } from '@/components/ui/button/Button';
-import {
-  Rocket, Code2, Palette as PaletteIcon, Briefcase, Target,
-  Zap, Star, Heart, Crown, Flame, Globe, Lightbulb,
-  Megaphone, Puzzle, Shield, Sword, Trophy, Wand,
-  FolderKanban, LayoutDashboard, CheckSquare, Sparkles as SparklesIcon
+import React, { useEffect, useState, memo, useCallback } from 'react';
+import { 
+  Save, ArrowLeft, ArrowRight, AlertCircle, 
+  Loader2, Sparkles, Plus, Layout
 } from 'lucide-react';
-import { BOARD_STEPS, BoardStepId, useBoardSidebarStore } from '@/stores/sidebar-engine/board-sidebar.store';
-import { Stepper } from '@/components/ui/stepper/Stepper';
+import { FormProvider } from 'react-hook-form';
+import { PanelProps } from '@/stores/sidebar-engine/sidebar-engine.types';
+import { BoardSidebarLayout } from './layout/BoardSidebarLayout';
+import { BasicInfoStepRHF } from './steps/BasicInfoStepRHF';
+import { AppearanceStepRHF } from './steps/AppearanceStepRHF';
+import { BoardStepId, BOARD_STEPS } from '@/stores/sidebar-engine/board-sidebar.store';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
-const COLORS = [
-  { hex: '#6366f1', name: 'Indigo' },
-  { hex: '#8b5cf6', name: 'Purple' },
-  { hex: '#ec4899', name: 'Pink' },
-  { hex: '#ef4444', name: 'Red' },
-  { hex: '#f97316', name: 'Orange' },
-  { hex: '#eab308', name: 'Yellow' },
-  { hex: '#22c55e', name: 'Green' },
-  { hex: '#14b8a6', name: 'Teal' },
-  { hex: '#06b6d4', name: 'Cyan' },
-  { hex: '#3b82f6', name: 'Blue' },
-  { hex: '#1e293b', name: 'Dark' },
-  { hex: '#6b7280', name: 'Gray' },
-];
-
-const ICONS = [
-  { name: 'Rocket', Icon: Rocket, label: 'Startup' },
-  { name: 'Code2', Icon: Code2, label: 'Dev' },
-  { name: 'Palette', Icon: PaletteIcon, label: 'Design' },
-  { name: 'Target', Icon: Target, label: 'Goals' },
-  { name: 'Zap', Icon: Zap, label: 'Fast' },
-  { name: 'Briefcase', Icon: Briefcase, label: 'Work' },
-  { name: 'Star', Icon: Star, label: 'Important' },
-  { name: 'Flame', Icon: Flame, label: 'Hot' },
-  { name: 'Globe', Icon: Globe, label: 'Web' },
-  { name: 'Lightbulb', Icon: Lightbulb, label: 'Ideas' },
-  { name: 'Trophy', Icon: Trophy, label: 'Win' },
-  { name: 'Heart', Icon: Heart, label: 'Favorite' },
-  { name: 'Crown', Icon: Crown, label: 'Premium' },
-  { name: 'Shield', Icon: Shield, label: 'Secure' },
-  { name: 'Sparkles', Icon: SparklesIcon, label: 'Magic' },
-  { name: 'FolderKanban', Icon: FolderKanban, label: 'Kanban' },
-  { name: 'LayoutDashboard', Icon: LayoutDashboard, label: 'Dashboard' },
-  { name: 'CheckSquare', Icon: CheckSquare, label: 'Tasks' },
-  { name: 'Sword', Icon: Sword, label: 'Agile' },
-  { name: 'Puzzle', Icon: Puzzle, label: 'Modular' },
-  { name: 'Megaphone', Icon: Megaphone, label: 'Marketing' },
-  { name: 'Wand', Icon: Wand, label: 'Creative' },
-];
-
-interface CreateBoardSidebarProps {
-  panelId: string;
-  isOpen: boolean;
-  zIndex: number;
-  isDarkMode: boolean;
-  onClose: () => void;
-  metadata?: { mode: 'create' | 'edit'; boardId?: string };
-}
-
-export const CreateBoardSidebar: React.FC<CreateBoardSidebarProps> = ({
-  isOpen,
-  zIndex,
-  isDarkMode,
-  onClose,
+export const CreateBoardSidebar: React.FC<PanelProps> = memo(({
+  zIndex, 
+  onClose, 
+  isOpen: panelIsOpen, 
+  panelId, 
+  isDarkMode 
 }) => {
+  // Step State Machine
+  const [activeStep, setActiveStep] = useState<BoardStepId>('basic-info');
+  const [completedSteps, setCompletedSteps] = useState<BoardStepId[]>([]);
+
   const {
-    mode,
-    activeStep,
-    completedSteps,
-    formState,
-    updateFormField,
-    goToStep,
-    goNext,
-    goBack,
-    submitBoard,
-    closeSidebar,
-  } = useBoardSidebarStore();
+    form,
+    errors,
+    isSubmitting,
+    isValid,
+    validateStep,
+    getStepErrors,
+    submitForm,
+    reset,
+  } = useCreateBoardFormRHF(() => {
+    onClose?.();
+  });
 
-  const titleInputRef = useRef<HTMLInputElement>(null);
+  // Derived State
+  const isFirstStep = activeStep === 'basic-info';
+  const isLastStep = activeStep === 'settings';
+  const currentStepIndex = BOARD_STEPS.findIndex(s => s.id === activeStep);
+  const totalSteps = BOARD_STEPS.length;
+  
+  const stepErrors = getStepErrors(activeStep);
+  const hasCurrentStepErrors = stepErrors !== null;
 
-  const isCreating = mode === 'create';
-  const title = isCreating ? 'Create New Board' : 'Edit Board';
+  // Can only navigate to completed steps or current
+  const canNavigateToStep = useCallback((stepId: BoardStepId) => {
+    return completedSteps.includes(stepId) || stepId === activeStep;
+  }, [completedSteps, activeStep]);
 
-  // Focus on mount
+  // Effects
   useEffect(() => {
-    if (isOpen) {
-      setTimeout(() => titleInputRef.current?.focus(), 300);
+    if (!panelIsOpen) {
+      reset();
+      setActiveStep('basic-info');
+      setCompletedSteps([]);
     }
-  }, [isOpen]);
+  }, [panelIsOpen, reset]);
 
-  const handleSubmit = (e?: React.FormEvent) => {
-    e?.preventDefault();
-    if (formState.title.trim()) {
-      submitBoard();
+  // Navigation Handlers
+  const handleClose = useCallback(() => {
+    reset();
+    setActiveStep('basic-info');
+    setCompletedSteps([]);
+    onClose?.();
+  }, [reset, onClose]);
+
+  const handleStepClick = useCallback((stepId: BoardStepId) => {
+    if (canNavigateToStep(stepId)) {
+      setActiveStep(stepId);
     }
-  };
-
-  const handleClose = () => {
-    closeSidebar();
-    onClose();
-  };
-
-  // Step Content
-  const renderStep = () => {
-    switch (activeStep) {
-      case 'basic-info':
-        return (
-          <div className="space-y-5">
-            <SidebarInput
-              id="board-title"
-              label="Board Name"
-              value={formState.title}
-              onChange={(v) => updateFormField('title', v)}
-              placeholder="e.g., Marketing Campaign, Sprint 24..."
-              required
-              inputRef={titleInputRef}
-            />
-            <SidebarTextarea
-              id="board-description"
-              label="Description"
-              value={formState.description}
-              onChange={(v) => updateFormField('description', v)}
-              placeholder="What's this board about?"
-              rows={4}
-            />
-          </div>
+  }, [canNavigateToStep]);
+  
+  const handleNext = useCallback(async () => {
+    const stepErrorFields: Record<BoardStepId, Array<{ field: string; label: string }>> = {
+      'basic-info': [
+        { field: 'title', label: 'Board Name' },
+      ],
+      'appearance': [],
+      'settings': [],
+    };
+  
+    const stepFields = stepErrorFields[activeStep] || [];
+    const fieldNames = stepFields.map(f => f.field);
+  
+    if (fieldNames.length === 0) {
+      if (currentStepIndex < totalSteps - 1) {
+        setCompletedSteps(prev => 
+          prev.includes(activeStep) ? prev : [...prev, activeStep]
         );
-
-      case 'appearance':
-        return (
-          <div className="space-y-6">
-            {/* Color */}
-            <div>
-              <label className="block text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">
-                <Palette size={16} className="inline mr-2" />
-                Color Theme
-              </label>
-              <div className="grid grid-cols-6 gap-2.5">
-                {COLORS.map((color) => (
-                  <button
-                    key={color.hex}
-                    type="button"
-                    onClick={() => updateFormField('color', color.hex)}
-                    className={cn(
-                      'relative w-full aspect-square rounded-xl transition-all duration-200',
-                      'hover:scale-110 hover:shadow-lg',
-                      'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500',
-                      formState.color === color.hex && 'ring-2 ring-offset-2 ring-blue-500 scale-110'
-                    )}
-                    style={{ backgroundColor: color.hex }}
-                    title={color.name}
-                  >
-                    {formState.color === color.hex && (
-                      <Check size={16} className="text-white absolute inset-0 m-auto drop-shadow-lg" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Icons */}
-            <div>
-              <label className="block text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">
-                Icon
-              </label>
-              <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 max-h-52 overflow-y-auto p-1">
-                {ICONS.map(({ name, Icon, label }) => (
-                  <button
-                    key={name}
-                    type="button"
-                    onClick={() => updateFormField('icon', name)}
-                    className={cn(
-                      'flex flex-col items-center gap-1 p-3 rounded-xl transition-all duration-200',
-                      'hover:scale-105',
-                      'focus:outline-none focus:ring-2 focus:ring-blue-500',
-                      formState.icon === name
-                        ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                        : 'hover:bg-gray-100 dark:hover:bg-gray-800',
-                      isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                    )}
-                    title={label}
-                  >
-                    <Icon
-                      size={22}
-                      className={formState.icon === name ? 'text-blue-500' : ''}
-                    />
-                    <span className="text-[10px] leading-tight text-center">{label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Preview */}
-            {formState.title && (
-              <div className="animate-in fade-in duration-300">
-                <label className="block text-sm font-medium mb-2">Preview</label>
-                <div
-                  className="rounded-xl p-4 border-2"
-                  style={{
-                    background: `linear-gradient(135deg, ${formState.color}08, ${formState.color}15)`,
-                    borderColor: formState.color + '30',
-                  }}
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="w-10 h-10 rounded-lg flex items-center justify-center"
-                      style={{
-                        background: `linear-gradient(135deg, ${formState.color}20, ${formState.color}40)`,
-                        color: formState.color,
-                      }}
-                    >
-                      {React.createElement(
-                        ICONS.find(i => i.name === formState.icon)?.Icon || Rocket,
-                        { size: 20 }
-                      )}
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-sm">{formState.title}</h4>
-                      {formState.description && (
-                        <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">
-                          {formState.description}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        );
-
-      case 'settings':
-        return (
-          <div className="space-y-5">
-            <div className={cn(
-              'rounded-xl p-6 text-center border-2 border-dashed',
-              isDarkMode ? 'border-gray-700 text-gray-400' : 'border-gray-300 text-gray-500'
-            )}>
-              <Settings size={32} className="mx-auto mb-3 opacity-50" />
-              <p className="text-sm font-medium">Advanced Settings</p>
-              <p className="text-xs mt-1">Coming soon...</p>
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
+        setActiveStep(BOARD_STEPS[currentStepIndex + 1].id);
+      }
+      return;
     }
-  };
+  
+    const isValid = await form.trigger(fieldNames as any);
+  
+    if (!isValid) {
+      const allErrors = form.formState.errors;
+    
+      const firstErrorField = stepFields.find(
+        ({ field }) => !!allErrors[field as keyof typeof allErrors]
+      );
+    
+      if (firstErrorField) {
+        const errorMessage = allErrors[firstErrorField.field as keyof typeof allErrors]?.message;
+      
+        if (errorMessage) {
+          toast.error(`${firstErrorField.label} is required`, {
+            description: `Please fill in the ${firstErrorField.label.toLowerCase()} field in the ${BOARD_STEPS[currentStepIndex].label} step`,
+            duration: 3500,
+            icon: <AlertCircle size={18} />,
+          });
+        }
+      }
+      return;
+    }
 
-  const isLastStep = activeStep === BOARD_STEPS[BOARD_STEPS.length - 1].id;
-  const isFirstStep = activeStep === BOARD_STEPS[0].id;
+    if (currentStepIndex < totalSteps - 1) {
+      setCompletedSteps(prev => 
+        prev.includes(activeStep) ? prev : [...prev, activeStep]
+      );
+      setActiveStep(BOARD_STEPS[currentStepIndex + 1].id);
+    }
+  }, [activeStep, currentStepIndex, totalSteps, form]);
+  
+  const handleBack = useCallback(() => {
+    if (currentStepIndex > 0) {
+      setActiveStep(BOARD_STEPS[currentStepIndex - 1].id);
+    }
+  }, [currentStepIndex]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!panelIsOpen) return;
+      
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && isLastStep) {
+        e.preventDefault();
+        submitForm();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'ArrowRight' && !isLastStep) {
+        e.preventDefault();
+        handleNext();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'ArrowLeft' && !isFirstStep) {
+        e.preventDefault();
+        handleBack();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [panelIsOpen, isLastStep, isFirstStep, submitForm, handleNext, handleBack]);
+
+  // Step Configuration
+  const stepConfig = BOARD_STEPS.map(step => ({
+    ...step,
+    icon: null, // Will be set by layout
+  }));
 
   return (
-    <SidebarShell
-      isOpen={isOpen}
-      zIndex={zIndex}
-      onClose={handleClose}
-      title={title}
-      icon={<Layout size={20} />}
-      position="left"
-      maxWidth="md"
-      isDarkMode={isDarkMode}
-    >
-      <form onSubmit={handleSubmit} className="flex flex-col h-full">
-        {/* Stepper */}
-        <Stepper<BoardStepId>
-        steps={BOARD_STEPS}
+    <FormProvider {...form}>
+      <BoardSidebarLayout
+        isOpen={panelIsOpen}
+        zIndex={zIndex}
+        onClose={handleClose}
+        panelId={panelId}
+        title="Create New Board"
+        icon={<Layout size={20} />}
         activeStep={activeStep}
         completedSteps={completedSteps}
-        onStepClick={goToStep}
-        className="mb-6"
-        />
+        steps={stepConfig}
+        onStepClick={handleStepClick}
+      >
+        <div className="flex flex-col h-full max-h-full min-h-0 w-full overflow-hidden">
+          {/* Step Content */}
+          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+            <div className="w-full max-w-full px-4">
+              {activeStep === 'basic-info' && (
+                <BasicInfoStepRHF isDarkMode={isDarkMode} />
+              )}
+              {activeStep === 'appearance' && (
+                <AppearanceStepRHF isDarkMode={isDarkMode} />
+              )}
+              {activeStep === 'settings' && (
+                <div className={cn(
+                  'rounded-xl p-6 text-center border-2 border-dashed',
+                  isDarkMode ? 'border-gray-700 text-gray-400' : 'border-gray-300 text-gray-500'
+                )}>
+                  <Settings size={32} className="mx-auto mb-3 opacity-50" />
+                  <p className="text-sm font-medium">Advanced Settings</p>
+                  <p className="text-xs mt-1">Coming soon...</p>
+                </div>
+              )}
+            </div>
+          </div>
 
-        {/* Step Content */}
-        <div className="flex-1">{renderStep()}</div>
-
-        {/* Actions */}
-        <SidebarActionBar className="mt-6">
-          <SidebarActionLeft>
-            {!isFirstStep && (
-              <Button type="button" variant="outline" onClick={goBack} className="flex-1">
-                Back
-              </Button>
-            )}
-          </SidebarActionLeft>
-          <SidebarActionRight>
-            {!isLastStep ? (
-              <Button
+          {/* Footer Navigation */}
+          <div className={cn(
+            "flex-shrink-0 pt-3 mt-3 border-t",
+            isDarkMode ? "border-gray-800" : "border-gray-200"
+          )}>
+            <div className="flex items-center justify-between gap-2">
+              <button
                 type="button"
-                onClick={goNext}
-                disabled={activeStep === 'basic-info' && !formState.title.trim()}
+                onClick={isFirstStep ? handleClose : handleBack}
+                disabled={isSubmitting}
                 className={cn(
-                  'flex-1 gap-2',
-                  'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
+                  "inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg transition-all",
+                  "hover:bg-gray-100 dark:hover:bg-gray-800",
+                  isDarkMode ? "text-gray-300" : "text-gray-600",
+                  isSubmitting && "opacity-50 cursor-not-allowed"
                 )}
               >
-                Next
-              </Button>
-            ) : (
-              <Button
-                type="submit"
-                disabled={!formState.title.trim()}
-                className={cn(
-                  'flex-1 gap-2',
-                  'bg-gradient-to-r from-blue-600 to-purple-600 text-white',
-                  'hover:shadow-lg hover:scale-105 active:scale-95',
-                  'disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100'
-                )}
-              >
-                <Sparkles size={16} />
-                {isCreating ? 'Create Board' : 'Save Changes'}
-              </Button>
+                <ArrowLeft size={14} />
+                <span className="hidden sm:inline">
+                  {isFirstStep ? 'Cancel' : 'Back'}
+                </span>
+              </button>
+
+              <span className={cn(
+                "text-xs sm:hidden",
+                isDarkMode ? "text-gray-500" : "text-gray-400"
+              )}>
+                {currentStepIndex + 1}/{totalSteps}
+              </span>
+
+              {!isLastStep ? (
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  disabled={isSubmitting}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200",
+                    "border",
+                    isDarkMode 
+                      ? "border-gray-700 text-gray-300 hover:bg-gray-800" 
+                      : "border-gray-300 text-gray-700 hover:bg-gray-50",
+                    isSubmitting && "opacity-50 cursor-not-allowed"
+                  )}
+                >
+                  <span className="hidden sm:inline">Next</span>
+                  <ArrowRight size={14} />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={submitForm}
+                  disabled={!isValid || isSubmitting}
+                  className={cn(
+                    "inline-flex items-center gap-2 px-5 py-2 text-sm font-medium rounded-lg transition-all duration-200",
+                    "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-sm",
+                    (!isValid || isSubmitting) && "opacity-50 cursor-not-allowed"
+                  )}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 size={14} className="animate-spin" />
+                      <span>Creating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles size={14} />
+                      <span>Create Board</span>
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+
+            {!isFirstStep && (
+              <p className={cn(
+                "text-[10px] text-center mt-1.5 opacity-50",
+                isDarkMode ? "text-gray-500" : "text-gray-400"
+              )}>
+                {isLastStep 
+                  ? 'Ctrl+Enter to create' 
+                  : 'Ctrl+→ next · Ctrl+← back'
+                }
+              </p>
             )}
-          </SidebarActionRight>
-        </SidebarActionBar>
-      </form>
-    </SidebarShell>
+          </div>
+        </div>
+      </BoardSidebarLayout>
+    </FormProvider>
   );
-};
+});
 
 CreateBoardSidebar.displayName = 'CreateBoardSidebar';
+
+// Need to import Settings for the settings step
+import { Settings } from 'lucide-react';
+// Add FileText and Palette imports at the top of the layout file
+import { FileText, Palette } from 'lucide-react';
+import { useCreateBoardFormRHF } from '../hooks/useCreateBoardFormRHF';

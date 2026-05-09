@@ -1,3 +1,4 @@
+// components/ui/EntityPicker/components/EntityPickerDropdown.tsx
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { EntitySearchInput } from './EntitySearchInput';
@@ -28,6 +29,9 @@ interface EntityPickerDropdownProps {
   onNameChange: (name: string) => void;
   onColorChange: (color: string) => void;
   onHandleCreate: () => void;
+  isTopPosition: boolean;
+  listVariant?: 'list' | 'grid'; 
+  gridColumns?: number; 
 }
 
 export const EntityPickerDropdown: React.FC<EntityPickerDropdownProps> = ({
@@ -53,12 +57,16 @@ export const EntityPickerDropdown: React.FC<EntityPickerDropdownProps> = ({
   onNameChange,
   onColorChange,
   onHandleCreate,
+  isTopPosition,
+  listVariant = 'list', // Default
+  gridColumns = 4, // Default
 }) => {
   if (!isOpen) return null;
 
   return (
     <div className={cn(
-      "absolute bottom-full mb-2 left-0 w-64 rounded-xl shadow-xl border z-50 p-2",
+      isTopPosition ? 'bottom-full mb-2' : 'top-full mt-2',
+      "absolute left-0 w-64 rounded-xl shadow-xl border z-50 p-2",
       isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
     )}>
       {/* Search */}
@@ -80,6 +88,8 @@ export const EntityPickerDropdown: React.FC<EntityPickerDropdownProps> = ({
         onDelete={onDelete}
         renderItem={renderItem}
         searchQuery={searchQuery}
+        variant={listVariant}
+        gridColumns={gridColumns}
       />
 
       {/* Create New */}

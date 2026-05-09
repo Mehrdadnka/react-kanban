@@ -31,6 +31,7 @@ export const MilestonePicker: React.FC<MilestonePickerProps> = ({
   return (
     <EntityPicker
       items={items}
+      isTopPosition
       selectedIds={selectedMilestones}
       onToggle={onToggle}
       onCreate={(name, color) => addMilestone(name, color || '#6B7280')}
