@@ -62,13 +62,7 @@ const BoardTitleCell: React.FC<{ board: Board }> = React.memo(({ board }) => {
         </div>
         <div className="mt-1 flex items-center gap-2">
           <div className="flex-1 h-1 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden max-w-[120px]">
-            <div
-              className={cn(
-                'h-full rounded-full transition-all',
-                progressPercent === 100 ? 'bg-green-400' : progressPercent > 50 ? 'bg-blue-400' : 'bg-amber-400'
-              )}
-              style={{ width: `${progressPercent}%` }}
-            />
+          
           </div>
           <span className="text-[10px] text-gray-400">{progressPercent}%</span>
         </div>

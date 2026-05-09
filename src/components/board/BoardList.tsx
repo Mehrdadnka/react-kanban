@@ -72,10 +72,10 @@ export const BoardList: React.FC = () => {
 
       {/* ========== MAIN CONTENT ========== */}
       <main className="flex-1 overflow-auto">
-        <div className="p-6 space-y-8">
+        <div className="p-6 flex flex-col justify-between space-y-8">
           {/* Section 1: Carousel (when boards exist) */}
           {boards.length > 0 && (
-            <section>
+            <section className='mb-6'>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <TrendingUp size={20} className="text-blue-500" />
@@ -83,7 +83,7 @@ export const BoardList: React.FC = () => {
                 </div>
               </div>
 
-              <div className='grid grid-cols-2 gap-4'>
+              <div className='grid grid-cols-2 gap-4 h-fit'>
                 <BoardCarousel
                   boards={filteredBoards}
                   onBoardClick={handleViewBoard}
@@ -94,7 +94,7 @@ export const BoardList: React.FC = () => {
                 className={cn(
                   'group relative rounded-2xl border-2 border-dashed transition-all duration-300',
                   'hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/20',
-                  'min-h-[250px] flex flex-col items-center justify-center gap-3',
+                  'min-h-[200px] mt-10 flex flex-col items-center justify-center gap-3',
                   isDarkMode ? 'border-gray-800' : 'border-gray-300'
                 )}
               >
