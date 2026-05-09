@@ -54,7 +54,7 @@ export const BoardCard: React.FC<BoardCardProps> = ({ board, onClick }) => {
   return (
     <Card
       className={cn(
-        'group cursor-pointer transition-all duration-300',
+        'group cursor-pointer min-h-[200px] transition-all duration-300',
         'hover:shadow-2xl hover:-translate-y-1',
         'border border-opacity-50',
         isDarkMode

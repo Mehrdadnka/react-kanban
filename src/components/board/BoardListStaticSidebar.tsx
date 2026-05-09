@@ -3,7 +3,9 @@ import * as Tooltip from '@radix-ui/react-tooltip';
 import { cn } from '@/lib/utils';
 import { 
   BarChart3, Calendar, Clock, Layout, Plus, Search, 
-  TrendingUp, X, GripHorizontal
+  TrendingUp, X, GripHorizontal,
+  Clock1,
+  Clock10
 } from 'lucide-react';
 import { useApp } from '@/providers/AppProvider';
 import { IconButton } from '@radix-ui/themes';
@@ -121,6 +123,24 @@ const BoardListStaticSidebar: React.FC<BoardListStaticSidebarProps> = ({
               </div>
               <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center', 'bg-blue-500/10')}>
                 <Layout className="w-6 h-6 text-blue-500" />
+              </div>
+            </div>
+          </div>
+          
+          {/* In progress Tasks */}
+          <div className={cn(
+            'rounded-xl p-4 border transition-all hover:scale-[1.02] cursor-default',
+            isDarkMode 
+              ? 'bg-gradient-to-br from-yellow-900/20 to-yellow-800/10 border-yellow-900/30' 
+              : 'bg-gradient-to-br from-yellow-50 to-yellow-100/50 border-yellow-200'
+          )}>
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-3xl font-bold text-yellow-600">{inProgressTasks}</div>
+                <div className="text-xs text-yellow-500 mt-1">In Progress Tasks</div>
+              </div>
+              <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center', 'bg-yellow-500/10')}>
+                <Clock className="w-6 h-6 text-yellow-500" />
               </div>
             </div>
           </div>

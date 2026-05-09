@@ -1,8 +1,10 @@
 // components/board/BoardList.tsx
 import React, { useMemo, useState } from 'react';
-import { Plus, Search, Sparkles, TrendingUp, Calendar, CheckCircle2, Layout, BarChart3, Clock, Activity } from 'lucide-react';
-import { useBoardStore } from '@/stores/board.store';
+import { Plus, Search, Sparkles, TrendingUp, Calendar, CheckCircle2, Layout } from 'lucide-react';
+import { Board, useBoardStore } from '@/stores/board.store';
 import { BoardCard } from './BoardCard';
+import { BoardCarousel } from './BoardCarousel';
+import { BoardTable } from './BoardTable';
 import { useApp } from '@/providers/AppProvider';
 import { cn } from '@/lib/utils';
 import { useBoardSidebarStore } from '@/stores/sidebar-engine/board-sidebar.store';
@@ -10,8 +12,9 @@ import BoardListStaticSidebar from './BoardListStaticSidebar';
 
 export const BoardList: React.FC = () => {
   const { isDarkMode } = useApp();
-  const { boards, setActiveBoard } = useBoardStore();
+  const { boards, setActiveBoard, deleteBoard } = useBoardStore();
   const openCreateBoard = useBoardSidebarStore((state) => state.openCreateBoard);
+  const openEditBoard = useBoardSidebarStore((state) => state.openEditBoard);
 
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -21,8 +24,6 @@ export const BoardList: React.FC = () => {
       board.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const boardsLength = boards.length;
-  
   const stats = useMemo(() => {
     let total = 0, done = 0, todo = 0, doing = 0;
     let lastUpdated: Date | null = null;
@@ -39,81 +40,99 @@ export const BoardList: React.FC = () => {
     return { total, done, todo, doing, lastUpdated };
   }, [boards]);
 
-  // Calculate global stats
-  let totalTasks = 0;
-  let completedTasks = 0;
-  let todoTasks = 0;
-  let inProgressTasks = 0;
-  let lastUpdated: Date | null = null;
-  
-  boards.forEach(board => {
-    const stats = useBoardStore.getState().getBoardStats(board.id);
-    totalTasks += stats.total;
-    completedTasks += stats.done;
-    todoTasks += stats.todo;
-    inProgressTasks += stats.doing;
-    
-    if (!lastUpdated || board.updatedAt > lastUpdated) {
-      lastUpdated = board.updatedAt;
-    }
-  });
+  const handleViewBoard = (board: Board) => {
+    setActiveBoard(board.id);
+  };
 
-  const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+  const handleEditBoard = (board: Board) => {
+    openEditBoard(board.id);
+  };
+
+  const handleDeleteBoard = (board: Board) => {
+    if (confirm(`Are you sure you want to delete "${board.title}"?`)) {
+      deleteBoard(board.id);
+    }
+  };
 
   return (
-    <>
-      <div className="h-full flex overflow-hidden">
-        {/* ========== SIDEBAR ========== */}
-        <BoardListStaticSidebar
-            boardsLength={boards.length}
-            queryValue={searchQuery}
-            totalTasks={stats.total}
-            todoTasks={stats.todo}
-            inProgressTasks={stats.doing}
-            completedTasks={stats.done}
-            completionRate={stats.total > 0 ? Math.round((stats.done / stats.total) * 100) : 0}
-            onQueryChange={(e) => setSearchQuery(e.target.value)}
-            onCreateBoardClick={openCreateBoard}
-            lastUpdated={stats.lastUpdated}
-        />
+    <div className="h-full flex overflow-hidden">
+      {/* ========== SIDEBAR ========== */}
+      <BoardListStaticSidebar
+        boardsLength={boards.length}
+        queryValue={searchQuery}
+        totalTasks={stats.total}
+        todoTasks={stats.todo}
+        inProgressTasks={stats.doing}
+        completedTasks={stats.done}
+        completionRate={stats.total > 0 ? Math.round((stats.done / stats.total) * 100) : 0}
+        onQueryChange={(e) => setSearchQuery(e.target.value)}
+        onCreateBoardClick={openCreateBoard}
+        lastUpdated={stats.lastUpdated}
+      />
 
-        {/* ========== MAIN CONTENT ========== */}
-        <main className="flex-1 overflow-y-auto">
-          {/* Boards Grid */}
-          <div className="p-6">
-            {filteredBoards.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {filteredBoards.map((board) => (
-                  <BoardCard
-                    key={board.id}
-                    board={board}
-                    onClick={(b) => setActiveBoard(b.id)}
-                  />
-                ))}
-                
-                {/* Create New Board Card */}
-                <button
-                  onClick={() => openCreateBoard()}
-                  className={cn(
-                    'group relative rounded-2xl border-2 border-dashed transition-all duration-300',
-                    'hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/20',
-                    'min-h-[250px] flex flex-col items-center justify-center gap-3',
-                    isDarkMode ? 'border-gray-800' : 'border-gray-300'
-                  )}
-                >
-                  <div className={cn(
-                    'w-14 h-14 rounded-2xl flex items-center justify-center transition-all',
-                    'bg-gray-100 dark:bg-gray-800 group-hover:scale-110 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/30'
-                  )}>
-                    <Plus className="w-7 h-7 text-gray-400 group-hover:text-blue-500 transition-colors" />
-                  </div>
-                  <span className="text-sm font-medium text-gray-500 group-hover:text-blue-500 transition-colors">
-                    Create New Board
-                  </span>
-                </button>
+      {/* ========== MAIN CONTENT ========== */}
+      <main className="flex-1 overflow-auto">
+        <div className="p-6 space-y-8">
+          {/* Section 1: Carousel (when boards exist) */}
+          {boards.length > 0 && (
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <TrendingUp size={20} className="text-blue-500" />
+                  <h2 className="text-lg font-semibold">Featured Boards</h2>
+                </div>
               </div>
+
+              <div className='grid grid-cols-2 gap-4'>
+                <BoardCarousel
+                  boards={filteredBoards}
+                  onBoardClick={handleViewBoard}
+                />
+              {/* Create New Board Card */}
+              <button
+                onClick={() => openCreateBoard()}
+                className={cn(
+                  'group relative rounded-2xl border-2 border-dashed transition-all duration-300',
+                  'hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/20',
+                  'min-h-[250px] flex flex-col items-center justify-center gap-3',
+                  isDarkMode ? 'border-gray-800' : 'border-gray-300'
+                )}
+              >
+                <div className={cn(
+                  'w-14 group h-14 rounded-2xl flex items-center justify-center transition-all',
+                  'bg-gray-100 dark:bg-gray-800 group-hover:scale-110 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/30'
+                )}>
+                  <Plus size={20} className="sm:size-24 group-hover:rotate-90 transition-transform duration-300" />
+                  
+                  {/* <Plus className="w-16 h-16 text-gray-400 group-hover:text-blue-500 transition-colors" /> */}
+                </div>
+                <span className="text-sm font-medium text-gray-500 group-hover:text-blue-500 transition-colors">
+                  Create New Board
+                </span>
+              </button>
+              </div>
+            </section>
+          )}
+
+          {/* Section 2: Table View */}
+          <section>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Layout size={20} className="text-purple-500" />
+                <h2 className="text-lg font-semibold">All Boards</h2>
+              </div>
+            </div>
+
+            {boards.length > 0 ? (
+              <BoardTable
+                boards={filteredBoards}
+                onViewBoard={handleViewBoard}
+                onEditBoard={handleEditBoard}
+                onDeleteBoard={handleDeleteBoard}
+              />
             ) : (
-              <div className="flex items-center justify-center min-h-[60vh]">
+              /* Empty State */
+              <div className="flex items-center justify-center min-h-[40vh]">
                 <div className="text-center">
                   {searchQuery ? (
                     <>
@@ -144,9 +163,9 @@ export const BoardList: React.FC = () => {
                 </div>
               </div>
             )}
-          </div>
-        </main>
-      </div>
-    </>
+          </section>
+        </div>
+      </main>
+    </div>
   );
 };
