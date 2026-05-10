@@ -71,6 +71,15 @@ export const calculateMultipliers = (
   return multiplier;
 };
 
+export interface AchievementDefinition {
+  id: string;
+  name: string;
+  icon: string;
+  description: string;
+  requiredAction: string;
+  requiredCount: number;
+  rewards: { xp: number; badge?: string; perk?: string };
+}
 // Achievement Definitions
 export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
   {
