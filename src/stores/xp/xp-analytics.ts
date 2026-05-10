@@ -15,6 +15,8 @@ export const useXPAnalytics = (): XPAnalytics => {
   const events = xpStore.events;
   
   const predictNextLevel = () => {
+    const xpStore = useXPStore.getState();
+    const events = xpStore.events;
     if (events.length < 5) {
       return { 
         estimatedDate: new Date(Date.now() + 7 * 86400000), 
