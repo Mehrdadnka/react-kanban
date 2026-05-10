@@ -14,6 +14,7 @@ import { DailyChallengesWidget } from './DailyChallengesWidget';
 import { SessionRecap } from './SessionRecap';
 import { cn } from '@/lib/utils';
 import { useApp } from '@/providers/AppProvider';
+import { Tab, TabItem } from '../ui/tab/Tab';
 
 export const XPOverviewPage: React.FC = () => {
   const { isDarkMode } = useApp();
@@ -30,8 +31,140 @@ export const XPOverviewPage: React.FC = () => {
   const shopItems = powerUpStore.getShopPowerUps();
   const activeChallenges = challengeStore.challenges.filter(c => !c.claimed);
   
+
+const tabItems: TabItem[] = [
+  {
+    id: 'overview',
+    label: 'Achievements',
+    icon: <Trophy size={16} />,
+    content: (
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+           {achievements.slice(0, 9).map(ach => (
+                <div
+                  key={ach.id}
+                  className={cn(
+                    'rounded-xl border p-4 text-center transition-all',
+                    ach.completed
+                      ? 'bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 border-yellow-200 dark:border-yellow-800'
+                      : 'bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 opacity-60'
+                  )}
+                >
+                  <div className="text-3xl mb-2">{ach.icon}</div>
+                  <div className="text-sm font-medium">{ach.name}</div>
+                  <div className="text-xs text-gray-400 mt-1">
+                    {ach.currentCount}/{ach.requiredCount}
+                  </div>
+                  {ach.completed && (
+                    <div className="text-[10px] text-green-600 font-medium mt-1">
+                      ✅ Unlocked
+                    </div>
+                  )}
+                </div>
+              ))}
+        </div>
+      </div>
+    ),
+  },
+  {
+    id: 'challenges',
+    label: 'Challenges',
+    icon: <Target size={16} />,
+    content: (
+      <div className="space-y-4">
+        <DailyChallengesWidget />
+        {activeChallenges.length > 0 && (
+          <div className="flex items-center gap-2 text-xs text-gray-400">
+            <Clock size={12} />
+            <span>Resets in {formatTimeRemaining(activeChallenges[0].expiresAt)}</span>
+          </div>
+        )}
+      </div>
+    ),
+  },
+  {
+    id: 'shop',
+    label: 'Shop',
+    icon: <ShoppingBag size={16} />,
+    content: (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold flex items-center gap-2">
+            <ShoppingBag size={16} className="text-blue-500" />
+            PowerUp Shop
+          </h3>
+          <span className="text-sm text-gray-500">
+            Balance: <span className="font-bold text-yellow-600">{xpStore.totalXP} XP</span>
+          </span>
+        </div>
+        <div className="grid gap-3">
+          {shopItems.map(item => {
+            const canAfford = xpStore.totalXP >= item.price;
+                
+            return (
+              <div
+                key={item.id}
+                className={cn(
+                  'rounded-xl border p-4 flex items-center gap-4',
+                  isDarkMode ? 'bg-gray-900/50 border-gray-800' : 'bg-white border-gray-200',
+                  !canAfford && 'opacity-50'
+                )}
+              >
+                <span className="text-3xl">{item.icon}</span>
+                    
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-sm">{item.name}</div>
+                    <div className="text-xs text-gray-500">{item.description}</div>
+                      {item.quantity > 0 && (
+                        <div className="text-xs text-blue-500 mt-1">
+                          Owned: {item.quantity}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col items-end gap-2">
+                      <span className="text-sm font-bold text-yellow-600">
+                        {item.price} XP
+                      </span>
+                      
+                      {item.quantity > 0 ? (
+                        <button
+                          onClick={() => powerUpStore.usePowerUp(item.id)}
+                          className="px-3 py-1.5 bg-green-500 text-white text-xs rounded-lg font-medium hover:bg-green-600"
+                        >
+                          Use
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            const result = powerUpStore.purchasePowerUp(item.id);
+                            if (!result.success) {
+                              alert(result.message);
+                            }
+                          }}
+                          disabled={!canAfford}
+                          className={cn(
+                            'px-3 py-1.5 text-xs rounded-lg font-medium',
+                            canAfford
+                              ? 'bg-blue-500 text-white hover:bg-blue-600'
+                              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                          )}
+                        >
+                          Buy
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+        </div>
+      </div>
+    ),
+  },
+];
+
   return (
-    <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
+    <div className="max-w-full h-[calc(100vh-100px)] mx-auto p-4 md:p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -98,153 +231,18 @@ export const XPOverviewPage: React.FC = () => {
 
       {/* Tabs */}
       <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
-        {[
-          { id: 'overview', label: 'Achievements', icon: Trophy },
-          { id: 'challenges', label: 'Challenges', icon: Target },
-          { id: 'shop', label: 'Shop', icon: ShoppingBag },
-        ].map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
-            className={cn(
-              'flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-sm font-medium transition-all',
-              activeTab === tab.id
-                ? 'bg-white dark:bg-gray-700 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-            )}
-          >
-            <tab.icon size={16} />
-            {tab.label}
-          </button>
-        ))}
-      </div>
+       
 
-      {/* Tab Content */}
-      <div className="min-h-[400px]">
-        {/* Achievements Tab */}
-        {activeTab === 'overview' && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {achievements.slice(0, 9).map(ach => (
-                <div
-                  key={ach.id}
-                  className={cn(
-                    'rounded-xl border p-4 text-center transition-all',
-                    ach.completed
-                      ? 'bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 border-yellow-200 dark:border-yellow-800'
-                      : 'bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 opacity-60'
-                  )}
-                >
-                  <div className="text-3xl mb-2">{ach.icon}</div>
-                  <div className="text-sm font-medium">{ach.name}</div>
-                  <div className="text-xs text-gray-400 mt-1">
-                    {ach.currentCount}/{ach.requiredCount}
-                  </div>
-                  {ach.completed && (
-                    <div className="text-[10px] text-green-600 font-medium mt-1">
-                      ✅ Unlocked
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Challenges Tab */}
-        {activeTab === 'challenges' && (
-          <div className="space-y-4">
-            <DailyChallengesWidget />
-            
-            {/* Expiry info */}
-            {activeChallenges.length > 0 && (
-              <div className="flex items-center gap-2 text-xs text-gray-400">
-                <Clock size={12} />
-                <span>
-                  Resets in {formatTimeRemaining(activeChallenges[0].expiresAt)}
-                </span>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Shop Tab */}
-        {activeTab === 'shop' && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold flex items-center gap-2">
-                <ShoppingBag size={16} className="text-blue-500" />
-                PowerUp Shop
-              </h3>
-              <span className="text-sm text-gray-500">
-                Balance: <span className="font-bold text-yellow-600">{xpStore.totalXP} XP</span>
-              </span>
-            </div>
-
-            <div className="grid gap-3">
-              {shopItems.map(item => {
-                const canAfford = xpStore.totalXP >= item.price;
-                
-                return (
-                  <div
-                    key={item.id}
-                    className={cn(
-                      'rounded-xl border p-4 flex items-center gap-4',
-                      isDarkMode ? 'bg-gray-900/50 border-gray-800' : 'bg-white border-gray-200',
-                      !canAfford && 'opacity-50'
-                    )}
-                  >
-                    <span className="text-3xl">{item.icon}</span>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm">{item.name}</div>
-                      <div className="text-xs text-gray-500">{item.description}</div>
-                      {item.quantity > 0 && (
-                        <div className="text-xs text-blue-500 mt-1">
-                          Owned: {item.quantity}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex flex-col items-end gap-2">
-                      <span className="text-sm font-bold text-yellow-600">
-                        {item.price} XP
-                      </span>
-                      
-                      {item.quantity > 0 ? (
-                        <button
-                          onClick={() => powerUpStore.usePowerUp(item.id)}
-                          className="px-3 py-1.5 bg-green-500 text-white text-xs rounded-lg font-medium hover:bg-green-600"
-                        >
-                          Use
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            const result = powerUpStore.purchasePowerUp(item.id);
-                            if (!result.success) {
-                              alert(result.message);
-                            }
-                          }}
-                          disabled={!canAfford}
-                          className={cn(
-                            'px-3 py-1.5 text-xs rounded-lg font-medium',
-                            canAfford
-                              ? 'bg-blue-500 text-white hover:bg-blue-600'
-                              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                          )}
-                        >
-                          Buy
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </div>
+<Tab
+  items={tabItems}
+  defaultValue="overview"
+  value={activeTab}
+  onValueChange={(value) => setActiveTab(value as any)}
+  isDarkMode={isDarkMode}
+  size="default"
+  variant="underline" // یا 'underline' بسته به طراحی
+/>
+    </div>
     </div>
   );
 };

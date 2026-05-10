@@ -1,9 +1,9 @@
-import { RouterProvider, Routes, Route } from './router';
+import React from 'react';
+import { Routes, Route } from './router';
 import MainLayout from "./components/layout/MainLayout";
 import { Home } from './router/Pages/Home';
 import { Tasks } from './router/Pages/Tasks';
 import { Calendar } from './router/Pages/Calendar';
-import React from 'react';
 import { useEventBus } from './stores/core/event-bus.store';
 import { EventBusDevPanel } from '@/components/devtools/EventBusDevPanel';
 import { AppInitializer } from './components/AppInitializer';

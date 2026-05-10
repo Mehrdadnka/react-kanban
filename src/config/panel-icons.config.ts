@@ -6,7 +6,8 @@ import {
   LucideIcon, AlertTriangle, TrendingUp,
   Activity, ArrowRight,
   Eye,
-  Layout
+  Layout,
+  Sparkles
 } from 'lucide-react';
 
 export type { LucideIcon } from 'lucide-react';
@@ -48,7 +49,7 @@ export const PANEL_ICONS: Record<string, PanelIconConfig> = {
     label: 'Search',
     description: 'Search across all tasks',
   },
-    'notification-center': {
+  'notification-center': {
     icon: Bell,
     label: 'Notification Center',
     description: 'XP, achievements, and challenge notifications',
@@ -69,6 +70,10 @@ export const NAV_ICONS: Record<string, PanelIconConfig> = {
   'home': {
     icon: Home,
     label: 'Home',
+  },
+  'xp': { 
+    icon: Sparkles, 
+    label: 'XP Center' 
   },
   'tasks': {
     icon: ListTodo,

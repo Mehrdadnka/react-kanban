@@ -93,7 +93,18 @@ export const SidebarToolsSection: React.FC<SidebarToolsSectionProps> = ({ varian
         isDarkMode={isDarkMode}
         size={variant === 'full' ? 20 : 22}
       />
-      
+      <XPWidget 
+        panelPosition="right"
+        panelOffset={16}
+        panelWidth={300}
+        panelHeight={400}
+      />      
+
+
+      <Separator isDarkMode={isDarkMode} className={cn(
+        'mx-auto',
+        variant === 'full' ? 'w-full' : 'w-10'
+      )} size='2' />
       {/* Settings */}
       <SidebarItem
         id="settings"
@@ -116,12 +127,6 @@ export const SidebarToolsSection: React.FC<SidebarToolsSectionProps> = ({ varian
                 : 'hover:text-gray-700 hover:bg-gray-100'
         )}
       />
-
-      <Separator isDarkMode={isDarkMode} className={cn(
-        'mx-auto',
-        variant === 'full' ? 'w-full' : 'w-10'
-      )} size='2' />
-      <XPWidget />
       <SidebarItem
         id="theme"
         icon={isDarkMode ? <Sun size={variant === 'full' ? 20 : 20} /> : <Moon size={variant === 'full' ? 20 : 20} />}
