@@ -7,6 +7,7 @@ import React from 'react';
 import { useEventBus } from './stores/core/event-bus.store';
 import { EventBusDevPanel } from '@/components/devtools/EventBusDevPanel';
 import { AppInitializer } from './components/AppInitializer';
+import { XPOverviewPage } from './components/xp/XPOverviewPage';
 
 function App() {
   React.useEffect(() => {
@@ -34,6 +35,9 @@ function App() {
           </Route>
           <Route path="/calendar">
             <Calendar />
+          </Route>
+          <Route path="/xp">
+            <XPOverviewPage />
           </Route>
         </Routes>
             </AppInitializer>
