@@ -7,6 +7,7 @@ import { QuickNotesSidebar } from '@/features/QuickNotesSidebar/QuickNotesSideba
 import { SettingsSidebar } from '@/features/SettingsSidebar/SettingsSidebar';
 import { TaskViewSidebar } from '@/features/TaskSidebars/view/TaskViewSidebar';
 import { CreateBoardSidebar } from '@/features/BoardSidebars/create/CreateBoardSidebar';
+import { NotificationSidebar } from '../notifications/NotificationSidebar';
 
 
 const SIDEBAR_POSITION = 'left';
@@ -65,6 +66,15 @@ const SearchSidebarRegistrar: React.FC = () => {
   });
   return null;
 };
+const NotificationSidebarRegistrar: React.FC = () => {
+  useSidebarPanel({
+    id: 'notification-center',
+    component: NotificationSidebar,
+    priority: 25, // Higher priority to appear on top
+    position: 'right', // Open from right side
+  });
+  return null;
+};
 const SettingsSidebarRegistrar: React.FC = () => {
   useSidebarPanel({
     id: 'settings-sidebar',
@@ -83,6 +93,7 @@ export const SidebarRegistry: React.FC = () => {
       <DashboardSidebarRegistrar />
       <QuickNotesSidebarRegistrar />
       <SearchSidebarRegistrar />
+      <NotificationSidebarRegistrar />
       <SettingsSidebarRegistrar />
     </>
   );
