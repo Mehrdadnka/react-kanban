@@ -9,6 +9,7 @@ import { useQuickNotesStore } from '@/stores/quick-notes.store';
 import { useSidebarEngineStore } from '@/stores/sidebar-engine/sidebar-engine.store'; // اضافه کن
 import { useQuickNotesControl } from '../hooks/useQuickNotesControl';
 import { useSettingsControl } from '../hooks/useSettingsControl';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
 
 interface SidebarToolsSectionProps {
   variant?: 'icon-only' | 'full';
@@ -17,7 +18,12 @@ interface SidebarToolsSectionProps {
 export const SidebarToolsSection: React.FC<SidebarToolsSectionProps> = ({ variant = 'icon-only' }) => {
   const { isDarkMode, toggleDarkMode } = useApp();
   const { SearchIcon, isSearchOpen, isSearchMinimized, handleSearchClick, searchLabel } = useSearchControl();
-    const { 
+
+  const handleNotificationClick = () => {
+    useSidebarEngineStore.getState().open('notification-center');
+  };
+
+  const { 
     QuickNotesIcon, 
     isQuickNotesOpen, 
     isQuickNotesMinimized, 
@@ -80,6 +86,11 @@ export const SidebarToolsSection: React.FC<SidebarToolsSectionProps> = ({ varian
                 ? 'hover:text-gray-200 hover:bg-gray-800'
                 : 'hover:text-gray-700 hover:bg-gray-100'
         )}
+      />
+      <NotificationBell
+        onClick={handleNotificationClick}
+        isDarkMode={isDarkMode}
+        size={variant === 'full' ? 20 : 22}
       />
       
       {/* Settings */}

@@ -4,6 +4,7 @@ import { useApp } from '@/providers/AppProvider';
 import { NAV_ICONS } from '@/config/panel-icons.config';
 import { SidebarItem } from '@/features/sidebar/components/SidebarItem';
 import { cn } from '@/lib/utils';
+import SynapseLogo from '@/components/SynapseLogo/SynapseLogo';
 
 interface SidebarNavSectionProps {
   variant?: 'icon-only' | 'full';
@@ -18,6 +19,8 @@ export const SidebarNavSection: React.FC<SidebarNavSectionProps> = ({ variant = 
       'flex flex-col gap-1 py-4',
       variant === 'full' ? 'px-3' : 'items-center'
     )}>
+      <SynapseLogo size={variant === 'full' ? 64 : 48} isDarkMode={isDarkMode} />
+
       {Object.entries(NAV_ICONS).map(([id, config]) => {
         const Icon = config.icon;
         const path = id === 'home' ? '/' : `/${id}`;

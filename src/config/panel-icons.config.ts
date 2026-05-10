@@ -48,15 +48,20 @@ export const PANEL_ICONS: Record<string, PanelIconConfig> = {
     label: 'Search',
     description: 'Search across all tasks',
   },
-  'settings-sidebar': {
-    icon: Settings,
-    label: 'Settings',
-    description: 'Application settings',
+    'notification-center': {
+    icon: Bell,
+    label: 'Notification Center',
+    description: 'XP, achievements, and challenge notifications',
   },
   'notifications-panel': {
     icon: Bell,
     label: 'Notifications',
     description: 'Task notifications',
+  },
+  'settings-sidebar': {
+    icon: Settings,
+    label: 'Settings',
+    description: 'Application settings',
   },
 } as const;
 
