@@ -1,4 +1,4 @@
-// stores/board.store.ts - REFACTORED
+import React from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
@@ -224,6 +224,3 @@ export const useBoardEventListeners = () => {
     };
   }, []);
 };
-
-// Need to import React for the hook
-import React from 'react';
