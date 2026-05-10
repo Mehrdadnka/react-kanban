@@ -1,22 +1,26 @@
-// components/AppInitializer.tsx
+// components/AppInitializer.tsx - UPDATED
 import React, { useEffect } from 'react';
 import { useBoardEventListeners } from '@/stores/board.store';
 import { useXPEventHandlers } from '@/stores/xp/xp-event-handlers';
+import { useChallengeEventHandlers } from '@/stores/xp/challenge-event-handlers';
+import { useNotificationListeners } from '@/stores/notifications/xp-notifications.store';
 import { useEventBus } from '@/stores/core/event-bus.store';
 
 export const AppInitializer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Setup ALL event listeners - order matters!
-  useBoardEventListeners();  // Priority: HIGH
-  useXPEventHandlers();      // Priority: NORMAL
+  // Setup ALL event listeners
+  useBoardEventListeners();      // Board stats cache
+  useXPEventHandlers();          // XP awarding
+  useChallengeEventHandlers();   // Daily challenges
+  useNotificationListeners();    // Notification center
   
   useEffect(() => {
     const eventBus = useEventBus.getState();
     
     // Boot event
     eventBus.emit('system:boot');
-    console.log('🚀 TaskFlow booted successfully');
+    console.log('🚀 TaskFlow booted with all systems');
     
-    // Daily streak check
+    // Daily check
     const checkDaily = () => {
       const lastCheck = localStorage.getItem('last-daily-check');
       const today = new Date().toDateString();
@@ -28,22 +32,9 @@ export const AppInitializer: React.FC<{ children: React.ReactNode }> = ({ childr
     };
     
     checkDaily();
-    
-    // Check every hour for day change
     const interval = setInterval(checkDaily, 3600000);
     
-    // Debug: Log event bus status periodically
-    const debugInterval = process.env.NODE_ENV === 'development' 
-      ? setInterval(() => {
-          const debug = eventBus.debug();
-          console.log('📊 EventBus:', `${debug.historyCount} events, ${Object.keys(debug.listeners).length} listener types`);
-        }, 60000)
-      : null;
-    
-    return () => {
-      clearInterval(interval);
-      if (debugInterval) clearInterval(debugInterval);
-    };
+    return () => clearInterval(interval);
   }, []);
   
   return <>{children}</>;

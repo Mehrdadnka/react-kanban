@@ -54,6 +54,15 @@ export interface EventCatalog {
     name: string; 
     rewards: { xp: number; badge?: string; perk?: string };
   };
+
+  // Challenge Events
+  'challenges:generated': { count: number; totalReward: number };
+  'challenge:completed': { challengeId: string; title: string; reward: number };
+  'challenge:claimed': { challengeId: string; reward: number };
+  
+  // PowerUp Events
+  'powerup:used': { powerUpId: string; effect: { type: string; value: number } };
+  'powerup:unlocked': { powerUpId: string; name: string };
 }
 
 export type EventName = keyof EventCatalog;
