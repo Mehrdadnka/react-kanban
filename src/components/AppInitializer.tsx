@@ -5,6 +5,8 @@ import { useXPEventHandlers } from '@/stores/xp/xp-event-handlers';
 import { useChallengeEventHandlers } from '@/stores/xp/challenge-event-handlers';
 import { useNotificationListeners } from '@/stores/notifications/xp-notifications.store';
 import { useEventBus } from '@/stores/core/event-bus.store';
+import { useSessionTracker } from '@/stores/xp/session.store';
+import { usePowerUpStore } from '@/stores/xp/powerups.store';
 
 export const AppInitializer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Setup ALL event listeners
@@ -12,6 +14,7 @@ export const AppInitializer: React.FC<{ children: React.ReactNode }> = ({ childr
   useXPEventHandlers();          // XP awarding
   useChallengeEventHandlers();   // Daily challenges
   useNotificationListeners();    // Notification center
+  useSessionTracker();
   
   useEffect(() => {
     const eventBus = useEventBus.getState();
@@ -33,6 +36,7 @@ export const AppInitializer: React.FC<{ children: React.ReactNode }> = ({ childr
     
     checkDaily();
     const interval = setInterval(checkDaily, 3600000);
+    usePowerUpStore.getState().checkUnlocks();
     
     return () => clearInterval(interval);
   }, []);

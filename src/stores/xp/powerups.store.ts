@@ -124,7 +124,7 @@ export const usePowerUpStore = create<PowerUpState>()(
       powerups: POWERUP_DEFINITIONS.map(p => ({ ...p, quantity: 0 })),
       activeBoosts: [],
 
-      // 🛒 Purchase with XP
+      // Purchase with XP
       purchasePowerUp: (powerUpId) => {
         const powerup = get().powerups.find(p => p.id === powerUpId);
         if (!powerup) return { success: false, message: 'Power-up not found' };
@@ -148,7 +148,9 @@ export const usePowerUpStore = create<PowerUpState>()(
           boardId: 'shop'
         });
         
-        // Actually deduct: we need a spendXP method
+        
+        const spent = xpStore.spendXP(powerup.price, `Purchased ${powerup.name}`);
+        if (!spent) return { success: false, message: 'Transaction failed' };
         // Quick workaround: we'll track purchases separately
         
         set(state => ({
@@ -168,7 +170,7 @@ export const usePowerUpStore = create<PowerUpState>()(
         return { success: true, message: `Purchased ${powerup.name}!` };
       },
 
-      // ⚡ Use power-up
+      // Use power-up
       usePowerUp: (powerUpId) => {
         const powerup = get().powerups.find(p => p.id === powerUpId);
         if (!powerup || powerup.quantity <= 0) return false;

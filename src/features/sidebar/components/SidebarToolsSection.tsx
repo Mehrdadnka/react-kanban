@@ -10,6 +10,7 @@ import { useSidebarEngineStore } from '@/stores/sidebar-engine/sidebar-engine.st
 import { useQuickNotesControl } from '../hooks/useQuickNotesControl';
 import { useSettingsControl } from '../hooks/useSettingsControl';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
+import { XPWidget } from '@/components/xp/XPWidget';
 
 interface SidebarToolsSectionProps {
   variant?: 'icon-only' | 'full';
@@ -120,7 +121,7 @@ export const SidebarToolsSection: React.FC<SidebarToolsSectionProps> = ({ varian
         'mx-auto',
         variant === 'full' ? 'w-full' : 'w-10'
       )} size='2' />
-
+      <XPWidget />
       <SidebarItem
         id="theme"
         icon={isDarkMode ? <Sun size={variant === 'full' ? 20 : 20} /> : <Moon size={variant === 'full' ? 20 : 20} />}
