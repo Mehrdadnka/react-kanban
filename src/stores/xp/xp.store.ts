@@ -284,7 +284,24 @@ export const useXPStore = create<XPState>()(
           return { activeMultipliers: newMultipliers };
         });
       },
+      spendXP: (amount, reason) => {
+        const state = get();
+        if (state.totalXP < amount) return false;
+  
+        const newTotalXP = state.totalXP - amount;
+        const levelInfo = calculateLevel(newTotalXP);
       
+        set({
+          totalXP: newTotalXP,
+          currentLevel: levelInfo.level,
+          xpToNextLevel: levelInfo.xpToNextLevel,
+          levelProgress: levelInfo.progress,
+          levelTitle: levelInfo.title,
+        });
+      
+        return true;
+      },
+
       resetXP: () => {
         set({
           totalXP: 0,

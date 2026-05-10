@@ -110,5 +110,6 @@ export interface XPState {
     progress: number;
     title: string;
   };
-    getLevelInfo: () => { level: number; progress: number; title: string; nextLevelXP: number }
+  getLevelInfo: () => { level: number; progress: number; title: string; nextLevelXP: number }
+  spendXP: (amount: number, reason: string) => boolean;
 }

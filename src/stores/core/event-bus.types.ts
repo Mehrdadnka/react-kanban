@@ -63,6 +63,7 @@ export interface EventCatalog {
   // PowerUp Events
   'powerup:used': { powerUpId: string; effect: { type: string; value: number } };
   'powerup:unlocked': { powerUpId: string; name: string };
+  'powerup:purchased': { powerUpId: string; name: string; price: number }; 
 }
 
 export type EventName = keyof EventCatalog;
