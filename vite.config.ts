@@ -9,4 +9,11 @@ export default defineConfig({
     react(),
     tsconfigPaths()
   ],
+  optimizeDeps: {
+    include: [
+      'three',
+      '@react-three/fiber',
+      '@react-three/drei',
+    ],
+  },
 })

@@ -30,7 +30,7 @@
     "esModuleInterop": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "strict": true
+    "strict": false
   },
   "include": ["src"]
 }

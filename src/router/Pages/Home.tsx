@@ -6,13 +6,11 @@ export function Home() {
   const { isDarkMode } = useApp();
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
-      <div className="flex items-start justify-center w-fit">
-        <div className="justify-center flex flex-row items-start">
-          <SynapseLogo size={80} isDarkMode={isDarkMode} />
-          <h1 className="text-5xl my-auto font-bold bg-gradient-to-r from-blue-500 to-violet-500 bg-clip-text text-transparent">
-            Synapse
-          </h1>
+    <div className="h-full flex flex-row overflow-hidden">
+      <div className=" flex items-start ">
+        <div className="w-fit justify-center flex flex-row items-start">
+          {/* <SynapseLogo size={200} isDarkMode={isDarkMode} /> */}
+       
         </div>
         </div>
       <div className="flex-1 min-h-0">
