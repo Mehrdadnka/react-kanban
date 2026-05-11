@@ -1,7 +1,9 @@
+// useCreateTaskFormRHF.ts - UPDATED
 import { useCallback, useMemo } from 'react';
 import { Resolver, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTaskStore } from '@/stores/task.store';
+import { useTaskSidebarStore } from '@/stores/sidebar-engine/task-sidebar.store'; // 🎯 ADD
 import { useAttachments } from './useAttachments';
 import { z } from 'zod';
 import { 
@@ -69,7 +71,7 @@ export const useCreateTaskFormRHF = (onSuccess: () => void) => {
   const watchTitle = watch('title');
   const watchShortDesc = watch('shortDescription');
 
-  // ──── Attachments Hook (kept separate as it's UI logic) ────
+  // ──── Attachments Hook ────
   const {
     fileInputRef,
     handleClick: handleAttachmentClick,
@@ -126,6 +128,12 @@ export const useCreateTaskFormRHF = (onSuccess: () => void) => {
   const submitForm = useCallback(async () => {
     await handleSubmit(async (data: TaskFormValues) => {
       try {
+        // 🎯 GET boardId from sidebar store
+        const { defaultBoardId } = useTaskSidebarStore.getState();
+        const boardId = defaultBoardId || 'board-1'; // Fallback
+        
+        console.log('📝 Creating task with boardId:', boardId);
+        
         const taskData = {
           title: data.title.trim(),
           shortDescription: data.shortDescription.trim(),
@@ -142,18 +150,18 @@ export const useCreateTaskFormRHF = (onSuccess: () => void) => {
           workingHoursEnd: data.workingHoursEnd || undefined,
           reminderDate: data.reminderDate || null,
           estimatedHours: data.estimatedHours ?? null,
-
+          boardId: boardId, // 🎯 ADD boardId
           attachments: data.attachments || [],
           relatedTaskIds: data.relatedTaskIds || [],
           assigneeId: data.assigneeId || null,
         };
 
         await addTask(taskData as any);
-        console.log('task data: ',taskData)
+        console.log('✅ Task created successfully:', taskData);
         reset(defaultValues);
         onSuccess();
       } catch (error) {
-        console.error('Failed to create task:', error);
+        console.error('❌ Failed to create task:', error);
       }
     })();
   }, [handleSubmit, addTask, onSuccess, reset]);

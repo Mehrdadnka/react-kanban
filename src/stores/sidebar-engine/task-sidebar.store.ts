@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { Task, TaskPriority, TaskType, Attachment } from '@/types/task.types';
 import { useSidebarEngineStore } from '@/stores/sidebar-engine/sidebar-engine.store';
+import { useBoardStore } from '../board.store';
+import { useTaskStore } from '../task.store';
 
 export type SidebarMode = 'create' | 'view' | 'edit';
 export type StepId = 'quick-create' | 'full-details' | 'schedule' | 'meta';
@@ -23,6 +25,7 @@ export interface BreadcrumbItem {
 }
 
 export interface TaskFormState {
+  boardId?: string;
   title: string;
   shortDescription: string;
   type: TaskType;
@@ -54,6 +57,7 @@ export interface TaskFormState {
 }
 
 interface TaskSidebarState {
+  defaultBoardId?: string;
   mode: SidebarMode;
   selectedTask: Task | null;
   defaultColumnId: string;
@@ -68,7 +72,8 @@ interface TaskSidebarState {
   formState: TaskFormState;
 
   // Actions
-  openCreateSidebar: (options?: { 
+  openCreateSidebar: (options?: {
+    defaultBoardId?: string;  
     defaultColumnId?: string; 
     parentTaskId?: string;
     initialData?: Partial<TaskFormState>;
@@ -97,6 +102,7 @@ interface TaskSidebarState {
 
 // ──── Initial State ────
 const initialFormState: TaskFormState = {
+  boardId: undefined,
   title: '',
   shortDescription: '',
   type: 'task',
@@ -117,6 +123,7 @@ const initialFormState: TaskFormState = {
 
 // ──── Helper: Map Task to FormState ────
 const taskToFormState = (task: Task): TaskFormState => ({
+  boardId: task.boardId,
   title: task.title,
   shortDescription: task.shortDescription || '',
   type: task.type,
@@ -144,6 +151,7 @@ const taskToFormState = (task: Task): TaskFormState => ({
 export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
   mode: 'create',
   selectedTask: null,
+  defaultBoardId: undefined,
   defaultColumnId: 'todo',
   breadcrumbs: [],
   parentTaskId: undefined,
@@ -154,14 +162,17 @@ export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
   // ──── Open for new task ────
   openCreateSidebar: (options = {}) => {
     const { 
-      defaultColumnId = 'todo', 
+      defaultColumnId = 'todo',
+      defaultBoardId, 
       parentTaskId: parentId,
       initialData 
     } = options;
-    
+
+    const boardId = defaultBoardId || useBoardStore.getState().activeBoardId;
     set({
       mode: 'create',
       selectedTask: null,
+      defaultBoardId: boardId,
       defaultColumnId,
       parentTaskId: parentId,
       breadcrumbs: parentId
@@ -174,19 +185,26 @@ export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
       completedSteps: [],
       formState: { 
         ...initialFormState, 
+        boardId: boardId,
         columnId: defaultColumnId,
         ...initialData, // Allow overriding initial data
       },
     });
     useSidebarEngineStore.getState().open('create-task-sidebar', { 
       mode: 'create', 
+      boardId: boardId,
       parentTaskId: parentId 
     });
   },
 
   // ──── Create sub-task ────
   openCreateSubTaskSidebar: (parentTaskId: string) => {
-    get().openCreateSidebar({ parentTaskId });
+    // get().openCreateSidebar({ parentTaskId });
+    const parentTask = useTaskStore.getState().tasks.find(t => t.id === parentTaskId);
+    get().openCreateSidebar({ 
+      parentTaskId,
+      defaultBoardId: parentTask?.boardId // Inherit board from parent
+    });
   },
 
   // ──── View task ────
@@ -194,6 +212,7 @@ export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
     set({
       mode: 'view',
       selectedTask: task,
+      defaultBoardId: task.boardId,
       parentTaskId: task.parentId,
       breadcrumbs: [
         { label: 'Tasks' },
@@ -216,6 +235,7 @@ export const useTaskSidebarStore = create<TaskSidebarState>((set, get) => ({
     set({
       mode: 'edit',
       selectedTask: task,
+      defaultBoardId: task.boardId, 
       parentTaskId: task.parentId,
       breadcrumbs: [
         { label: 'Tasks' },

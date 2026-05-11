@@ -1,4 +1,5 @@
-import React, { useState, useCallback, useMemo } from 'react';
+// KanbanBoard.tsx - COMPLETE FIXED VERSION
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { TooltipProvider } from '@radix-ui/react-tooltip';
 import { IconButton } from '@radix-ui/themes';
@@ -8,12 +9,14 @@ import { DndProvider } from '../../providers/DndProvider';
 import { useApp } from '@/providers/AppProvider';
 import { useTaskStore } from '@/stores/task.store';
 import { useColumnStore } from '@/stores/column.store';
+import { useBoardStore } from '@/stores/board.store';
 import { cn } from '@/lib/utils';
 import { Task } from '@/types/task.types';
 import { ColumnManager } from '@/features/ColumnManager/ColumnManager';
 import { FilterBar, FilterState } from './FilterBar';
 import { useTaskSidebarStore } from '@/stores/sidebar-engine/task-sidebar.store';
 import { FilterSidebar } from './FilterSidebar';
+import { useEventBus } from '@/stores/core/event-bus.store';
 
 // Icon Resolver
 const ICON_MAP: Record<string, React.FC<{ size?: number; className?: string }>> = {
@@ -39,15 +42,59 @@ interface KanbanBoardProps {
 
 export const KanbanBoard: React.FC<KanbanBoardProps> = ({ boardId }) => {
   const { isDarkMode } = useApp();
-  const { tasks } = useTaskStore();
+  const { tasks, addTask } = useTaskStore();
   const { columns } = useColumnStore();
+  const { activeBoardId, getActiveBoard } = useBoardStore();
   const { openCreateSidebar, openViewSidebar } = useTaskSidebarStore();
   const [showColumnManager, setShowColumnManager] = useState(false);
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
   
+  // 🎯 FIX: Use activeBoardId from store instead of prop
+  const currentBoardId = activeBoardId || boardId;
+  const activeBoard = getActiveBoard();
+
+  // 🎯 FIX: Set active board if boardId prop changes and no active board
+  useEffect(() => {
+    if (boardId && !activeBoardId) {
+      useBoardStore.getState().setActiveBoard(boardId);
+    }
+  }, [boardId, activeBoardId]);
+
+  // 🎯 FIX: Filter tasks by active board
   const boardTasks = useMemo(() => {
-    return tasks.filter(t => t.boardId === boardId);
-  }, [tasks, boardId]);
+    console.log('🔍 Filtering tasks for board:', currentBoardId);
+    console.log('📊 All tasks:', tasks);
+    const filtered = tasks.filter(t => t.boardId === currentBoardId);
+    console.log('✅ Board tasks:', filtered);
+    return filtered;
+  }, [tasks, currentBoardId]);
+
+  // Reset filters when board changes
+  useEffect(() => {
+    setFilters(DEFAULT_FILTERS);
+  }, [currentBoardId]);
+
+  // 🎯 Listen for task events to refresh board stats
+  useEffect(() => {
+    const eventBus = useEventBus.getState();
+    
+    const handleTaskChange = (payload: any) => {
+      // Force re-render when tasks change
+      console.log('🔄 Task event received:', payload);
+      useTaskStore.getState(); // Trigger re-render
+    };
+
+    const listenerIds = [
+      eventBus.on('task:created', handleTaskChange, { priority: 10 }),
+      eventBus.on('task:updated', handleTaskChange, { priority: 10 }),
+      eventBus.on('task:deleted', handleTaskChange, { priority: 10 }),
+      eventBus.on('task:moved', handleTaskChange, { priority: 10 }),
+    ];
+
+    return () => {
+      listenerIds.forEach(id => eventBus.off(id));
+    };
+  }, []);
 
   const getColumnTasks = useCallback((columnId: string) => {
     return boardTasks
@@ -58,9 +105,9 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ boardId }) => {
   const sortedColumns = useMemo(() => [...columns].sort((a, b) => a.order - b.order), [columns]);
   const columnIds = useMemo(() => sortedColumns.map(c => c.id), [sortedColumns]);
 
-  // Filtered tasks
+  // 🎯 FIX: Filter from boardTasks instead of all tasks
   const filteredTasks = useMemo(() => {
-    let result = tasks;
+    let result = boardTasks;
 
     if (filters.search) {
       const q = filters.search.toLowerCase();
@@ -83,7 +130,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ boardId }) => {
     }
 
     return result;
-  }, [tasks, filters]);
+  }, [boardTasks, filters]);
+
   const [isFilterExpanded, setIsFilterExpanded] = useState<boolean>(false);
 
   const handleTaskClick = useCallback((task: Task) => {
@@ -91,10 +139,38 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ boardId }) => {
   }, [openViewSidebar]);
 
   const handleQuickAdd = useCallback(() => {
+    const boardIdToUse = activeBoardId || currentBoardId;
+    
     openCreateSidebar({
-      defaultColumnId: sortedColumns[0]?.id || 'todo'
+      defaultColumnId: sortedColumns[0]?.id || 'todo',
+      defaultBoardId: boardIdToUse
     });
-  }, [sortedColumns, openCreateSidebar]);
+  }, [sortedColumns, openCreateSidebar, activeBoardId, currentBoardId]);
+
+  // Debug logging
+  useEffect(() => {
+    console.log('🎯 KanbanBoard Debug:', {
+      propBoardId: boardId,
+      activeBoardId,
+      currentBoardId,
+      boardTasksCount: boardTasks.length,
+      totalTasksCount: tasks.length,
+      activeBoard: activeBoard?.title,
+      boardTaskIds: boardTasks.map(t => t.id),
+    });
+  }, [boardId, activeBoardId, currentBoardId, boardTasks, tasks.length, activeBoard]);
+
+  // 🎯 FIX: Show empty state when no board is selected
+  if (!currentBoardId) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-400">No Board Selected</h2>
+          <p className="text-gray-500 mt-2">Select or create a board to get started</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -122,8 +198,16 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ boardId }) => {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
             <div className="flex items-center gap-2 sm:gap-3">
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                TaskFlow Board
+                {activeBoard?.title || 'TaskFlow Board'}
               </h1>
+              {activeBoard && (
+                <span 
+                  className="text-xs px-2 py-1 rounded-full text-white"
+                  style={{ backgroundColor: activeBoard.color }}
+                >
+                  {boardTasks.length} tasks
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-2 sm:gap-4 self-end sm:self-auto">
               <TooltipProvider>
@@ -201,6 +285,11 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ boardId }) => {
               onTaskClick={handleTaskClick}
             />
           ))}
+          {sortedColumns.length === 0 && (
+            <div className="flex-1 flex items-center justify-center text-gray-400">
+              <p>No columns yet. Click + to add your first column.</p>
+            </div>
+          )}
         </main>
         </div>
       </DndProvider>
