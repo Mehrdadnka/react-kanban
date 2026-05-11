@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Filter, ChevronUp, Home, ChevronRight, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useApp } from '@/providers/AppProvider';
-import { useBoardStore } from '@/stores/board.store';
+import { Board, useBoardStore } from '@/stores/board.store';
 import { FilterBar, FilterState } from './FilterBar';
 import { CollapseIcon } from '../sidebar-ui-engine/CollapseIcon';
 
@@ -12,6 +12,8 @@ interface FilterSidebarProps {
   onFilterChange: (filters: FilterState) => void;
   isExpanded?: boolean;
   onToggleExpand?: () => void;
+  handleBackToBoards?: () => void;
+  activeBoard?: Board;
 }
 
 export const FilterSidebar: React.FC<FilterSidebarProps> = ({
@@ -19,21 +21,16 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
   onFilterChange,
   isExpanded = true,
   onToggleExpand,
+  activeBoard,
+  handleBackToBoards,
 }) => {
   const { isDarkMode } = useApp();
-  const { getActiveBoard, setActiveBoard } = useBoardStore();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   
-  const activeBoard = getActiveBoard();
-
   const activeCount =
     filters.labels.length + filters.priorities.length +
     filters.columns.length + filters.types.length +
     (filters.search ? 1 : 0);
-
-  const handleBackToBoards = () => {
-    setActiveBoard(null);
-  };
 
   return (
     <>

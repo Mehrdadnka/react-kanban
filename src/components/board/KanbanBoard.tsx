@@ -44,23 +44,23 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ boardId }) => {
   const { isDarkMode } = useApp();
   const { tasks, addTask } = useTaskStore();
   const { columns } = useColumnStore();
-  const { activeBoardId, getActiveBoard } = useBoardStore();
+  const { activeBoardId, getActiveBoard, setActiveBoard } = useBoardStore();
   const { openCreateSidebar, openViewSidebar } = useTaskSidebarStore();
   const [showColumnManager, setShowColumnManager] = useState(false);
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
   
-  // 🎯 FIX: Use activeBoardId from store instead of prop
+  // FIX: Use activeBoardId from store instead of prop
   const currentBoardId = activeBoardId || boardId;
   const activeBoard = getActiveBoard();
 
-  // 🎯 FIX: Set active board if boardId prop changes and no active board
+  // FIX: Set active board if boardId prop changes and no active board
   useEffect(() => {
     if (boardId && !activeBoardId) {
       useBoardStore.getState().setActiveBoard(boardId);
     }
   }, [boardId, activeBoardId]);
 
-  // 🎯 FIX: Filter tasks by active board
+  // Filter tasks by active board
   const boardTasks = useMemo(() => {
     console.log('🔍 Filtering tasks for board:', currentBoardId);
     console.log('📊 All tasks:', tasks);
@@ -74,7 +74,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ boardId }) => {
     setFilters(DEFAULT_FILTERS);
   }, [currentBoardId]);
 
-  // 🎯 Listen for task events to refresh board stats
+  // Listen for task events to refresh board stats
   useEffect(() => {
     const eventBus = useEventBus.getState();
     
@@ -105,7 +105,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ boardId }) => {
   const sortedColumns = useMemo(() => [...columns].sort((a, b) => a.order - b.order), [columns]);
   const columnIds = useMemo(() => sortedColumns.map(c => c.id), [sortedColumns]);
 
-  // 🎯 FIX: Filter from boardTasks instead of all tasks
+  // Filter from boardTasks instead of all tasks
   const filteredTasks = useMemo(() => {
     let result = boardTasks;
 
@@ -160,7 +160,14 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ boardId }) => {
     });
   }, [boardId, activeBoardId, currentBoardId, boardTasks, tasks.length, activeBoard]);
 
-  // 🎯 FIX: Show empty state when no board is selected
+
+
+
+  const handleBackToBoards = () => {
+    setActiveBoard(null);
+  };
+
+  // Show empty state when no board is selected
   if (!currentBoardId) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -171,13 +178,27 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ boardId }) => {
       </div>
     );
   }
-
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === 'Backspace') {
+        e.preventDefault();
+        handleBackToBoards();
+      }
+  }, [handleBackToBoards])
+  
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.addEventListener('keydown', handleKeyDown)
+    }
+  }, [handleKeyDown]);
   return (
     <>
       <DndProvider columns={columnIds.map(id => ({ id }))}>
         {/* Filter bar - responsive width */}
         <FilterSidebar 
-          filters={filters} 
+          filters={filters}
+          activeBoard={activeBoard}
+          handleBackToBoards={handleBackToBoards} 
           onFilterChange={setFilters} 
           isExpanded={isFilterExpanded}
           onToggleExpand={() => setIsFilterExpanded(!isFilterExpanded)}
