@@ -127,6 +127,9 @@ const createDemoTasks = (): Task[] => {
     priority: TaskPriority = 'medium',
     completedDaysAgo?: number,
   ): Task => {
+    const boardColumnId = columnId.includes(boardId) 
+    ? columnId 
+    : `${boardId}-${columnId}`; 
     const task: Task = {
       ...createDefaultTask(columnId, 0, boardId),
       id,
@@ -138,6 +141,7 @@ const createDemoTasks = (): Task[] => {
       labels: [],
       milestoneIds: [],
       projectIds: [],
+      
       createdAt: now,
       updatedAt: now,
       activityLog: [createLog(id, 'created')],

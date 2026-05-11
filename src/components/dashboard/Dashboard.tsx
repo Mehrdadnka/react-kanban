@@ -11,10 +11,10 @@ export const Dashboard: React.FC = () => {
             Synapse
           </h1> */}
         <LogoCanvas size={1200} />
-{/* 
-      <div className="lg:col-span-2 h-full">
+
+      <div className="lg:col-span-2 h-fit z-40 absolute bottom-2 right-2">
         <TaskStatsWidget />
-      </div> */}
+      </div>
     </div>
   );
 };

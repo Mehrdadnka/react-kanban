@@ -34,8 +34,10 @@ export const LogoScene = () => {
         enablePan={true}
         minDistance={3}
         maxDistance={15}
-        autoRotate
-        autoRotateSpeed={0.3}
+        autoRotate={false}
+        autoRotateSpeed={0}
+        
+        
       />
     </Canvas>
   )

@@ -2,16 +2,25 @@
 import { useEffect } from 'react'
 import { useEventBus } from '@/stores/core/event-bus.store'
 import { useLogoStore } from '../logo-store'
-import { COLUMN_TO_VERTEX, SPARK_ORIGIN, DIAMOND_VERTEX } from 
+import { COLUMN_TO_VERTEX, SPARK_ORIGIN, DIAMOND_VERTEX, COLUMN_COLORS } from 
 '@/features/logo-3d/data/node-columns'
+import { createPolyhedron } from '@/features/logo-3d/data/polyhedron-factory'
+import { useBoardStore } from '@/stores/board.store'
+import { useTaskStore } from '@/stores/task.store'
 
-const COLUMN_COLORS: Record<string, string> = {
-  'todo': '#3B82F6',
-  'in-progress': '#EAB308',
-  'done': '#22C55E',
-  'backlog': '#6B7280',
+
+const getColumnsForBoard = (boardId: string): string[] => {
+  const tasks = useTaskStore.getState().tasks
+  const columns = new Set<string>()
+  tasks
+    .filter(t => t.boardId === boardId)
+    .forEach(t => columns.add(t.columnId))
+  
+  const defaults = ['todo', 'in-progress', 'done']
+  defaults.forEach(c => columns.add(c))
+  
+  return Array.from(columns)
 }
-
 export const useLogoEventBridge = () => {
   useEffect(() => {
     const eventBus = useEventBus.getState()
@@ -19,10 +28,14 @@ export const useLogoEventBridge = () => {
 
     const handlers = [
       // ===== Task Created =====
-      // spark از مرکز (SPARK_ORIGIN) به vertex ستون
       eventBus.on('task:created', ({ id, boardId, columnId }) => {
-        const toVertex = COLUMN_TO_VERTEX[columnId] ?? 2
-        
+        const boardStore = useBoardStore.getState()
+        const board = boardStore.boards.find(b => b.id === boardId)
+  
+        const columns = getColumnsForBoard(boardId)
+        const polyhedron = createPolyhedron(columns)
+        const toVertex = polyhedron.columnToVertex[columnId] ?? polyhedron.activeVertices[0]
+
         logoStore.addSpark({
           boardId,
           taskId: id,

@@ -127,142 +127,10 @@ const BoardListStaticSidebar: React.FC<BoardListStaticSidebarProps> = ({
       </div>
 
       {/* ──── SCROLLABLE MIDDLE SECTION ──── */}
-      <div className="flex-1 overflow-y-auto p-4 md:p-5 space-y-4 scrollbar-thin">
-        
-        {/* ──── XP & LEVEL CARD (Collapsible) ──── */}
-        <div className={cn(
-          'rounded-xl border overflow-hidden transition-all',
-          isDarkMode 
-            ? 'bg-gradient-to-br from-purple-900/20 to-blue-900/10 border-purple-900/30' 
-            : 'bg-gradient-to-br from-purple-50 to-blue-50 border-purple-200'
-        )}>
-          {/* XP Header - Always Visible */}
-          <button
-            onClick={() => setShowXPDetails(!showXPDetails)}
-            className="w-full flex items-center gap-3 p-3 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-          >
-            {/* Level Icon */}
-            <motion.div
-              animate={{ 
-                scale: [1, 1.1, 1],
-                rotate: [0, 5, -5, 0]
-              }}
-              transition={{ duration: 3, repeat: Infinity }}
-              className="text-2xl flex-shrink-0"
-            >
-              {levelEmoji}
-            </motion.div>
-            
-            {/* XP Info */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold">Level {currentLevel}</span>
-                <span className="text-[10px] text-gray-500">{formatXP(totalXP)} XP</span>
-              </div>
-              {/* Progress Bar */}
-              <div className="mt-1 h-1.5 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
-                <motion.div
-                  className="h-full rounded-full bg-gradient-to-r from-blue-500 to-purple-500"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${levelProgress}%` }}
-                  transition={{ duration: 0.8, ease: "easeOut" }}
-                />
-              </div>
-              {/* Streak & Achievements Row */}
-              <div className="flex items-center justify-between mt-1.5">
-                <div className="flex items-center gap-2">
-                  {streak.current > 0 && (
-                    <span className="flex items-center gap-0.5 text-[10px] text-orange-500 font-medium">
-                      <Flame size={10} />
-                      {streak.current}d
-                    </span>
-                  )}
-                  <span className="flex items-center gap-0.5 text-[10px] text-yellow-600 font-medium">
-                    <Trophy size={10} />
-                    {achievementCount.unlocked}/{achievementCount.total}
-                  </span>
-                </div>
-                <ChevronDown 
-                  size={12} 
-                  className={cn(
-                    'text-gray-400 transition-transform duration-200',
-                    showXPDetails && 'rotate-180'
-                  )}
-                />
-              </div>
-            </div>
-          </button>
-
-          {/* XP Details - Expandable */}
-          <AnimatePresence>
-            {showXPDetails && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden"
-              >
-                <div className="px-3 pb-3 pt-0 space-y-2 border-t border-gray-200 dark:border-gray-700">
-                  {/* Level Title */}
-                  <div className="flex items-center gap-2 pt-2">
-                    <Sparkles size={12} className="text-purple-500" />
-                    <span className="text-[11px] font-medium text-purple-600 dark:text-purple-400">
-                      {levelTitle}
-                    </span>
-                  </div>
-                  
-                  {/* Next Level Info */}
-                  <div className="flex items-center justify-between text-[10px] text-gray-500">
-                    <span>Next: Level {currentLevel + 1}</span>
-                    <span>{100 - levelProgress}% remaining</span>
-                  </div>
-                  
-                  {/* Quick Stats Grid */}
-                  <div className="grid grid-cols-2 gap-1.5">
-                    <div className={cn(
-                      'rounded-lg p-2 text-center',
-                      isDarkMode ? 'bg-gray-800/50' : 'bg-white/50'
-                    )}>
-                      <div className="text-sm font-bold text-orange-500">{streak.current}</div>
-                      <div className="text-[9px] text-gray-400">Day Streak</div>
-                    </div>
-                    <div className={cn(
-                      'rounded-lg p-2 text-center',
-                      isDarkMode ? 'bg-gray-800/50' : 'bg-white/50'
-                    )}>
-                      <div className="text-sm font-bold text-yellow-500">{streak.longest}</div>
-                      <div className="text-[9px] text-gray-400">Best Streak</div>
-                    </div>
-                  </div>
-
-                  {/* Recent XP Events (Last 4) */}
-                  {recentXPEvents.length > 0 && (
-                    <div>
-                      <div className="flex items-center gap-1.5 mb-1.5">
-                        <Activity size={10} className="text-gray-400" />
-                        <span className="text-[10px] text-gray-400 font-medium">Recent XP</span>
-                      </div>
-                      <div className="space-y-1">
-                        {recentXPEvents.slice(0, 4).map((event, i) => (
-                          <div key={event.id || i} className="flex items-center justify-between text-[10px]">
-                            <span className="text-gray-500 truncate mr-2">{formatAction(event.action)}</span>
-                            <span className="text-yellow-600 dark:text-yellow-400 font-medium flex-shrink-0">
-                              +{event.amount}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+      <div className="flex-1 min-h-0 max-h-[calc(70vh-10px)] overflow-y-auto p-4 md:p-5 space-y-4 scrollbar-thin">
 
         {/* ──── STATS CARDS (Compact Grid) ──── */}
-        <div className="space-y-2">
+        <div className="space-y-5">
           <h3 className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
             <BarChart3 size={12} />
             Overview
@@ -272,7 +140,7 @@ const BoardListStaticSidebar: React.FC<BoardListStaticSidebarProps> = ({
           <div className="grid grid-cols-2 gap-2">
             {/* Boards Count */}
             <div className={cn(
-              'rounded-xl p-3 border transition-all hover:scale-[1.02] cursor-default',
+              'rounded-xl p-6 border transition-all cursor-default',
               isDarkMode 
                 ? 'bg-gradient-to-br from-blue-900/20 to-blue-800/10 border-blue-900/30' 
                 : 'bg-gradient-to-br from-blue-50 to-blue-100/50 border-blue-200'
@@ -283,7 +151,7 @@ const BoardListStaticSidebar: React.FC<BoardListStaticSidebarProps> = ({
             
             {/* In Progress */}
             <div className={cn(
-              'rounded-xl p-3 border transition-all hover:scale-[1.02] cursor-default',
+              'rounded-xl p-6 border transition-all hover:scale-[1.02] cursor-default',
               isDarkMode 
                 ? 'bg-gradient-to-br from-yellow-900/20 to-yellow-800/10 border-yellow-900/30' 
                 : 'bg-gradient-to-br from-yellow-50 to-yellow-100/50 border-yellow-200'
@@ -294,7 +162,7 @@ const BoardListStaticSidebar: React.FC<BoardListStaticSidebarProps> = ({
 
             {/* Total Tasks */}
             <div className={cn(
-              'rounded-xl p-3 border transition-all hover:scale-[1.02] cursor-default',
+              'rounded-xl p-6 border transition-all hover:scale-[1.02] cursor-default',
               isDarkMode 
                 ? 'bg-gradient-to-br from-purple-900/20 to-purple-800/10 border-purple-900/30' 
                 : 'bg-gradient-to-br from-purple-50 to-purple-100/50 border-purple-200'
@@ -305,7 +173,7 @@ const BoardListStaticSidebar: React.FC<BoardListStaticSidebarProps> = ({
 
             {/* Completion Rate */}
             <div className={cn(
-              'rounded-xl p-3 border transition-all hover:scale-[1.02] cursor-default',
+              'rounded-xl p-6 border transition-all hover:scale-[1.02] cursor-default',
               isDarkMode 
                 ? 'bg-gradient-to-br from-green-900/20 to-green-800/10 border-green-900/30' 
                 : 'bg-gradient-to-br from-green-50 to-green-100/50 border-green-200'

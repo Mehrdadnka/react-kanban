@@ -7,6 +7,7 @@ import { useBoardStore } from '@/stores/board.store'
 import { calculateBoardLayout, type BoardCubeData } from '../data/board-layout'
 import { CageOctahedron } from './CageOctahedron'
 import { useTaskStore } from '@/stores/task.store'
+import { Task } from '@/types/task.types'
 
 /**
  * Central Diamond Cage + Board Cages
@@ -30,6 +31,7 @@ export const DiamondCore = () => {
         taskCount: taskStore.tasks.filter(
           t => t.boardId === b.id && t.status !== 'archived' && t.status !== 'completed'
         ).length,
+        columns: getBoardColumns(b.id, taskStore.tasks),
       }))
       setCubeData(calculateBoardLayout(boards))
       setActiveBoardId(store.activeBoardId)
@@ -45,13 +47,19 @@ export const DiamondCore = () => {
     }
   }, [])
 
-  // Central cage - آروم می‌چرخه
-  useFrame((_, delta) => {
-    if (centralRef.current) {
-      centralRef.current.rotation.y += delta * 0.25
-      centralRef.current.rotation.x += delta * 0.1
-    }
-  })
+
+
+const getBoardColumns = (boardId: string, tasks: Task[]): string[] => {
+  const columns = new Set<string>()
+  tasks
+    .filter(t => t.boardId === boardId)
+    .forEach(t => columns.add(t.columnId))
+  
+  const defaults = ['todo', 'in-progress', 'done']
+  defaults.forEach(c => columns.add(c))
+  
+  return Array.from(columns)
+}
 
   return (
     <group>

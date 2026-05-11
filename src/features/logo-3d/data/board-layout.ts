@@ -1,5 +1,7 @@
 // features/logo-3d/data/board-layout.ts
 
+import { createPolyhedron, PolyhedronData } from "./polyhedron-factory"
+
 export interface BoardCubeData {
   id: string
   title: string
@@ -13,7 +15,8 @@ export interface BoardCubeData {
   /** سرعت چرخش - هر board ریتم خودش رو داره */
   rotationSpeed: [number, number, number]
   taskCount: number
-
+  columns: string[]
+  polyhedron: PolyhedronData
 }
 
 /**
@@ -37,7 +40,7 @@ const CONFIG = {
  * - rotationSpeed = BASE_SPEED ± random variance
  */
 export const calculateBoardLayout = (
-  boards: { id: string; title: string; color: string; taskCount?: number }[]
+  boards: { id: string; title: string; color: string; taskCount?: number; columns?: string[]; }[]
 ): BoardCubeData[] => {
   if (boards.length === 0) return []
 
@@ -45,6 +48,9 @@ export const calculateBoardLayout = (
   const sorted = [...boards].sort((a, b) => a.id.localeCompare(b.id))
 
   return sorted.map((board, index) => {
+    const columns = board.columns || ['todo', 'in-progress', 'done']
+    const polyhedron = createPolyhedron(columns)
+    
     // Seed یکتا برای هر board (deterministic random)
     const seed = hashString(board.id)
     
@@ -70,6 +76,8 @@ export const calculateBoardLayout = (
       scale,
       rotationSpeed: [sx, sy, sz],
       taskCount: board.taskCount || 0,
+      columns,
+      polyhedron,
     }
   })
 }

@@ -8,7 +8,7 @@ import type { BoardCubeData } from '../data/board-layout'
 
 import { ParkingNode } from './ParkingNode'
 import { useTaskStore } from '@/stores/task.store'
-import { ACTIVE_VERTICES, VERTEX_TO_COLUMN, COLUMN_COLORS } from '../data/node-columns'
+import { COLUMN_COLORS } from '../data/node-columns'
 import { Task } from '@/types/task.types'
 
 const OCTA_EDGES: [number, number][] = [
@@ -79,8 +79,8 @@ export const CageOctahedron = ({
   isActive = false
 }: CageOctahedronProps) => {
   const groupRef = useRef<Group>(null!)
-  const vertices = useMemo(() => OCTA_VERTICES(1.0), [])
-  
+  const { vertices, edges, activeVertices, vertexToColumn } = board.polyhedron
+
   const [boardTasks, setBoardTasks] = useState<Task[]>([])
   const [openTaskId, setOpenTaskId] = useState<string | null>(null)
   const handleBackgroundClick = () => {
@@ -104,23 +104,24 @@ export const CageOctahedron = ({
 
 const tasksByColumn = useMemo(() => {
   const grouped: Record<string, Task[]> = {}
-  ACTIVE_VERTICES.forEach(v => {
-    const colId = VERTEX_TO_COLUMN[v]
+  activeVertices.forEach(v => {
+    const colId = vertexToColumn[v]
     if (colId) {
       grouped[colId] = boardTasks.filter(t => t.columnId === colId)
     }
   })
   return grouped
 }, [boardTasks])
+  const tasksByVertex = useMemo(() => {
+    const grouped: Record<number, Task[]> = {}
+    activeVertices.forEach(v => {
+      grouped[v] = boardTasks.filter(t => t.columnId === vertexToColumn[v])
+    })
+    return grouped
+  }, [boardTasks, activeVertices, vertexToColumn])
 
 
-  useFrame((_, delta) => {
-    if (!groupRef.current) return
-    const dt = delta * 60
-    groupRef.current.rotation.x += board.rotationSpeed[0] * dt * 0.01
-    groupRef.current.rotation.y += board.rotationSpeed[1] * dt * 0.01
-    groupRef.current.rotation.z += board.rotationSpeed[2] * dt * 0.01
-  })
+
 
   const label = board.taskCount > 0 
     ? `${board.title} (${board.taskCount})`
@@ -140,7 +141,7 @@ const tasksByColumn = useMemo(() => {
       <group scale={[board.scale, board.scale, board.scale]}>
         
         {/* ===== میله‌های قفس ===== */}
-        {OCTA_EDGES.map(([from, to], i) => (
+        {edges.map(([from, to], i) => (
           <ThinLine
             key={i}
             from={vertices[from]}
@@ -152,8 +153,8 @@ const tasksByColumn = useMemo(() => {
         ))}
 
         {/* ===== Parking Nodes (فقط روی vertex های active) ===== */}
-        {ACTIVE_VERTICES.map(vertexIndex => {
-          const colId = VERTEX_TO_COLUMN[vertexIndex]
+        {activeVertices.map(vertexIndex => {
+          const colId = vertexToColumn[vertexIndex]
           if (!colId) return null
           
           return (
@@ -178,7 +179,7 @@ const tasksByColumn = useMemo(() => {
           outlineWidth={0.04}
           outlineColor="#00000099"
         >
-          {label.length > 18 ? label.slice(0, 18) + '…' : label}
+          {board.title.length > 18 ? board.title.slice(0, 18) + '…' : board.title}
         </Text>
 
       </group>

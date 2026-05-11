@@ -14,21 +14,21 @@ export const BoardOctahedron = ({ board, isActive = false }: BoardOctahedronProp
   const wireRef = useRef<Mesh>(null!)
   const glowRef = useRef<Mesh>(null!)
   
-  useFrame((_, delta) => {
-    const dt = delta * 60 // normalize to ~60fps
+//   useFrame((_, delta) => {
+//     const dt = delta * 60 // normalize to ~60fps
     
-    // هر board با سرعت خودش می‌چرخه
-    if (wireRef.current) {
-      wireRef.current.rotation.x += board.rotationSpeed[0] * dt * 0.01
-      wireRef.current.rotation.y += board.rotationSpeed[1] * dt * 0.01
-      wireRef.current.rotation.z += board.rotationSpeed[2] * dt * 0.01
-    }
-    if (glowRef.current) {
-      glowRef.current.rotation.x += board.rotationSpeed[0] * dt * 0.007
-      glowRef.current.rotation.y += board.rotationSpeed[1] * dt * 0.007
-      glowRef.current.rotation.z += board.rotationSpeed[2] * dt * 0.005
-    }
-  })
+//     // هر board با سرعت خودش می‌چرخه
+//     if (wireRef.current) {
+//       wireRef.current.rotation.x += board.rotationSpeed[0] * dt * 0.01
+//       wireRef.current.rotation.y += board.rotationSpeed[1] * dt * 0.01
+//       wireRef.current.rotation.z += board.rotationSpeed[2] * dt * 0.01
+//     }
+//     if (glowRef.current) {
+//       glowRef.current.rotation.x += board.rotationSpeed[0] * dt * 0.007
+//       glowRef.current.rotation.y += board.rotationSpeed[1] * dt * 0.007
+//       glowRef.current.rotation.z += board.rotationSpeed[2] * dt * 0.005
+//     }
+//   })
 
   const baseSize = 1.2 // اندازه پایه یک octahedron
 

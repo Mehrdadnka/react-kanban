@@ -1,9 +1,9 @@
 // features/logo-3d/components/ParkingNode.tsx
-import { useRef, useState } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useMemo, useRef, useState } from 'react'
 import { Html } from '@react-three/drei'
 import type { Mesh } from 'three'
 import type { Task } from '@/types/task.types'
+import { OrbitalRings, RingData } from './OrbitalRings'
 
 interface ParkingNodeProps {
   position: [number, number, number]
@@ -11,6 +11,20 @@ interface ParkingNodeProps {
   columnColor: string
   tasks: Task[]
   boardColor: string
+}
+
+const priorityColors: Record<string, string> = {
+  'urgent': '#EF4444',
+  'high': '#F59E0B',
+  'medium': '#3B82F6',
+  'low': '#6B7280',
+}
+
+const statusIcons: Record<string, string> = {
+  'todo': '○',
+  'in-progress': '◐',
+  'done': '●',
+  'backlog': '◌',
 }
 
 export const ParkingNode = ({ 
@@ -22,236 +36,256 @@ export const ParkingNode = ({
 }: ParkingNodeProps) => {
   const dotRef = useRef<Mesh>(null!)
   const [hovered, setHovered] = useState(false)
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null)
+  const [showPanel, setShowPanel] = useState(false)
   
-  useFrame(({ clock }) => {
-    if (dotRef.current) {
-      const t = clock.getElapsedTime()
-      dotRef.current.position.y = position[1] + Math.sin(t * 2) * 0.03
-    }
-  })
-
   const taskCount = tasks.length
   const hasUrgent = tasks.some(t => t.priority === 'urgent')
 
-  const handleTaskClick = (task: Task) => {
-    setSelectedTask(prev => prev?.id === task.id ? null : task)
-  }
+
+  const ringData: RingData[] = useMemo(() => 
+    tasks.map(task => ({
+        id: task.id,
+        color: task.priority === 'urgent' ? '#EF4444' : columnColor,
+        isUrgent: task.priority === 'urgent',
+        speed: 0.3 + (task.id.charCodeAt(task.id.length - 1) % 10) * 0.1,
+    })),
+    [tasks, columnColor]
+  )
 
   return (
     <group position={position}>
-      {/* ===== Core dot ===== */}
+      {/* ===== Core dot - کلیک‌پذیر ===== */}
       <mesh
         ref={dotRef}
-        onPointerEnter={() => setHovered(true)}
-        onPointerLeave={() => {
-          setHovered(false)
-          // فقط اگه روی حلقه‌ها کلیک نشده باشه
+        onClick={(e) => {
+          e.stopPropagation()
+          setShowPanel(!showPanel)
         }}
+        onPointerEnter={() => setHovered(true)}
+        onPointerLeave={() => setHovered(false)}
       >
-        <sphereGeometry args={[0.04, 8, 8]} />
+        <sphereGeometry args={[0.05, 12, 12]} />
         <meshBasicMaterial
-          color={hasUrgent ? '#EF4444' : columnColor}
+          color={hasUrgent ? '#EF4444' : hovered ? '#FFFFFF' : columnColor}
           transparent
-          opacity={hovered || selectedTask ? 1 : 0.7}
+          opacity={hovered || showPanel ? 1 : 0.75}
           depthWrite={false}
         />
       </mesh>
 
-      {/* ===== حلقه‌های کلیک‌پذیر ===== */}
-      {taskCount > 0 && (
-        <group>
-          {tasks.slice(0, hovered || selectedTask ? tasks.length : Math.min(3, taskCount)).map((task, i) => (
-            <Ringlet
-              key={task.id}
-              task={task}
-              index={i}
-              total={taskCount}
-              color={task.priority === 'urgent' ? '#EF4444' : columnColor}
-              hovered={hovered}
-              isSelected={selectedTask?.id === task.id}
-              onClick={() => handleTaskClick(task)}
-            />
-          ))}
-        </group>
-      )}
+      <OrbitalRings
+        rings={ringData}
+        baseRadius={0.08}
+        gap={0.04}
+        thickness={0.005}
+        baseOpacity={0.3}
+        active={hovered || showPanel}
+        segments={24}
+      />
+
 
       {/* ===== Glow ===== */}
-      {(hovered || selectedTask) && (
+      {(hovered || showPanel) && (
         <mesh>
-          <sphereGeometry args={[0.08, 8, 8]} />
+          <sphereGeometry args={[0.1, 8, 8]} />
           <meshBasicMaterial
             color={columnColor}
             transparent
-            opacity={0.15}
+            opacity={0.12}
             depthWrite={false}
           />
         </mesh>
       )}
 
-      {/* ===== Task Card Preview ===== */}
-      {selectedTask && (
-        <TaskCardPopup 
-          task={selectedTask}
-          columnColor={columnColor}
-          onClose={() => setSelectedTask(null)}
-        />
+      {/* ===== Label کوچیک پایین dot ===== */}
+      <Html 
+        position={[0, -0.12, 0]} 
+        center 
+        distanceFactor={8} 
+        occlude={false} 
+        style={{ pointerEvents: 'none' }}
+      >
+        <span 
+          className="text-[8px] font-medium px-1.5 py-0.5 rounded-full"
+          style={{ 
+            backgroundColor: columnColor + '22',
+            color: columnColor,
+          }}
+        >
+          {taskCount}
+        </span>
+      </Html>
+
+      {/* ===== ستون پنل شیشه‌ای ===== */}
+      {showPanel && (
+        <Html
+          position={[0, 0.4, 0]}
+          center
+          distanceFactor={8}
+          occlude={false}
+          style={{ pointerEvents: 'auto' }}
+        >
+          <div 
+            className="w-[220px] max-h-[320px] rounded-2xl overflow-hidden shadow-2xl border border-white/10 backdrop-blur-xl"
+            style={{ 
+              backgroundColor: 'rgba(15, 23, 42, 0.92)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* ===== Header ===== */}
+            <div 
+              className="sticky top-0 z-10 px-4 py-3 flex items-center justify-between"
+              style={{ 
+                backgroundColor: 'rgba(15, 23, 42, 0.98)',
+                borderBottom: '1px solid rgba(255,255,255,0.06)',
+              }}
+            >
+              <div className="flex items-center gap-2.5">
+                <span 
+                  className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                  style={{ 
+                    backgroundColor: columnColor,
+                    boxShadow: `0 0 8px ${columnColor}66`,
+                  }}
+                />
+                <div>
+                  <span className="text-white text-xs font-semibold capitalize">
+                    {columnId.replace('-', ' ')}
+                  </span>
+                  <span className="text-white/30 text-[10px] ml-2">
+                    {taskCount}
+                  </span>
+                </div>
+              </div>
+              <button 
+                onClick={() => setShowPanel(false)}
+                className="text-white/30 hover:text-white/70 transition-colors text-sm leading-none"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* ===== Task List ===== */}
+            <div className="overflow-y-auto max-h-[260px] px-3 py-2 space-y-1.5 scrollbar-thin">
+              {taskCount === 0 ? (
+                <div className="text-center py-6">
+                  <span className="text-white/20 text-[11px]">No tasks yet</span>
+                </div>
+              ) : (
+                tasks.map(task => (
+                  <div
+                    key={task.id}
+                    className="group rounded-xl px-3 py-2.5 transition-all cursor-default"
+                    style={{ 
+                      backgroundColor: 'rgba(255,255,255,0.02)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.02)'
+                    }}
+                  >
+                    {/* Row 1: Status icon + Title */}
+                    <div className="flex items-start gap-2">
+                      <span className="text-[10px] mt-0.5 flex-shrink-0" style={{ color: columnColor }}>
+                        {statusIcons[task.columnId] || '○'}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white/85 text-[11px] font-medium leading-snug truncate">
+                          {task.title}
+                        </p>
+                      </div>
+                      {task.priority && (
+                        <span 
+                          className="w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1"
+                          style={{ 
+                            backgroundColor: priorityColors[task.priority],
+                            boxShadow: task.priority === 'urgent' 
+                              ? `0 0 6px ${priorityColors[task.priority]}` 
+                              : 'none',
+                          }}
+                        />
+                      )}
+                    </div>
+
+                    {/* Row 2: Meta info */}
+                    <div className="flex items-center gap-3 mt-1.5 ml-4">
+                      {task.dueDate && (
+                        <span className="text-[9px] text-white/30">
+                          {new Date(task.dueDate).toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric' 
+                          })}
+                        </span>
+                      )}
+                      {task.estimatedHours && (
+                        <span className="text-[9px] text-white/25">
+                          {task.estimatedHours}h
+                        </span>
+                      )}
+                      {task.labels && task.labels.length > 0 && (
+                        <div className="flex gap-1">
+                          {task.labels.slice(0, 3).map(label => (
+                            <span 
+                              key={label}
+                              className="text-[7px] px-1 py-0.5 rounded text-white/25 bg-white/5"
+                            >
+                              {label}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* ===== Footer ===== */}
+            <div 
+              className="px-4 py-2 text-center"
+              style={{ 
+                backgroundColor: 'rgba(15, 23, 42, 0.98)',
+                borderTop: '1px solid rgba(255,255,255,0.04)',
+              }}
+            >
+              <span className="text-[9px] text-white/20">
+                {taskCount} task{taskCount !== 1 ? 's' : ''} in {columnId}
+              </span>
+            </div>
+          </div>
+        </Html>
       )}
     </group>
   )
 }
 
 // ============================================================
-// Ringlet - حالا کلیک‌پذیر
+// Ringlet - visual only
 // ============================================================
 interface RingletProps {
-  task: Task
   index: number
-  total: number
   color: string
   hovered: boolean
-  isSelected: boolean
-  onClick: () => void
 }
 
-const Ringlet = ({ task, index, total, color, hovered, isSelected, onClick }: RingletProps) => {
+const Ringlet = ({ index, color, hovered }: RingletProps) => {
   const ref = useRef<Mesh>(null!)
+  const radius = 0.08 + index * 0.04
   
-  const radius = 0.06 + index * 0.025
+  // انیمیشن فقط visual
+  // useFrame حذف شده چون چرخش اتومات نمی‌خوایم
   
-  useFrame((_, delta) => {
-    if (ref.current) {
-      ref.current.rotation.y += delta * (0.5 + index * 0.15)
-      ref.current.rotation.x += delta * 0.2
-      
-      // پالس برای selected
-      if (isSelected) {
-        const scale = 1 + Math.sin(Date.now() * 0.01) * 0.2
-        ref.current.scale.setScalar(scale)
-      } else {
-        ref.current.scale.setScalar(1)
-      }
-    }
-  })
-
   return (
-    <mesh 
-      ref={ref}
-      onClick={(e) => {
-        e.stopPropagation()
-        onClick()
-      }}
-    >
-      <torusGeometry args={[radius, isSelected ? 0.012 : 0.006, 6, 12]} />
+    <mesh ref={ref} rotation={[Math.random() * Math.PI, Math.random() * Math.PI, 0]}>
+      <torusGeometry args={[radius, 0.006, 8, 16]} />
       <meshBasicMaterial
-        color={isSelected ? '#FFFFFF' : color}
+        color={color}
         transparent
-        opacity={isSelected ? 1 : hovered ? 0.8 : 0.35}
+        opacity={hovered ? 0.85 : 0.35}
         depthWrite={false}
       />
     </mesh>
-  )
-}
-
-// ============================================================
-// TaskCardPopup - کارت اطلاعات تسک
-// ============================================================
-interface TaskCardPopupProps {
-  task: Task
-  columnColor: string
-  onClose: () => void
-}
-
-const TaskCardPopup = ({ task, columnColor, onClose }: TaskCardPopupProps) => {
-  const priorityColors: Record<string, string> = {
-    'urgent': '#EF4444',
-    'high': '#F59E0B',
-    'medium': '#3B82F6',
-    'low': '#6B7280',
-  }
-
-  const statusLabels: Record<string, string> = {
-    'todo': '📋 Todo',
-    'in-progress': '🔄 In Progress',
-    'done': '✅ Done',
-    'backlog': '📦 Backlog',
-  }
-
-  return (
-    <Html
-      position={[0, 0.25, 0]}
-      center
-      distanceFactor={8}
-      occlude={false}
-      style={{ pointerEvents: 'auto' }}
-    >
-      <div 
-        className="bg-slate-900/95 backdrop-blur-md border border-white/10 rounded-lg p-3 shadow-2xl min-w-[200px] max-w-[250px]"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between mb-2">
-          <span 
-            className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
-            style={{ 
-              backgroundColor: columnColor + '33',
-              color: columnColor,
-            }}
-          >
-            {statusLabels[task.columnId] || task.columnId}
-          </span>
-          <button 
-            onClick={onClose}
-            className="text-white/40 hover:text-white/80 text-xs"
-          >
-            ✕
-          </button>
-        </div>
-
-        {/* Title */}
-        <h3 className="text-white text-sm font-semibold mb-1 leading-tight">
-          {task.title}
-        </h3>
-
-        {/* Priority */}
-        <div className="flex items-center gap-2 mb-2">
-          <span 
-            className="w-2 h-2 rounded-full"
-            style={{ backgroundColor: priorityColors[task.priority] || '#6B7280' }}
-          />
-          <span className="text-[10px] text-white/60 capitalize">
-            {task.priority}
-          </span>
-        </div>
-
-        {/* Meta */}
-        {task.shortDescription && (
-          <p className="text-[10px] text-white/50 mb-2 line-clamp-2">
-            {task.shortDescription}
-          </p>
-        )}
-
-        {/* Due Date */}
-        {task.dueDate && (
-          <div className="text-[9px] text-white/40">
-            📅 {new Date(task.dueDate).toLocaleDateString()}
-          </div>
-        )}
-
-        {/* Labels */}
-        {task.labels && task.labels.length > 0 && (
-          <div className="flex gap-1 mt-2 flex-wrap">
-            {task.labels.slice(0, 3).map(label => (
-              <span 
-                key={label}
-                className="text-[8px] px-1.5 py-0.5 rounded bg-white/5 text-white/50"
-              >
-                {label}
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-    </Html>
   )
 }

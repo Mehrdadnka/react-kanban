@@ -11,34 +11,25 @@
  * 4: left   (-x)  → "done"
  * 5: back   (-z)  → "backlog" (اختیاری)
  */
-export const VERTEX_TO_COLUMN: Record<number, string | null> = {
-  0: null,           // top - title area
-  1: null,           // bottom - می‌تونه archive باشه بعداً
-  2: 'todo',
-  3: 'in-progress',
-  4: 'done',
-  5: 'backlog',      // یا میشه ازش استفاده نکرد
-}
+
 export const COLUMN_TO_VERTEX: Record<string, number> = {
   'todo': 2,
   'in-progress': 3,
   'done': 4,
   'backlog': 5,
 }
-export const SPARK_ORIGIN = 6  // virtual "center" node
-export const DIAMOND_VERTEX = 7  // virtual "diamond" target
+export const SPARK_ORIGIN = -1  // virtual "center" node
+export const DIAMOND_VERTEX = -2 // virtual "diamond" target
 
-/**
- * کدوم vertex ها ParkingNode دارن
- */
-export const ACTIVE_VERTICES = [2, 3, 4, 5]  // ۴ تا column
 
 /**
  * رنگ هر ستون
  */
 export const COLUMN_COLORS: Record<string, string> = {
-  'todo': '#3B82F6',        // آبی
-  'in-progress': '#EAB308', // زرد
-  'done': '#22C55E',        // سبز
-  'backlog': '#6B7280',     // خاکستری
+  'todo': '#3B82F6',
+  'in-progress': '#EAB308',
+  'done': '#22C55E',
+  'backlog': '#6B7280',
+  'review': '#8B5CF6',
+  'blocked': '#EF4444',
 }

@@ -1,229 +1,239 @@
-// stores/logo/logo-event-bridge.ts
-import { useEffect } from 'react';
-import { useEventBus } from '@/stores/core/event-bus.store';
-import { useLogoStore, getSparkColor } from './logo-store';
-import { useXPStore } from '@/stores/xp/xp.store';
-import { useTaskStore } from '@/stores/task.store';
-import type { EventName } from '@/stores/core/event-bus.types';
+// features/logo-3d/events/logo-event-bridge.ts
+import { useEffect } from 'react'
+import { useEventBus } from '@/stores/core/event-bus.store'
+import { useLogoStore } from './logo-store'
+import { useXPStore } from '@/stores/xp/xp.store'
+import { useTaskStore } from '@/stores/task.store'
+import { useBoardStore } from '@/stores/board.store'
+import { createPolyhedron } from '@/features/logo-3d/data/polyhedron-factory'
+import { COLUMN_COLORS, DIAMOND_VERTEX, SPARK_ORIGIN } from '@/features/logo-3d/data/node-columns'
 
-const NODE_COUNT = 8;
-
-const randomNode = () => Math.floor(Math.random() * NODE_COUNT);
-const randomPair = () => {
-  let from = randomNode();
-  let to = randomNode();
-  while (to === from) to = randomNode();
-  return { from, to };
-};
-
-const COLUMN_COLORS: Record<string, '#3B82F6' | '#EAB308' | '#22C55E'> = {
-  'todo': '#3B82F6',
-  'in-progress': '#EAB308',
-  'done': '#22C55E',
-};
+// Helper: get columns for a board
+const getColumnsForBoard = (boardId: string): string[] => {
+  const tasks = useTaskStore.getState().tasks
+  const columns = new Set<string>()
+  tasks
+    .filter(t => t.boardId === boardId)
+    .forEach(t => columns.add(t.columnId))
+  
+  const defaults = ['todo', 'in-progress', 'done']
+  defaults.forEach(c => columns.add(c))
+  
+  return Array.from(columns)
+}
 
 export const useLogoEventBridge = () => {
   useEffect(() => {
-    const eventBus = useEventBus.getState();
-    const logoStore = useLogoStore.getState();
-    const xpStore = useXPStore.getState();
-    const taskStore = useTaskStore.getState();
+    const eventBus = useEventBus.getState()
+    const logoStore = useLogoStore.getState()
+    const xpStore = useXPStore.getState()
 
     const handlers = [
-      // === System Boot ===
-      eventBus.on('system:boot', () => {
-        logoStore.setBooted();
-        logoStore.setRotationSpeed(0.8); // Fast initial rotation
+      // ===== Task Created =====
+      eventBus.on('task:created', ({ id, boardId, columnId }) => {
+        const columns = getColumnsForBoard(boardId)
+        const polyhedron = createPolyhedron(columns)
+        const toVertex = polyhedron.columnToVertex[columnId] ?? polyhedron.activeVertices[0]
         
-        // Create multiple boot sparks
-        for (let i = 0; i < 8; i++) {
-          setTimeout(() => {
-            const { from, to } = randomPair();
-            logoStore.addSpark('system:boot', from, to, getSparkColor('system:boot'));
-          }, i * 200);
-        }
-        
-        // Slow down after boot
-        setTimeout(() => logoStore.setRotationSpeed(0.15), 3000);
-        
-        // Add welcome orb
-        logoStore.addOrb({
-          type: 'xp_amount',
-          title: 'Synapse Online',
-          subtitle: 'System initialized',
-          icon: 'Zap',
-        }, [0, 3, 0], 4000);
-      }, { priority: 0 }),
-
-      // === Task Created ===
-      eventBus.on('task:created', ({ title, columnId }) => {
-        const { from, to } = randomPair();
-        const color = columnId ? (COLUMN_COLORS[columnId] || '#3B82F6') : '#3B82F6';
-        
-        const sparkId = logoStore.addSpark('task:created', from, to, color);
-        logoStore.setPulseIntensity(0.3);
-
-        // Add orb with task info
-        if (Math.random() < 0.3) { // 30% chance to show orb
-          logoStore.addOrb({
-            type: 'task_card',
-            title: title,
-            subtitle: 'New Task Created',
-            icon: 'Plus',
-          });
-        }
+        logoStore.addSpark({
+          boardId,
+          taskId: id,
+          from: SPARK_ORIGIN,
+          to: toVertex,
+          speed: 0.004 + Math.random() * 0.003,
+          color: COLUMN_COLORS[columnId] || '#3B82F6',
+          type: 'task:created',
+        })
       }, { priority: 50 }),
 
-      // === Task Moved ===
-      eventBus.on('task:moved', ({ from, to, boardId }) => {
-        const color = COLUMN_COLORS[to] || '#EAB308';
-        const nodeFrom = from === 'todo' ? 0 : from === 'in-progress' ? 2 : 4;
-        const nodeTo = to === 'todo' ? 1 : to === 'in-progress' ? 3 : 5;
+      // ===== Task Moved =====
+      eventBus.on('task:moved', ({ id, from, to, boardId }) => {
+        const columns = getColumnsForBoard(boardId)
+        const polyhedron = createPolyhedron(columns)
+        const fromVertex = polyhedron.columnToVertex[from] ?? polyhedron.activeVertices[0]
+        const toVertex = polyhedron.columnToVertex[to] ?? polyhedron.activeVertices[0]
         
-        logoStore.addSpark('task:moved', nodeFrom, nodeTo, color);
-        logoStore.setPulseIntensity(0.2);
-        
-        // Higher pulse for "in-progress" moves
-        if (to === 'in-progress') {
-          logoStore.setPulseIntensity(0.5);
-        }
+        logoStore.addSpark({
+          boardId,
+          taskId: id,
+          from: fromVertex,
+          to: toVertex,
+          speed: 0.005 + Math.random() * 0.004,
+          color: COLUMN_COLORS[to] || '#EAB308',
+          type: 'task:moved',
+        })
       }, { priority: 50 }),
 
-      // === Task Completed ===
+      // ===== Task Completed → spark to diamond =====
       eventBus.on('task:completed', ({ id, boardId }) => {
-        const task = taskStore.getTaskById(id);
+        const columns = getColumnsForBoard(boardId)
+        const polyhedron = createPolyhedron(columns)
+        const doneVertex = polyhedron.columnToVertex['done'] ?? 4
         
-        // Multiple green sparks for completion
-        for (let i = 0; i < 3; i++) {
-          setTimeout(() => {
-            const { from, to } = randomPair();
-            logoStore.addSpark('task:completed', from, to, '#22C55E');
-          }, i * 100);
-        }
+        logoStore.addSpark({
+          boardId,
+          taskId: id,
+          from: doneVertex,
+          to: DIAMOND_VERTEX,
+          speed: 0.006 + Math.random() * 0.003,
+          color: '#22C55E',
+          type: 'task:completed',
+        })
         
-        logoStore.setPulseIntensity(0.7);
-        logoStore.triggerCameraShake(0.3);
-        
-        // Show task completion orb
-        logoStore.addOrb({
-          type: 'task_card',
-          title: task?.title || 'Task Completed',
-          subtitle: '✅ Done!',
-          icon: 'CheckCircle2',
-        }, [0, 2.5, 0], 4000);
+        // Second spark from in-progress
+        setTimeout(() => {
+          const inProgressVertex = polyhedron.columnToVertex['in-progress'] ?? 3
+          logoStore.addSpark({
+            boardId,
+            taskId: id,
+            from: inProgressVertex,
+            to: DIAMOND_VERTEX,
+            speed: 0.005,
+            color: '#22C55E',
+            type: 'task:completed',
+          })
+        }, 150)
       }, { priority: 50 }),
 
-      // === XP Gained ===
-      eventBus.on('xp:gained', ({ action, amount, totalXP, level, levelProgress }) => {
-        const { from, to } = randomPair();
-        logoStore.addSpark('xp:gained', from, to, '#8B5CF6');
-        logoStore.setPulseIntensity(0.2);
+      // ===== XP Gained =====
+      eventBus.on('xp:gained', ({ amount }) => {
+        if (amount >= 30) {
+          logoStore.addSpark({
+            boardId: 'global',
+            from: Math.floor(Math.random() * 4) + 2,
+            to: DIAMOND_VERTEX,
+            speed: 0.004,
+            color: '#8B5CF6',
+            type: 'xp:gained',
+          })
+        }
         
-        // Show XP orb for larger gains
+        // Add orb for large XP
         if (amount >= 50) {
           logoStore.addOrb({
-            type: 'xp_amount',
+            type: 'xp',
             title: `+${amount} XP`,
-            subtitle: action.replace('task:', '').replace('_', ' '),
-            value: amount,
-            icon: 'Zap',
-          }, [1, 2, 1], 3000);
+            subtitle: '',
+            icon: '⚡',
+            targetPos: [0, 2, 0],
+            startPos: [0, 0, 0],
+          })
         }
       }, { priority: 100 }),
 
-      // === Level Up ===
-      eventBus.on('xp:level_up', ({ oldLevel, newLevel, title }) => {
-        // Burst of sparks from all nodes
-        for (let i = 0; i < 12; i++) {
+      // ===== Level Up =====
+      eventBus.on('xp:level_up', ({ newLevel, title }) => {
+        // Burst of sparks
+        for (let i = 0; i < 8; i++) {
           setTimeout(() => {
-            const to = (i % NODE_COUNT);
-            logoStore.addSpark('xp:level_up', NODE_COUNT - 1, to, '#6366F1');
-          }, i * 80);
+            logoStore.addSpark({
+              boardId: 'global',
+              from: Math.floor(Math.random() * 4) + 2,
+              to: DIAMOND_VERTEX,
+              speed: 0.006 + Math.random() * 0.004,
+              color: '#8B5CF6',
+              type: 'xp:gained',
+            })
+          }, i * 80)
         }
         
-        logoStore.setPulseIntensity(1);
-        logoStore.triggerCameraShake(1);
-        logoStore.setRotationSpeed(0.5);
-        setTimeout(() => logoStore.setRotationSpeed(0.15), 2500);
-        
-        // Big level up orb
         logoStore.addOrb({
-          type: 'level_up',
+          type: 'xp',
           title: `Level ${newLevel}!`,
           subtitle: title,
-          value: newLevel,
-          icon: 'Trophy',
-        }, [0, 3.5, 0], 6000);
+          icon: '🏆',
+          targetPos: [0, 3, 0],
+          startPos: [0, 0, 0],
+        })
       }, { priority: 100 }),
 
-      // === Achievement Unlocked ===
-      eventBus.on('xp:achievement_unlocked', ({ achievementId, name, rewards }) => {
-        // Golden spark burst
+      // ===== Achievement Unlocked =====
+      eventBus.on('xp:achievement_unlocked', ({ name, rewards }) => {
+        // Golden sparks
         for (let i = 0; i < 5; i++) {
           setTimeout(() => {
-            const { from, to } = randomPair();
-            logoStore.addSpark('achievement_unlocked', from, to, '#F59E0B');
-          }, i * 150);
+            logoStore.addSpark({
+              boardId: 'global',
+              from: Math.floor(Math.random() * 4) + 2,
+              to: DIAMOND_VERTEX,
+              speed: 0.005 + Math.random() * 0.003,
+              color: '#F59E0B',
+              type: 'achievement_unlocked',
+            })
+          }, i * 100)
         }
         
-        logoStore.setPulseIntensity(0.8);
-        logoStore.triggerCameraShake(0.5);
-        
-        // Achievement orb with badge
         logoStore.addOrb({
           type: 'achievement',
           title: name,
-          subtitle: rewards.badge ? `Badge: ${rewards.badge}` : 'Achievement Unlocked!',
-          icon: 'Award',
-          value: rewards.xp,
-        }, [0, 3, -1], 6000);
+          subtitle: rewards.badge ? `Badge: ${rewards.badge}` : '',
+          icon: '🏅',
+          targetPos: [0, 2.5, 0],
+          startPos: [0, 0, 0],
+        })
       }, { priority: 100 }),
 
-      // === PowerUp Used ===
-      eventBus.on('powerup:used', ({ powerUpId, effect }) => {
-        const { from, to } = randomPair();
-        logoStore.addSpark('xp:gained', from, to, '#EC4899');
-        logoStore.setPulseIntensity(0.6);
+      // ===== PowerUp Used =====
+      eventBus.on('powerup:used', ({ powerUpId }) => {
+        logoStore.addSpark({
+          boardId: 'global',
+          from: Math.floor(Math.random() * 4) + 2,
+          to: DIAMOND_VERTEX,
+          speed: 0.005,
+          color: '#EC4899',
+          type: 'xp:gained',
+        })
         
         logoStore.addOrb({
-          type: 'xp_amount',
+          type: 'xp',
           title: 'PowerUp!',
-          subtitle: `${powerUpId} activated`,
-          icon: 'Zap',
-        }, [0, 2, 1], 3000);
+          subtitle: powerUpId,
+          icon: '⚡',
+          targetPos: [0, 2, 0],
+          startPos: [0, 0, 0],
+        })
       }, { priority: 50 }),
 
-      // === Challenge Completed ===
+      // ===== Challenge Completed =====
       eventBus.on('challenge:completed', ({ title, reward }) => {
         for (let i = 0; i < 3; i++) {
           setTimeout(() => {
-            const { from, to } = randomPair();
-            logoStore.addSpark('achievement_unlocked', from, to, '#F59E0B');
-          }, i * 100);
+            logoStore.addSpark({
+              boardId: 'global',
+              from: Math.floor(Math.random() * 4) + 2,
+              to: DIAMOND_VERTEX,
+              speed: 0.005,
+              color: '#F59E0B',
+              type: 'achievement_unlocked',
+            })
+          }, i * 100)
         }
         
         logoStore.addOrb({
           type: 'achievement',
           title: 'Challenge Done!',
           subtitle: title,
-          value: reward,
-          icon: 'Target',
-        }, [0, 2.5, 0], 4000);
+          icon: '🎯',
+          targetPos: [0, 2.5, 0],
+          startPos: [0, 0, 0],
+        })
       }, { priority: 50 }),
+    ]
 
-      // === System Error (negative visual) ===
-      eventBus.on('system:error', ({ error }) => {
-        logoStore.setPulseIntensity(0.8);
-        // Red pulse
-        for (let i = 0; i < 2; i++) {
-          const { from, to } = randomPair();
-          logoStore.addSpark('system:boot', from, to, '#EF4444' as any);
-        }
-      }, { priority: 0 }),
-    ];
+    // ===== Initial boot spark =====
+    setTimeout(() => {
+      logoStore.addSpark({
+        boardId: 'global',
+        from: SPARK_ORIGIN,
+        to: DIAMOND_VERTEX,
+        speed: 0.005,
+        color: '#6366f1',
+        type: 'xp:gained',
+      })
+    }, 500)
 
     return () => {
-      handlers.forEach(id => eventBus.off(id));
-    };
-  }, []);
-};
+      handlers.forEach(id => eventBus.off(id))
+    }
+  }, [])
+}

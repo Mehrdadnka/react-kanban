@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { TaskType, TaskPriority } from '@/types/task.types';
 import { useTaskStore } from '@/stores/task.store';
 import { useAttachments } from './useAttachments';
-import { StepId } from '@/stores/sidebar-engine/task-sidebar.store';
+import { StepId, useTaskSidebarStore } from '@/stores/sidebar-engine/task-sidebar.store';
 import { toast } from 'sonner';
 import { AlertCircle } from 'lucide-react';
 import { metaSchema, quickCreateSchema, scheduleSchema } from '../schemas/task.schema';
@@ -19,6 +19,7 @@ export interface Attachment {
 
 export interface FormState {
   // Step 1: Quick Create (Required)
+  boardId: string;
   title: string;
   shortDescription: string;
   type: TaskType;
@@ -46,6 +47,7 @@ export interface FormState {
 // ──── Initial State ────
 
 const initialState: FormState = {
+  boardId: '',
   title: '',
   shortDescription: '',
   description: '',
@@ -185,7 +187,7 @@ const stepValidators: Record<StepId, (state: FormState) => boolean> = useMemo(()
     });
 
     return errors;
-  }, [formState]);
+  }, [formState, stepValidators]);
 
   const isValid = useMemo(() => {
     return formState.title.trim().length > 0 && formState.shortDescription.trim().length > 0;
@@ -199,7 +201,10 @@ const stepValidators: Record<StepId, (state: FormState) => boolean> = useMemo(()
     setIsSubmitting(true);
 
     try {
+      const { defaultBoardId } = useTaskSidebarStore.getState();
+      const boardId = formState.boardId || defaultBoardId || 'board-1';
       const taskData = {
+        boardId: boardId,
         title: formState.title.trim(),
         shortDescription: formState.shortDescription.trim(),
         description: formState.description?.trim() || '',
