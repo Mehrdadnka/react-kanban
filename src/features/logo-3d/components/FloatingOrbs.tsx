@@ -1,10 +1,9 @@
-// features/logo-3d/components/FloatingOrbs.tsx
 import { useEffect, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import type { Mesh } from 'three'
-import { MOCK_ORBS } from '../data/mock-orbs'
 import { useLogoStore } from '@/stores/logo/logo-store'
+import { TaskCard } from './TaskCard'
 
 // ──── Types ────
 type OrbState = 'moving' | 'settled' | 'fading'
@@ -15,25 +14,19 @@ type OrbData = {
   title: string
   subtitle?: string
   icon: string
-  color: string
+  color?: string
   targetPos: [number, number, number]
   startPos: [number, number, number]
 }
 
-// ──── Styles ────
+// ──── Colors ────
 const orbColors: Record<string, string> = {
-  task: '#22c55e',
+  task: '#3b82f6',
   xp: '#8b5cf6',
   achievement: '#f59e0b',
 }
 
-const cardStyles: Record<string, string> = {
-  task: 'bg-green-600/95 border-green-400/20',
-  xp: 'bg-purple-600/95 border-purple-400/20',
-  achievement: 'bg-amber-500/95 border-amber-300/20',
-}
-
-
+// ============================================================
 const FloatingOrb = ({ data }: { data: OrbData }) => {
   const sphereRef = useRef<Mesh>(null!)
   const [state, setState] = useState<OrbState>('moving')
@@ -59,7 +52,6 @@ const FloatingOrb = ({ data }: { data: OrbData }) => {
       sphereRef.current.scale.setScalar(scale)
 
       if (newProgress >= 1) {
-        // ⬇️ اینو جا انداخته بودی
         finalPos.current = [data.targetPos[0], data.targetPos[1], data.targetPos[2]]
         sphereRef.current.position.set(...finalPos.current)
         setState('settled')
@@ -68,7 +60,6 @@ const FloatingOrb = ({ data }: { data: OrbData }) => {
     }
 
     if (state === 'settled') {
-      // ⬇️ فقط وقتی settled شدی finalPos ست شده
       sphereRef.current.position.set(...finalPos.current)
       settleTimer.current += delta
       if (settleTimer.current > 4) {
@@ -77,13 +68,8 @@ const FloatingOrb = ({ data }: { data: OrbData }) => {
     }
 
     if (state === 'fading') {
-      // ⬇️ fade نرم‌تر
       setCardOpacity((prev) => Math.max(0, prev - delta * 1.2))
       setSphereOpacity((prev) => Math.max(0, prev - delta * 1.2))
-      if (sphereOpacity < 0.05) {
-        setSphereOpacity(0)
-        setCardOpacity(0)
-      }
     }
   })
 
@@ -91,47 +77,43 @@ const FloatingOrb = ({ data }: { data: OrbData }) => {
 
   return (
     <group>
+      {/* ===== Orb Sphere ===== */}
       <mesh ref={sphereRef} position={data.startPos}>
         <sphereGeometry args={[0.06, 16, 16]} />
         <meshBasicMaterial
-          color={orbColors[data.type]}
+          color={data.color || orbColors[data.type]}
           transparent
           opacity={sphereOpacity}
           depthWrite={false}
         />
       </mesh>
 
+      {/* ===== TaskCard ===== */}
       {state !== 'moving' && cardOpacity > 0.01 && (
         <Html
-          position={[data.targetPos[0], data.targetPos[1] - 0.2, data.targetPos[2]]}
+          position={[data.targetPos[0], data.targetPos[1] - 0.25, data.targetPos[2]]}
           center
           distanceFactor={6}
           occlude={false}
+          style={{ pointerEvents: 'none' }}
         >
-          <div
-            className={`
-              pointer-events-none select-none
-              rounded-lg px-3 py-1.5 shadow-xl border
-              min-w-[90px] text-center
-              ${cardStyles[data.type]}
-            `}
-            style={{ opacity: cardOpacity }}
-          >
-            <div className="flex items-center gap-1 justify-center">
-              <span className="text-xs">{data.icon}</span>
-              <span className="text-white font-semibold text-[11px]">{data.title}</span>
-            </div>
-            {data.subtitle && (
-              <p className="text-white/60 text-[9px] mt-0.5">{data.subtitle}</p>
-            )}
-          </div>
+          <TaskCard
+            title={data.title}
+            subtitle={data.subtitle}
+            icon={data.icon}
+            color={data.color || orbColors[data.type]}
+            variant={data.type}
+            opacity={cardOpacity}
+          />
         </Html>
       )}
     </group>
   )
 }
-// ──── Container ────
-// فقط بخش Container رو عوض کن
+
+// ============================================================
+// Container
+// ============================================================
 export const FloatingOrbs = () => {
   const [orbs, setOrbs] = useState<OrbData[]>([])
 

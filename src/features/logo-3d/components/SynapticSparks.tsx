@@ -115,7 +115,7 @@ export const SynapticSparks = () => {
           title: b.title, 
           color: b.color, 
           taskCount: 0,
-          columns: ['todo', 'in-progress', 'done'], // پیش‌فرض
+          columns: ['todo', 'in-progress', 'done'], 
         }))
       )
       const map = new Map<string, BoardCubeData>()

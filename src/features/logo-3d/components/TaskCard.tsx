@@ -1,5 +1,3 @@
-// features/logo-3d/components/TaskCard.tsx
-import { Html } from '@react-three/drei'
 import type { Task } from '@/types/task.types'
 
 const priorityColors: Record<string, string> = {
@@ -18,13 +16,11 @@ const statusIcons: Record<string, string> = {
 
 interface TaskCardProps {
   task?: Task
-  // برای FloatingOrbs
   title?: string
   subtitle?: string
   type?: 'task' | 'xp' | 'achievement'
   icon?: string
   color?: string
-  // استایل
   variant?: 'task' | 'xp' | 'achievement'
   opacity?: number
   onClose?: () => void
@@ -47,7 +43,6 @@ export const TaskCard = ({
   opacity = 1,
   onClose,
 }: TaskCardProps) => {
-  // حالت تسک واقعی
   if (task) {
     return (
       <div 
@@ -114,13 +109,12 @@ export const TaskCard = ({
     )
   }
 
-  // حالت ساده (برای FloatingOrbs)
   return (
     <div
       className={`
         pointer-events-none select-none
         rounded-xl px-3 py-2 shadow-xl border
-        min-w-[100px] text-center
+        min-w-[100px] text-start
         backdrop-blur-md
         ${variantStyles[variant]}
       `}
@@ -130,7 +124,7 @@ export const TaskCard = ({
         {icon && <span className="text-sm">{icon}</span>}
         {color && (
           <span 
-            className="w-2 h-2 rounded-full flex-shrink-0"
+            className={`w-2 h-2 rounded-full flex-shrink-0 `}
             style={{ backgroundColor: color }}
           />
         )}
