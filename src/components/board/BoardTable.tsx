@@ -1,4 +1,3 @@
-// BoardTable.tsx - نسخه پایدار بدون re-render اضافی
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import {
   useReactTable,
@@ -27,18 +26,24 @@ import {
 
 interface BoardTableProps {
   boards: Board[];
+  progressPercent: number;
   onViewBoard: (board: Board) => void;
   onEditBoard: (board: Board) => void;
   onDeleteBoard: (board: Board) => void;
+
 }
 
 const columnHelper = createColumnHelper<Board>();
 
-const BoardTitleCell: React.FC<{ board: Board }> = React.memo(({ board }) => {
+const BoardTitleCell: React.FC<{ board: Board, progressPercent: number }> = React.memo(({ board }) => {
+  const IconComponent = ICON_MAP[board.icon] || Layout;
+
   const getBoardStats = useBoardStore((state) => state.getBoardStats);
   const stats = getBoardStats(board.id);
-  const progressPercent = stats.total > 0 ? Math.round((stats.done / stats.total) * 100) : 0;
-  const IconComponent = ICON_MAP[board.icon] || Layout;
+  
+  const total = stats.done + stats.doing + stats.todo;
+  const progressPercent = total > 0 ? Math.round((stats.done / total) * 100) : 0;
+  
   
   return (
     <div className="flex items-center gap-3 min-w-0">
@@ -61,8 +66,18 @@ const BoardTitleCell: React.FC<{ board: Board }> = React.memo(({ board }) => {
           )}
         </div>
         <div className="mt-1 flex items-center gap-2">
-          <div className="flex-1 h-1 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden max-w-[120px]">
-          
+   <div className="flex-1 relative h-1.5 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">
+            <div
+              className={cn(
+                'absolute left-0 top-0 h-full rounded-full transition-all duration-500',
+                progressPercent === 100
+                  ? 'bg-gradient-to-r from-green-400 to-green-500'
+                  : progressPercent > 50
+                    ? 'bg-gradient-to-r from-blue-400 to-blue-500'
+                    : 'bg-gradient-to-r from-amber-400 to-amber-500'
+              )}
+              style={{ width: `${progressPercent}%` }}
+            />
           </div>
           <span className="text-[10px] text-gray-400">{progressPercent}%</span>
         </div>
@@ -134,6 +149,7 @@ const ICON_MAP: Record<string, React.FC<{ size?: number; className?: string }>> 
 
 export const BoardTable: React.FC<BoardTableProps> = ({
   boards,
+  progressPercent,
   onViewBoard,
   onEditBoard,
   onDeleteBoard,
@@ -159,7 +175,7 @@ export const BoardTable: React.FC<BoardTableProps> = ({
   const columns = useMemo(() => [
     columnHelper.accessor('title', {
       header: 'Board Name',
-      cell: (info) => <BoardTitleCell board={info.row.original} />,
+      cell: (info) => <BoardTitleCell progressPercent={progressPercent} board={info.row.original} />,
     }),
     columnHelper.accessor('updatedAt', {
       header: 'Last Updated',

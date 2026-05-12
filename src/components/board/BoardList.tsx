@@ -448,6 +448,7 @@ export const BoardList: React.FC = () => {
                   boards={filteredBoards}
                   onViewBoard={handleViewBoard}
                   onEditBoard={handleEditBoard}
+                  progressPercent={completionRate}
                   onDeleteBoard={handleDeleteBoard}
                 />
               ) : (
