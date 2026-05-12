@@ -261,16 +261,3 @@ describe('EventBus - New Feature', () => {
 **Last Updated:** 2026-05-13
 **Test Framework:** Vitest v4.1.5
 **Coverage:** 100% of EventBus public API
-```
-
----
-
-## 📊 **Summary**
-
-| Document | Status | Content |
-|----------|--------|---------|
-| `EVENT_BUS.md` | ✅ | Architecture & API reference |
-| `XP_SYSTEM.md` | ✅ | XP formulas & gamification |
-| `INTEGRATION.md` | ✅ | Store connection guide |
-| `EVENT_BUS_TESTING.md` | 🆕 | Test suite documentation |
-
