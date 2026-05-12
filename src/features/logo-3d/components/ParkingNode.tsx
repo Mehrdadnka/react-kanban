@@ -1,9 +1,153 @@
 // features/logo-3d/components/ParkingNode.tsx
 import { useMemo, useRef, useState } from 'react'
 import { Html } from '@react-three/drei'
+import { useFrame } from '@react-three/fiber'
 import type { Mesh } from 'three'
 import type { Task } from '@/types/task.types'
 import { OrbitalRings, RingData } from './OrbitalRings'
+import * as THREE from 'three'
+// features/logo-3d/components/ParkingNode.tsx
+
+// ============================================================
+// Shader ها
+// ============================================================
+
+// Vertex Shader مشترک
+const PARKING_VERTEX = `
+  varying vec2 vUv;
+  varying vec3 vNormal;
+  varying vec3 vPosition;
+  varying vec3 vWorldPos;
+  
+  void main() {
+    vUv = uv;
+    vNormal = normalize(mat3(modelMatrix) * normal);
+    vPosition = position;
+    vec4 worldPos = modelMatrix * vec4(position, 1.0);
+    vWorldPos = worldPos.xyz;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`
+
+// ──── استایل ۱: فلزی درخشان (Metallic) ────
+const METALLIC_FRAGMENT = `
+  uniform vec3 uColor;
+  uniform vec3 uGlowColor;
+  uniform float uOpacity;
+  uniform float uTime;
+  uniform float uActive;
+  varying vec2 vUv;
+  varying vec3 vNormal;
+  varying vec3 vWorldPos;
+  
+  void main() {
+    // Fresnel - لبه‌ها درخشان‌تر
+    vec3 viewDir = normalize(cameraPosition - vWorldPos);
+    float fresnel = 1.0 - abs(dot(vNormal, viewDir));
+    fresnel = pow(fresnel, 3.0);
+    
+    // نورپردازی ساده
+    vec3 lightDir = normalize(vec3(0.5, 1.0, 0.8));
+    float diff = max(dot(vNormal, lightDir), 0.0) * 0.6 + 0.4;
+    
+    // Base color با gradient ملایم
+    vec3 base = uColor * diff;
+    
+    // Rim light (لبه‌های درخشان)
+    vec3 rim = uGlowColor * fresnel * (0.5 + uActive * 0.5);
+    
+    // Highlight نقطه‌ای
+    vec3 highlight = vec3(1.0) * pow(fresnel, 8.0) * 0.4 * (1.0 + uActive);
+    
+    // ترکیب
+    vec3 finalColor = base + rim + highlight;
+    
+    // Alpha: opaque با rim glow
+    float alpha = uOpacity * (0.85 + fresnel * 0.15 + uActive * 0.1);
+    
+    gl_FragColor = vec4(finalColor, alpha);
+  }
+`
+
+// ──── استایل ۲: کریستال/سنگ قیمتی (Gemstone) ────
+const GEMSTONE_FRAGMENT = `
+  uniform vec3 uColor;
+  uniform vec3 uGlowColor;
+  uniform float uOpacity;
+  uniform float uTime;
+  uniform float uActive;
+  varying vec2 vUv;
+  varying vec3 vNormal;
+  varying vec3 vWorldPos;
+  
+  void main() {
+    vec3 viewDir = normalize(cameraPosition - vWorldPos);
+    float fresnel = 1.0 - abs(dot(vNormal, viewDir));
+    fresnel = pow(fresnel, 2.5);
+    
+    // Internal glow (انگار نور از داخل میاد)
+    float innerGlow = pow(fresnel, 1.5) * 0.7;
+    
+    // Facet-like highlights
+    vec3 lightDir1 = normalize(vec3(0.8, 0.6, 1.0));
+    vec3 lightDir2 = normalize(vec3(-0.5, 0.8, -0.3));
+    float spec1 = pow(max(dot(vNormal, lightDir1), 0.0), 6.0) * 0.5;
+    float spec2 = pow(max(dot(vNormal, lightDir2), 0.0), 4.0) * 0.3;
+    
+    // Color shifts based on angle
+    vec3 color1 = uColor;
+    vec3 color2 = uGlowColor;
+    vec3 angleColor = mix(color1, color2, fresnel * 0.6);
+    
+    // ترکیب
+    vec3 finalColor = angleColor * (0.6 + innerGlow * 0.4);
+    finalColor += uGlowColor * (spec1 + spec2) * (1.0 + uActive);
+    finalColor += vec3(1.0) * pow(fresnel, 10.0) * 0.3 * uActive;
+    
+    float alpha = uOpacity * (0.75 + innerGlow * 0.25);
+    
+    gl_FragColor = vec4(finalColor, alpha);
+  }
+`
+
+// ──── استایل ۳: مینیمال مات درخشان (Soft Glow) ────
+const SOFT_GLOW_FRAGMENT = `
+  uniform vec3 uColor;
+  uniform vec3 uGlowColor;
+  uniform float uOpacity;
+  uniform float uTime;
+  uniform float uActive;
+  varying vec2 vUv;
+  varying vec3 vNormal;
+  varying vec3 vWorldPos;
+  
+  void main() {
+    vec3 viewDir = normalize(cameraPosition - vWorldPos);
+    float fresnel = 1.0 - abs(dot(vNormal, viewDir));
+    
+    // نور ملایم و یکنواخت
+    float light = 0.7 + 0.3 * dot(vNormal, normalize(vec3(0.5, 0.8, 0.5)));
+    
+    // Core color
+    vec3 base = uColor * light;
+    
+    // Soft outer glow
+    float glow = pow(fresnel, 4.0) * 0.4 * (1.0 + uActive);
+    vec3 glowColor = uGlowColor * glow;
+    
+    // Pulse animation برای active
+    float pulse = 1.0 + sin(uTime * 2.0) * 0.1 * uActive;
+    
+    vec3 finalColor = (base + glowColor) * pulse;
+    
+    float alpha = uOpacity * (0.8 + fresnel * 0.2);
+    
+    gl_FragColor = vec4(finalColor, alpha);
+  }
+`
+
+type NodeStyle = 'metallic' | 'gemstone' | 'soft-glow'
+
 
 interface ParkingNodeProps {
   position: [number, number, number]
@@ -11,6 +155,12 @@ interface ParkingNodeProps {
   columnColor: string
   tasks: Task[]
   boardColor: string
+  style?: NodeStyle 
+}
+const SHADERS: Record<NodeStyle, string> = {
+  'metallic': METALLIC_FRAGMENT,
+  'gemstone': GEMSTONE_FRAGMENT,
+  'soft-glow': SOFT_GLOW_FRAGMENT,
 }
 
 const priorityColors: Record<string, string> = {
@@ -32,15 +182,57 @@ export const ParkingNode = ({
   columnId, 
   columnColor, 
   tasks,
+  style = 'soft-glow',
   boardColor 
 }: ParkingNodeProps) => {
   const dotRef = useRef<Mesh>(null!)
+  const glowRef = useRef<Mesh>(null!)
+  const materialRef = useRef<THREE.ShaderMaterial>(null!)
+  const glowMaterialRef = useRef<THREE.ShaderMaterial>(null!)
+
   const [hovered, setHovered] = useState(false)
   const [showPanel, setShowPanel] = useState(false)
   
   const taskCount = tasks.length
   const hasUrgent = tasks.some(t => t.priority === 'urgent')
 
+  // Uniforms
+  const uniforms = useRef({
+    uColor: { value: new THREE.Color(hasUrgent ? '#EF4444' : columnColor) },
+    uGlowColor: { value: new THREE.Color(columnColor) },
+    uOpacity: { value: 0.85 },
+    uTime: { value: 0 },
+    uActive: { value: 0 },
+  })
+
+ // Glow uniforms
+  const glowUniforms = useRef({
+    uColor: { value: new THREE.Color(columnColor) },
+    uGlowColor: { value: new THREE.Color(columnColor) },
+    uOpacity: { value: 0.15 },
+    uTime: { value: 0 },
+    uActive: { value: 0 },
+  })
+ useFrame((_, delta) => {
+    if (materialRef.current) {
+      materialRef.current.uniforms.uTime.value += delta
+      
+      const targetActive = (hovered || showPanel) ? 1.0 : 0.0
+      const current = materialRef.current.uniforms.uActive.value
+      materialRef.current.uniforms.uActive.value += (targetActive - current) * delta * 6
+      
+      materialRef.current.uniforms.uOpacity.value += 
+        ((targetActive > 0 ? 1.0 : 0.85) - materialRef.current.uniforms.uOpacity.value) * delta * 6
+    }
+    
+    if (glowMaterialRef.current) {
+      const targetActive = (hovered || showPanel) ? 1.0 : 0.0
+      glowMaterialRef.current.uniforms.uActive.value += 
+        (targetActive - glowMaterialRef.current.uniforms.uActive.value) * delta * 6
+      glowMaterialRef.current.uniforms.uOpacity.value += 
+        ((targetActive > 0 ? 0.3 : 0.1) - glowMaterialRef.current.uniforms.uOpacity.value) * delta * 6
+    }
+  })
 
   const ringData: RingData[] = useMemo(() => 
     tasks.map(task => ({
@@ -54,7 +246,7 @@ export const ParkingNode = ({
 
   return (
     <group position={position}>
-      {/* ===== Core dot - کلیک‌پذیر ===== */}
+      {/* ===== Core dot ===== */}
       <mesh
         ref={dotRef}
         onClick={(e) => {
@@ -65,11 +257,13 @@ export const ParkingNode = ({
         onPointerLeave={() => setHovered(false)}
       >
         <sphereGeometry args={[0.05, 12, 12]} />
-        <meshBasicMaterial
-          color={hasUrgent ? '#EF4444' : hovered ? '#FFFFFF' : columnColor}
+        <shaderMaterial
+          ref={materialRef}
+          vertexShader={PARKING_VERTEX}
+          fragmentShader={SHADERS[style]}
+          uniforms={uniforms.current}
           transparent
-          opacity={hovered || showPanel ? 1 : 0.75}
-          depthWrite={false}
+          depthWrite={true}
         />
       </mesh>
 
@@ -88,16 +282,19 @@ export const ParkingNode = ({
       {(hovered || showPanel) && (
         <mesh>
           <sphereGeometry args={[0.1, 8, 8]} />
-          <meshBasicMaterial
-            color={columnColor}
-            transparent
-            opacity={0.12}
-            depthWrite={false}
-          />
+          <shaderMaterial
+          ref={glowMaterialRef}
+          vertexShader={PARKING_VERTEX}
+          fragmentShader={SHADERS[style]}
+          uniforms={glowUniforms.current}
+          transparent
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+         />
         </mesh>
       )}
 
-      {/* ===== Label کوچیک پایین dot ===== */}
+      {/* ===== Label ===== */}
       <Html 
         position={[0, -0.12, 0]} 
         center 
@@ -116,7 +313,6 @@ export const ParkingNode = ({
         </span>
       </Html>
 
-      {/* ===== ستون پنل شیشه‌ای ===== */}
       {showPanel && (
         <Html
           position={[0, 0.4, 0]}
@@ -274,8 +470,6 @@ const Ringlet = ({ index, color, hovered }: RingletProps) => {
   const ref = useRef<Mesh>(null!)
   const radius = 0.08 + index * 0.04
   
-  // انیمیشن فقط visual
-  // useFrame حذف شده چون چرخش اتومات نمی‌خوایم
   
   return (
     <mesh ref={ref} rotation={[Math.random() * Math.PI, Math.random() * Math.PI, 0]}>

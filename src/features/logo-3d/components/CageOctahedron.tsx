@@ -126,27 +126,22 @@ const FlowCylinder = ({ from, to, color, isActive, taskCount }: FlowLineProps) =
     uDashCount: { value: 3 + taskCount * 0.5 },
   })
 
-  // آپدیت uniforms در هر فریم
   useFrame((_, delta) => {
     if (!materialRef.current) return
     
     const u = materialRef.current.uniforms
     
-    // حرکت زمان
-    u.uTime.value += delta
+    u.uTime.value += delta / 10
     
-    // آپدیت opacity نرم
-    const base = isActive ? 0.9 : 0.4
-    const boost = Math.min(taskCount * 0.03, 0.25)
+    const base = isActive ? 0.05 : 0.01
+    const boost = Math.min(taskCount * 0.01, 0.5)
     const target = base + boost
     u.uOpacity.value += (target - u.uOpacity.value) * delta * 4
     
-    // آپدیت speed اگه taskCount تغییر کرد
     const targetSpeed = 0.6 + taskCount * 0.15
     u.uSpeed.value += (targetSpeed - u.uSpeed.value) * delta * 2
     
-    // آپدیت dash count
-    const targetDash = 3 + taskCount * 0.5
+    const targetDash = 1 + taskCount * 0.5
     u.uDashCount.value += (targetDash - u.uDashCount.value) * delta * 2
   })
 
@@ -264,6 +259,7 @@ const tasksByColumn = useMemo(() => {
               columnColor={COLUMN_COLORS[colId] || board.color}
               tasks={tasksByColumn[colId] || []}
               boardColor={board.color}
+              style="metallic"
             />
           )
         })}
