@@ -59,14 +59,26 @@ export const useEventBus = create<EventBusState>()((set, get) => ({
   },
 
   once: (event, handler, options = {}) => {
-    let id: string;
+    let listenerId: string;
+    let called = false;
+    
     const wrappedHandler = async (payload: unknown) => {
-      await handler(payload as any);
-      get().off(id);
+      if (called) return;
+      called = true;
+
+      try {
+        await handler(payload as any);
+      } finally {
+        // Schedule removal after current event processing completes
+        // This prevents the "remove during iteration" issue
+        setTimeout(() => {
+          get().off(listenerId);
+        }, 0);
+      }
     };
     
-    id = get().on(event, wrappedHandler as any, options);
-    return id;
+    listenerId = get().on(event, wrappedHandler as any, options);
+    return listenerId;
   },
 
   off: (listenerId) => {
@@ -86,7 +98,7 @@ export const useEventBus = create<EventBusState>()((set, get) => ({
     });
   },
 
-  // 🎯 FIXED: Conditional payload for void events
+  // Conditional payload for void events
   emit: ((event: EventName, payload?: unknown) => {
     // Middleware: Logger
     loggerMiddleware(event, payload);
@@ -115,7 +127,6 @@ export const useEventBus = create<EventBusState>()((set, get) => ({
     });
   }) as EventBusState['emit'],
 
-  // 🎯 FIXED: Async version
   emitAsync: (async (event: EventName, payload?: unknown) => {
     // Middleware: Logger
     loggerMiddleware(event, payload);
