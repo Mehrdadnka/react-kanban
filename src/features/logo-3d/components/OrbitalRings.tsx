@@ -11,10 +11,11 @@ export interface RingData {
   id: string
   color: string
   isUrgent?: boolean
-  /** سرعت چرخش منحصر بفرد */
   speed?: number
-  /** tilt اولیه */
   tilt?: [number, number, number]
+  ageInDays?: number
+  daysSinceUpdate?: number
+  priority?: 'urgent' | 'high' | 'medium' | 'low'
 }
 
 interface OrbitalRingsProps {
@@ -61,11 +62,46 @@ const OrbitalRing = ({
 }: RingProps) => {
   const groupRef = useRef<THREE.Group>(null!)
   const ringRef = useRef<Mesh>(null!)
+  const isSummary = ring.id.endsWith('-summary')
+
+ const computedThickness = useMemo(() => {
+    if (!ring.ageInDays) return thickness
+    
+    const ageBoost = Math.min(ring.ageInDays / 20, 1.5)
+    return thickness * (1 + ageBoost)
+  }, [ring.ageInDays, thickness])
   
-  // radius بر اساس index
+  // ──── opacity از priority ────
+  const computedOpacity = useMemo(() => {
+    const priorityBoost = 
+      ring.priority === 'urgent' ? 0.3 :
+      ring.priority === 'high' ? 0.15 :
+      ring.priority === 'low' ? -0.1 : 0
+    return Math.min(1, Math.max(0.15, baseOpacity + priorityBoost))
+  }, [ring.priority, baseOpacity])
+  
+  // ──── color ────
+  const color = useMemo(() => {
+    const c = new THREE.Color(ring.color)
+    
+    if (ring.ageInDays && ring.ageInDays > 14) {
+      const desaturate = Math.min((ring.ageInDays - 14) / 21, 0.4)
+      c.lerp(new THREE.Color('#4a4a4a'), desaturate)
+    }
+    
+    return c
+  }, [ring.color, ring.ageInDays])
+  
+  // ──── emissive از activity ────
+  const emissiveIntensity = useMemo(() => {
+    if (!ring.daysSinceUpdate) return active ? 0.5 : 0.15
+    
+    if (ring.daysSinceUpdate < 0.5) return 0.8
+    if (ring.daysSinceUpdate < 7) return 0.5
+    return 0.2
+  }, [ring.daysSinceUpdate, active])  
   const radius = baseRadius + index * gap
   
-  // محاسبه tilt تصادفی ولی ثابت (deterministic)
   const tilt = useMemo(() => {
     return ring.tilt || [
       (Math.sin(ring.id.charCodeAt(0) * 0.7) * 0.6),
@@ -74,25 +110,16 @@ const OrbitalRing = ({
     ]
   }, [ring.id, ring.tilt])
   
-  // سرعت چرخش رو orbit های مختلف
   const speed = ring.speed || (0.4 + index * 0.15 + (ring.id.charCodeAt(0) % 10) * 0.05)
-  
-  // رنگ با glow برای urgent
-  const color = useMemo(() => {
-    if (ring.isUrgent) return new THREE.Color('#EF4444')
-    return new THREE.Color(ring.color)
-  }, [ring.color, ring.isUrgent])
   
   useFrame((_, delta) => {
     if (!groupRef.current) return
     const dt = delta * 60
     
-    // چرخش orbital - هر حلقه رو محور خودش با سرعت متفاوت
     groupRef.current.rotation.x += speed * dt * 0.008 * (index % 2 === 0 ? 1 : -0.7)
     groupRef.current.rotation.y += speed * dt * 0.012 * (index % 3 === 0 ? 1 : -0.8)
     groupRef.current.rotation.z += speed * dt * 0.005 * (index % 2 === 0 ? -1 : 0.6)
     
-    // پالس ملایم برای urgent
     if (ring.isUrgent && ringRef.current) {
       const pulse = 1 + Math.sin(Date.now() * 0.006 + index) * 0.15
       ringRef.current.scale.setScalar(pulse)
@@ -102,15 +129,17 @@ const OrbitalRing = ({
   return (
     <group ref={groupRef} rotation={tilt as [number, number, number]}>
       <mesh ref={ringRef}>
-        <torusGeometry args={[radius, thickness, 16, segments]} />
+        <torusGeometry args={[radius, isSummary ? thickness * 3 : computedThickness, 16, segments]} />
+
+        {/* <torusGeometry args={[radius, computedThickness, 16, segments]} /> */}
         <meshPhysicalMaterial
           color={color}
           emissive={color}
-          emissiveIntensity={active ? 0.5 : 0.15}
+          emissiveIntensity={active ? emissiveIntensity : emissiveIntensity * 0.5}
           metalness={0.05}
           roughness={0.25}
           transparent
-          opacity={active ? baseOpacity + 0.25 : baseOpacity}
+          opacity={active ? computedOpacity + 0.25 : computedOpacity}
           clearcoat={0.2}
           clearcoatRoughness={0.3}
           reflectivity={0.3}
@@ -118,10 +147,9 @@ const OrbitalRing = ({
         />
       </mesh>
       
-      {/* Glow ring برای urgent */}
       {ring.isUrgent && active && (
         <mesh>
-          <torusGeometry args={[radius, thickness * 2.5, 8, segments]} />
+          <torusGeometry args={[radius, computedThickness * 2.5, 8, segments]} />
           <meshBasicMaterial
             color="#EF4444"
             transparent

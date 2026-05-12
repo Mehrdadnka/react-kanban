@@ -234,16 +234,61 @@ export const ParkingNode = ({
     }
   })
 
-  const ringData: RingData[] = useMemo(() => 
-    tasks.map(task => ({
-        id: task.id,
-        color: task.priority === 'urgent' ? '#EF4444' : columnColor,
-        isUrgent: task.priority === 'urgent',
-        speed: 0.3 + (task.id.charCodeAt(task.id.length - 1) % 10) * 0.1,
-    })),
-    [tasks, columnColor]
-  )
 
+const ringData: RingData[] = useMemo(() => {
+  const now = Date.now()
+  const msPerDay = 86400000
+  
+  return tasks.map(task => {
+    const createdAt = task.createdAt ? new Date(task.createdAt).getTime() : now
+    const ageInDays = Math.max(0, (now - createdAt) / msPerDay)
+    
+    const updatedAt = task.updatedAt ? new Date(task.updatedAt).getTime() : createdAt
+    const daysSinceUpdate = Math.max(0, (now - updatedAt) / msPerDay)
+    
+    const priorityColor = 
+      task.priority === 'urgent' ? '#EF4444' :
+      task.priority === 'high' ? '#F59E0B' :
+      task.priority === 'medium' ? columnColor :
+      task.priority === 'low' ? '#6B7280' :
+      columnColor
+    
+    const baseSpeed = 0.3
+    const hotBoost = Math.max(0, 1 - daysSinceUpdate / 7) * 0.5 
+    const priorityBoost = 
+      task.priority === 'urgent' ? 0.3 :
+      task.priority === 'high' ? 0.15 : 0
+    const speed = baseSpeed + hotBoost + priorityBoost
+    
+    return {
+      id: task.id,
+      color: priorityColor,
+      isUrgent: task.priority === 'urgent',
+      priority: task.priority,
+      ageInDays,
+      daysSinceUpdate,
+      speed,
+    }
+  })
+}, [tasks, columnColor])
+
+const cappedRingData = useMemo(() => {
+  if (ringData.length <= 10) return ringData
+  
+  const visible = ringData.slice(0, 8)
+  
+  // Summary ring
+  visible.push({
+    id: `${columnId}-summary`,
+    color: columnColor,
+    priority: undefined,
+    ageInDays: 0,
+    daysSinceUpdate: 0,
+    speed: 0.2,
+  })
+  
+  return visible
+}, [ringData, columnId])
   return (
     <group position={position}>
       {/* ===== Core dot ===== */}
