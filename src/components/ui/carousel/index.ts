@@ -1,6 +1,6 @@
 // components/ui/carousel/index.ts
-export { Carousel, useCarousel } from './Carousel';
+export { CarouselProvider, useCarousel } from './CarouselProvider';
 export { CarouselSlides } from './CarouselSlides';
-export { CarouselSlide } from './CarouselSlide';
 export { CarouselDots } from './CarouselDots';
-export { CarouselNavigation } from './CarouselNavigation';
+export { CarouselControls } from './CarouselControls';
+export type { CarouselContextType, CarouselProps } from './types';

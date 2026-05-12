@@ -6,13 +6,8 @@ import { Board } from '@/stores/board.store';
 import { BoardCard } from './BoardCard';
 import { useApp } from '@/providers/AppProvider';
 import * as Popover from '@radix-ui/react-popover';
-import {
-  Carousel,
-  CarouselSlides,
-  CarouselSlide,
-  CarouselDots,
-  CarouselNavigation,
-} from '@/components/ui/carousel';
+import { CarouselProvider, CarouselSlides, CarouselDots, CarouselControls } from '@/components/ui/carousel';
+
 
 interface BoardCarouselProps {
   boards: Board[];
@@ -202,45 +197,26 @@ export const BoardCarousel: React.FC<BoardCarouselProps> = ({ boards, onBoardCli
       </div>
 
       {/* Carousel with Fixed Structure */}
-      <Carousel 
-        autoPlayInterval={3000} 
+      <CarouselProvider
+        totalSlides={carouselBoards.length}
+        autoPlayInterval={carouselBoards.length > 1 ? 3000 : 0}
         transitionDuration={500}
-        defaultIndex={0}
       >
-        {carouselBoards.length > 0 ? (
-          <>
-            <CarouselSlides className="rounded-2xl">
-              {carouselBoards.map((board) => (
-                <CarouselSlide key={board.id}>
-                  <div className="px-1">
-                    <BoardCard 
-                      board={board} 
-                      onClick={onBoardClick}
-                    />
-                  </div>
-                </CarouselSlide>
-              ))}
-            </CarouselSlides>
+        <CarouselSlides className="rounded-2xl">
+          {carouselBoards.map((board) => (
+            <div key={board.id} className="px-1">
+              <BoardCard board={board} onClick={onBoardClick} />
+            </div>
+          ))}
+        </CarouselSlides>
 
-            {/* Controls - only show if more than 1 board */}
-            {carouselBoards.length > 1 && (
-              <div className="flex items-center justify-between mt-4 px-2">
-                <CarouselDots />
-                <CarouselNavigation />
-              </div>
-            )}
-          </>
-        ) : (
-          <div className={cn(
-            'min-h-[250px] flex items-center justify-center rounded-2xl',
-            isDarkMode ? 'bg-gray-800/50' : 'bg-gray-100/50'
-          )}>
-            <p className="text-sm text-gray-400">
-              No boards selected for carousel
-            </p>
+        {carouselBoards.length > 1 && (
+          <div className="flex items-center justify-between mt-4 px-2">
+            <CarouselDots />
+            <CarouselControls />
           </div>
         )}
-      </Carousel>
+      </CarouselProvider>
     </div>
   );
 };

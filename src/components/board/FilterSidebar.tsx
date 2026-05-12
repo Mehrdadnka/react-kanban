@@ -6,6 +6,8 @@ import { useApp } from '@/providers/AppProvider';
 import { Board, useBoardStore } from '@/stores/board.store';
 import { FilterBar, FilterState } from './FilterBar';
 import { CollapseIcon } from '../sidebar-ui-engine/CollapseIcon';
+import { Separator } from '../ui/separator/Separator';
+import { BoardAnalyticsCarousel } from './BoardAnalyticsCarousel';
 
 interface FilterSidebarProps {
   filters: FilterState;
@@ -26,6 +28,8 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
 }) => {
   const { isDarkMode } = useApp();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const { activeBoardId } = useBoardStore();
+  
   
   const activeCount =
     filters.labels.length + filters.priorities.length +
@@ -70,6 +74,10 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
                     {activeCount}
                   </span>
                 )}
+              </div>
+              <Separator isDarkMode={isDarkMode} />
+              <div className='flex m-auto items-start justify-center'>
+                <BoardAnalyticsCarousel boardId={activeBoardId} />
               </div>
               <div className='m-auto'>
                 <div className="w-10 h-1 rounded-full bg-gray-300 dark:bg-gray-600 mb-1" />
@@ -183,6 +191,10 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
             {/* ====== FILTER CONTENT ====== */}
             <div className="flex-1 overflow-y-auto p-4">
               <FilterBar filters={filters} onFilterChange={onFilterChange} variant="sidebar" />
+            </div>
+            <Separator isDarkMode={isDarkMode} />
+            <div className='flex w-64 m-auto items-start justify-center'>
+              <BoardAnalyticsCarousel boardId={activeBoardId} />
             </div>
 
             {/* ====== BOARD QUICK INFO (Optional) ====== */}
