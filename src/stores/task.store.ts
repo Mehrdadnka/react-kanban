@@ -782,7 +782,7 @@ export const useTaskStore = create<TaskStore>()(
       },
     }),
     {
-      name: 'taskflow-storage-v7',
+      name: 'taskflow-storage-v8',
       version: 7,
       migrate: (persistedState: any, version: number) => {
         if (version < 7) {

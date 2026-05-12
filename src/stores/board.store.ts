@@ -87,7 +87,7 @@ export const useBoardStore = create<BoardStore>()(
             activeBoardId: board.id,
           }));
           
-          // 🎯 EMIT EVENT
+          // EMIT EVENT
           useEventBus.getState().emit('board:created', {
             id: board.id,
             title: board.title,
@@ -121,7 +121,7 @@ export const useBoardStore = create<BoardStore>()(
             };
           });
           
-          // 🎯 EMIT EVENT
+          // EMIT EVENT
           useEventBus.getState().emit('board:deleted', { id });
         },
 
@@ -185,7 +185,7 @@ export const useBoardStore = create<BoardStore>()(
   )
 );
 
-// 🎯 Event Listeners Hook - call this in your app root
+// Event Listeners Hook - call this in your app root
 export const useBoardEventListeners = () => {
   const boardStore = useBoardStore.getState();
   

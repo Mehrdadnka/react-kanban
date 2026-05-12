@@ -8,7 +8,7 @@ import {
   X, ArrowUpRight, Timer, Activity
 } from 'lucide-react';
 import * as Popover from '@radix-ui/react-popover';
-import { Board, useBoardStore } from '@/stores/board.store';
+import { Board, useBoardEventListeners, useBoardStore } from '@/stores/board.store';
 import { BoardCard } from './BoardCard';
 import { BoardCarousel } from './BoardCarousel';
 import { BoardTable } from './BoardTable';
@@ -350,6 +350,9 @@ export const BoardList: React.FC = () => {
       deleteBoard(board.id);
     }
   };
+
+  useBoardEventListeners();
+
 
   return (
     <div className="h-full flex overflow-hidden">

@@ -9,14 +9,14 @@ import { DndProvider } from '../../providers/DndProvider';
 import { useApp } from '@/providers/AppProvider';
 import { useTaskStore } from '@/stores/task.store';
 import { useColumnStore } from '@/stores/column.store';
-import { useBoardStore } from '@/stores/board.store';
+import { useBoardEventListeners, useBoardStore } from '@/stores/board.store';
 import { cn } from '@/lib/utils';
 import { Task } from '@/types/task.types';
-import { ColumnManager } from '@/features/ColumnManager/ColumnManager';
 import { FilterBar, FilterState } from './FilterBar';
 import { useTaskSidebarStore } from '@/stores/sidebar-engine/task-sidebar.store';
 import { FilterSidebar } from './FilterSidebar';
 import { useEventBus } from '@/stores/core/event-bus.store';
+import { ColumnManagerV2 } from '@/features/ColumnManager/ColumnManagerV2';
 
 // Icon Resolver
 const ICON_MAP: Record<string, React.FC<{ size?: number; className?: string }>> = {
@@ -62,10 +62,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ boardId }) => {
 
   // Filter tasks by active board
   const boardTasks = useMemo(() => {
-    console.log('🔍 Filtering tasks for board:', currentBoardId);
-    console.log('📊 All tasks:', tasks);
     const filtered = tasks.filter(t => t.boardId === currentBoardId);
-    console.log('✅ Board tasks:', filtered);
     return filtered;
   }, [tasks, currentBoardId]);
 
@@ -80,7 +77,6 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ boardId }) => {
     
     const handleTaskChange = (payload: any) => {
       // Force re-render when tasks change
-      console.log('🔄 Task event received:', payload);
       useTaskStore.getState(); // Trigger re-render
     };
 
@@ -148,17 +144,17 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ boardId }) => {
   }, [sortedColumns, openCreateSidebar, activeBoardId, currentBoardId]);
 
   // Debug logging
-  useEffect(() => {
-    console.log('🎯 KanbanBoard Debug:', {
-      propBoardId: boardId,
-      activeBoardId,
-      currentBoardId,
-      boardTasksCount: boardTasks.length,
-      totalTasksCount: tasks.length,
-      activeBoard: activeBoard?.title,
-      boardTaskIds: boardTasks.map(t => t.id),
-    });
-  }, [boardId, activeBoardId, currentBoardId, boardTasks, tasks.length, activeBoard]);
+  // useEffect(() => {
+  //   console.log('🎯 KanbanBoard Debug:', {
+  //     propBoardId: boardId,
+  //     activeBoardId,
+  //     currentBoardId,
+  //     boardTasksCount: boardTasks.length,
+  //     totalTasksCount: tasks.length,
+  //     activeBoard: activeBoard?.title,
+  //     boardTaskIds: boardTasks.map(t => t.id),
+  //   });
+  // }, [boardId, activeBoardId, currentBoardId, boardTasks, tasks.length, activeBoard]);
 
 
 
@@ -191,6 +187,11 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ boardId }) => {
       document.addEventListener('keydown', handleKeyDown)
     }
   }, [handleKeyDown]);
+
+
+  useBoardEventListeners();
+
+
   return (
     <>
       <DndProvider columns={columnIds.map(id => ({ id }))}>
@@ -231,7 +232,6 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ boardId }) => {
               )}
             </div>
             <div className="flex items-center gap-2 sm:gap-4 self-end sm:self-auto">
-              <TooltipProvider>
                 <Tooltip.Root delayDuration={300}>
                   <Tooltip.Trigger asChild>
                     <IconButton
@@ -281,7 +281,6 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ boardId }) => {
                     </Tooltip.Content>
                   </Tooltip.Portal>
                 </Tooltip.Root>
-              </TooltipProvider>
             </div>
           </div>
         </header>
@@ -318,7 +317,14 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ boardId }) => {
       {showColumnManager && (
         <>
           <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[9998]" onClick={() => setShowColumnManager(false)} />
-          <ColumnManager isOpen={showColumnManager} onClose={() => setShowColumnManager(false)} />
+          {/* <ColumnManager 
+          isOpen={showColumnManager} 
+          onClose={() => setShowColumnManager(false)} /> */}
+          <ColumnManagerV2 
+            isOpen={showColumnManager} 
+            onClose={() => setShowColumnManager(false)}
+            boardId={currentBoardId}
+          />
         </>
       )}
     </>
