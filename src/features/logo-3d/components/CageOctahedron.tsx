@@ -27,9 +27,10 @@ const OCTA_VERTICES = (radius: number): [number, number, number][] => [
 ]
 
 // ============================================================
-// ThinLine Component - داینامیک بر اساس taskCount
+// FlowLine
 // ============================================================
-interface ThinLineProps {
+
+interface FlowLineProps {
   from: [number, number, number]
   to: [number, number, number]
   color: string
@@ -37,35 +38,136 @@ interface ThinLineProps {
   taskCount: number
 }
 
-const ThinLine = ({ from, to, color, isActive, taskCount }: ThinLineProps) => {
-  // محاسبه lineWidth داینامیک
-  const lineWidth = useMemo(() => {
-    if (taskCount === 0) return 0.5   // حداقل - خیلی نازک
-    if (taskCount <= 3) return 1      // کم
-    if (taskCount <= 7) return 2      // متوسط
-    if (taskCount <= 15) return 3     // زیاد
-    return 4                           // خیلی زیاد
-  }, [taskCount])
+const FLOW_VERTEX = `
+  varying vec2 vUv;
+  varying vec3 vPosition;
+  varying vec3 vWorldPos;
+  
+  void main() {
+    vUv = uv;
+    vPosition = position;
+    vec4 worldPos = modelMatrix * vec4(position, 1.0);
+    vWorldPos = worldPos.xyz;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`
 
-  const opacity = useMemo(() => {
+const FLOW_FRAGMENT = `
+  uniform vec3 uColor;
+  uniform float uOpacity;
+  uniform float uTime;
+  uniform float uSpeed;
+  uniform float uDashCount;
+  varying vec2 vUv;
+  
+  void main() {
+    // حرکت: uTime * uSpeed باعث جابجایی فاز میشه
+    float phase = uTime * uSpeed;
+    
+    // الگوی dash در طول cylinder (UV.x)
+    // uDashCount = تعداد dash ها
+    // phase = جابجایی در طول زمان
+    float dash = sin((vUv.x + phase) * uDashCount * 6.28318);
+    
+    // تیز کردن dash
+    dash = smoothstep(-0.1, 0.15, dash) * (1.0 - smoothstep(0.8, 1.1, dash));
+    
+    // نرم کردن لبه‌های ابتدا و انتهای cylinder
+    float endFade = 1.0;
+    float fadeDist = 0.1;
+    if (vUv.x < fadeDist) endFade = vUv.x / fadeDist;
+    if (vUv.x > 1.0 - fadeDist) endFade = (1.0 - vUv.x) / fadeDist;
+    
+    // Core dash
+    float core = dash;
+    
+    // Glow دور cylinder
+    float glow = exp(-abs(vUv.y - 0.5) * 3.0) * 0.4;
+    
+    // Alpha نهایی
+    float alpha = (core * 1.0 + glow * dash * 0.5) * uOpacity * endFade;
+    
+    // حداقل visibility
+    alpha = max(alpha, 0.03 * uOpacity * endFade);
+    
+    gl_FragColor = vec4(uColor, alpha);
+  }
+`
+// ============================================================
+// FlowCylinder Component
+// ============================================================
+const FlowCylinder = ({ from, to, color, isActive, taskCount }: FlowLineProps) => {
+  const materialRef = useRef<THREE.ShaderMaterial>(null!)
+  
+  // Geometry
+  const { geometry, midPoint, quaternion } = useMemo(() => {
+    const start = new THREE.Vector3(...from)
+    const end = new THREE.Vector3(...to)
+    const dir = new THREE.Vector3().subVectors(end, start)
+    const length = dir.length()
+    
+    const radius = isActive ? 0.08 : 0.032
+    const geo = new THREE.CylinderGeometry(radius, radius, length, 32, 1)
+    
+    const midPoint = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5)
+    const direction = dir.normalize()
+    const quaternion = new THREE.Quaternion()
+    quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction)
+    
+    return { geometry: geo, midPoint, quaternion }
+  }, [from, to, isActive])
+
+  // Uniforms با useRef - mutable
+  const uniformsRef = useRef({
+    uColor: { value: new THREE.Color(color) },
+    uOpacity: { value: isActive ? 0.9 : 0.4 },
+    uTime: { value: Math.random() * 100 },
+    uSpeed: { value: 0.6 + taskCount * 0.15 },
+    uDashCount: { value: 3 + taskCount * 0.5 },
+  })
+
+  // آپدیت uniforms در هر فریم
+  useFrame((_, delta) => {
+    if (!materialRef.current) return
+    
+    const u = materialRef.current.uniforms
+    
+    // حرکت زمان
+    u.uTime.value += delta
+    
+    // آپدیت opacity نرم
     const base = isActive ? 0.9 : 0.4
-    // board با تسک بیشتر = opacity بیشتر
-    const taskBoost = Math.min(taskCount * 0.03, 0.3)
-    return Math.min(base + taskBoost, 1)
-  }, [isActive, taskCount])
+    const boost = Math.min(taskCount * 0.03, 0.25)
+    const target = base + boost
+    u.uOpacity.value += (target - u.uOpacity.value) * delta * 4
+    
+    // آپدیت speed اگه taskCount تغییر کرد
+    const targetSpeed = 0.6 + taskCount * 0.15
+    u.uSpeed.value += (targetSpeed - u.uSpeed.value) * delta * 2
+    
+    // آپدیت dash count
+    const targetDash = 3 + taskCount * 0.5
+    u.uDashCount.value += (targetDash - u.uDashCount.value) * delta * 2
+  })
 
   return (
-    <Line
-      points={[from, to]}
-      color={color}
-      lineWidth={lineWidth}
-      transparent
-      opacity={opacity}
-      depthWrite={false}
-    />
+    <mesh
+      position={midPoint}
+      quaternion={quaternion}
+      geometry={geometry}
+    >
+      <shaderMaterial
+        ref={materialRef}
+        vertexShader={FLOW_VERTEX}
+        fragmentShader={FLOW_FRAGMENT}
+        uniforms={uniformsRef.current}
+        transparent
+        depthWrite={false}
+        blending={THREE.NormalBlending}
+      />
+    </mesh>
   )
 }
-
 // ============================================================
 // CageOctahedron Component
 // ============================================================
@@ -132,7 +234,6 @@ const tasksByColumn = useMemo(() => {
      ref={groupRef} 
      rotation={board.rotation}
       onClick={(e) => {
-        // فقط اگه روی چیزی کلیک نشده باشه
         if (e.target === e.currentTarget) {
           handleBackgroundClick()
         }
@@ -140,19 +241,17 @@ const tasksByColumn = useMemo(() => {
     >
       <group scale={[board.scale, board.scale, board.scale]}>
         
-        {/* ===== میله‌های قفس ===== */}
-        {edges.map(([from, to], i) => (
-          <ThinLine
-            key={i}
-            from={vertices[from]}
-            to={vertices[to]}
-            color={board.color}
-            isActive={isActive}
-            taskCount={board.taskCount}
-          />
-        ))}
-
-        {/* ===== Parking Nodes (فقط روی vertex های active) ===== */}
+{edges.map(([from, to], i) => (
+  <FlowCylinder
+    key={i}
+    from={vertices[from]}
+    to={vertices[to]}
+    color={board.color}
+    isActive={isActive}
+    taskCount={board.taskCount}
+  />
+))}
+        {/* ===== Parking Nodes ===== */}
         {activeVertices.map(vertexIndex => {
           const colId = vertexToColumn[vertexIndex]
           if (!colId) return null
