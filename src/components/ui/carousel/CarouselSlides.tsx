@@ -1,53 +1,51 @@
 // components/ui/carousel/CarouselSlides.tsx
 import React, { ReactNode } from 'react';
-import { useCarousel } from './Carousel';
-import { cn } from '@/lib/utils';
+import { useCarousel } from './CarouselProvider';
 
 interface CarouselSlidesProps {
   children: ReactNode;
   className?: string;
-  style?: React.CSSProperties;
+  /** Render each slide with custom wrapper */
+  renderSlide?: (children: ReactNode, index: number, isActive: boolean) => ReactNode;
 }
 
 export const CarouselSlides: React.FC<CarouselSlidesProps> = ({
   children,
   className,
-  style,
+  renderSlide,
 }) => {
-  const { currentIndex, totalSlides } = useCarousel();
+  const { currentIndex, isTransitioning, transitionDuration } = useCarousel();
+  const slides = React.Children.toArray(children);
+
+  if (slides.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-48 text-gray-400">
+        No slides available
+      </div>
+    );
+  }
 
   return (
-    <div
-      className={cn('overflow-hidden', className)}
-      role="region"
-      aria-roledescription="carousel"
-      aria-label={`Showing slide ${currentIndex + 1} of ${totalSlides}`}
-    >
+    <div className={`overflow-hidden ${className || ''}`}>
       <div
         className="flex transition-transform ease-in-out"
         style={{
           transform: `translateX(-${currentIndex * 100}%)`,
-          transitionDuration: '500ms',
-          ...style,
+          transitionDuration: `${transitionDuration}ms`,
+          transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+          transitionProperty: isTransitioning ? 'transform' : 'none',
         }}
       >
-        {React.Children.map(children, (child, index) => {
-          // Check if child is a valid React element
-          if (React.isValidElement(child)) {
-            return (
-              <div
-                className="w-full flex-shrink-0"
-                role="group"
-                aria-roledescription="slide"
-                aria-label={`Slide ${index + 1} of ${totalSlides}`}
-                aria-hidden={index !== currentIndex}
-              >
-                {child}
-              </div>
-            );
-          }
-          return child;
-        })}
+        {slides.map((slide, index) => (
+          <div
+            key={index}
+            className="w-full flex-shrink-0"
+            aria-hidden={index !== currentIndex}
+            role="tabpanel"
+          >
+            {renderSlide ? renderSlide(slide, index, index === currentIndex) : slide}
+          </div>
+        ))}
       </div>
     </div>
   );
