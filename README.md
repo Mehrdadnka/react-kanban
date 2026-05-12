@@ -10,21 +10,17 @@
 
 A sophisticated, high-performance Kanban board crafted with React 18 and TypeScript. Features a custom client-side router, fluid drag-and-drop interactions, an interactive dashboard with contextual sidebar drill-downs, and an exquisitely polished responsive UI.
 
-![Dashboard](public/dashboard-screenshot.png)
-![Dashboard Sidebar](public/dashboard-sidebar-inprogress.png)
-![Kanban Board](public/dashboard-sidebar-minimized.png)
-![Kanban Board](public/taskboard-screenshot-minimized.png)
-![Task Details](public/task-edit.png)
-
-| Mobile Dashboard | Mobile Tasks | Not Found Page |
-|:---:|:---:|:---:|
-| ![Mobile Dashboard](public/homepage-phone.png) | ![Mobile Tasks](public/task-phone.png) | ![Not Found](public/NotFoundPage-phone.png) |
-
-| New Task | Edit Task | Search Task |
-|:---:|:---:|:---:|
-| ![New Task](public/new-task.png) | ![Edit Task](public/edit-task.png) | ![Search Task](public/search-phone.png) |
-
-![Test Suite](public/vitest-ui.png)
+![Dashboard](public/dashboardscreen.png)
+![Dashboard Status cards](public/dashboardstatcards.png)
+![Xp Center](public/xpcenter.png)
+![BoardList](public/boardList.png)
+![Create Board](public/createboard.png)
+![Xp Sider](public/xpsideber.png)
+![Kanban Board](public/board.png)
+![Board Right Sider](public/boardfiltersider.png)
+![Create Task](public/createtask.png)
+![Create Task Schedule](public/createtaskschedule.png)
+![Task Details](public/viewtask.png)
 
 ## Features
 
