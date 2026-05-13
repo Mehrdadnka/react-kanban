@@ -193,7 +193,7 @@ const BoardListStaticSidebar: React.FC<BoardListStaticSidebarProps> = ({
         )}>
           <h4 className="text-[10px] font-semibold text-gray-400 mb-2">Task Breakdown</h4>
 
-          <div className="space-y-2 overflow-y-auto max-h-[110px] px-2">
+          <div className="space-y-2 overflow-y-auto max-h-[88px] px-2">
             {taskBreakdown.map(col => (
               <div key={col.id}>
                 <div className="flex items-center justify-between text-[10px] mb-1">
