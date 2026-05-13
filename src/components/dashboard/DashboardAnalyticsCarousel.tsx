@@ -1,4 +1,3 @@
-// features/dashboard/DashboardAnalyticsCarousel.tsx
 import React, { useCallback } from 'react';
 import { ChartCarousel } from '@/components/charts/chart-carousel';
 import { 

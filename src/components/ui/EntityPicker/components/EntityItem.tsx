@@ -11,7 +11,7 @@ interface EntityItemProps {
   onToggle: (id: string) => void;
   onDelete?: (id: string) => void;
   renderItem?: (item: EntityItemType, isSelected: boolean) => React.ReactNode;
-  variant?: 'list' | 'grid'; // NEW
+  variant?: 'list' | 'grid';
 }
 
 export const EntityItem: React.FC<EntityItemProps> = ({

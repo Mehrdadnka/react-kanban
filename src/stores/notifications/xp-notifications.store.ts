@@ -137,7 +137,7 @@ export const useNotificationStore = create<NotificationState>()(
   )
 );
 
-// ✅ Auto-listeners (keep existing ones, just enhance)
+// Auto-listeners
 export const useNotificationListeners = () => {
   useEffect(() => {
     const eventBus = useEventBus.getState();

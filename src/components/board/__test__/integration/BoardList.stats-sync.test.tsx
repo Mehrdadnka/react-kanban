@@ -1,4 +1,3 @@
-// src/components/board/__test__/integration/BoardList.stats-sync.test.tsx
 import React, { ReactNode } from 'react';
 import { render, waitFor, act } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
@@ -10,7 +9,7 @@ import { AppProvider } from '@/providers/AppProvider';
 import { useColumnStore } from '@/stores/column.store';
 
 // ═══════════════════════════════════════════════
-// HARD RESET - داده‌های تستی ثابت
+// HARD RESET
 // ═══════════════════════════════════════════════
 const HARD_RESET_STATE = {
   boards: [
@@ -55,7 +54,7 @@ const resetAllStoresHard = () => {
 };
 
 // ═══════════════════════════════════════════════
-// Helper: همیشه کش رو invalidate کن قبل از خوندن
+// Helper
 // ═══════════════════════════════════════════════
 const getStats = (boardId: string) => {
   useBoardStore.getState().invalidateStatsCache(boardId);

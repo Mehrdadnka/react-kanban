@@ -1,4 +1,3 @@
-// features/TaskSidebars/view/TaskViewLayout.tsx
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { useApp } from '@/providers/AppProvider';
@@ -52,9 +51,7 @@ export const TaskViewLayout: React.FC<TaskViewLayoutProps> = ({
       maxWidth="full"
     >
       <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 h-full max-h-full min-h-0 -mx-6 -mt-6">
-        {/* Tab Navigation - جایگزین Stepper */}
         <div className="flex-shrink-0 lg:w-44 lg:border-r border-gray-200 dark:border-gray-800 lg:pr-3 pt-6 px-3 lg:px-0 lg:pl-6">
-          {/* Mobile: Horizontal scroll tabs */}
           <div className="lg:hidden -mx-6 px-6 pb-2 border-b border-gray-200 dark:border-gray-800">
             <div className="flex gap-1 overflow-x-auto scrollbar-hide">
               {tabs.map((tab) => {

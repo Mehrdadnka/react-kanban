@@ -1,4 +1,3 @@
-// components/SynapseLogo/SynapseLogo.tsx
 import React, { useRef, useEffect, useCallback } from 'react';
 
 // --- Type Definitions ---

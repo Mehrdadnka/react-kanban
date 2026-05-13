@@ -1,22 +1,18 @@
-// components/board/BoardList.tsx - GAMIFIED VERSION WITH FIXED LAYOUT
 import React, { useEffect, useMemo, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
-  Plus, Search, Sparkles, TrendingUp, Calendar, CheckCircle2, Layout,
-  Zap, Trophy, Flame, Target, Star, Crown, Swords, Shield,
-  ChevronRight, Gift, Award, Clock3, BarChart3, ChevronDown,
+  Plus, Search, Sparkles, CheckCircle2, Layout,
+  Zap, Trophy, Flame, Crown, BarChart3,
   X, ArrowUpRight, Timer, Activity
 } from 'lucide-react';
 import * as Popover from '@radix-ui/react-popover';
 import { Board, useBoardEventListeners, useBoardStore } from '@/stores/board.store';
-import { BoardCard } from './BoardCard';
 import { BoardCarousel } from './BoardCarousel';
 import { BoardTable } from './BoardTable';
 import { useApp } from '@/providers/AppProvider';
 import { cn } from '@/lib/utils';
 import { useBoardSidebarStore } from '@/stores/sidebar-engine/board-sidebar.store';
 import { useXPStore } from '@/stores/xp/xp.store';
-import { XPProgressRing } from '@/components/xp/XPProgressRing';
 import { Tab, TabItem } from '@/components/ui/tab/Tab';
 import BoardListStaticSidebar from './BoardListStaticSidebar';
 import { useColumnStore } from '@/stores/column.store';
@@ -315,8 +311,6 @@ export const BoardList: React.FC = () => {
   } = useXPStore();
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [showAchievementsDropdown, setShowAchievementsDropdown] = useState(false);
-  const [levelPopoverOpen, setLevelPopoverOpen] = useState(false);
 
   const filteredBoards = boards.filter(
     (board) =>
@@ -341,8 +335,6 @@ export const BoardList: React.FC = () => {
   }, [boards]);
 
   const completionRate = stats.total > 0 ? Math.round((stats.done / stats.total) * 100) : 0;
-  const unlockedAchievements = achievements.filter(a => a.completed);
-  const recentEvents = events.slice(-5).reverse();
 
   const handleViewBoard = (board: Board) => setActiveBoard(board.id);
   const handleEditBoard = (board: Board) => openEditBoard(board.id);
@@ -374,7 +366,7 @@ export const BoardList: React.FC = () => {
           existing.count += col.count;
         } else {
           columnMap.set(col.id, { 
-            id: col.id,        // ← اینو اضافه کن
+            id: col.id, 
             title: col.title, 
             color: col.color, 
             count: col.count 
@@ -387,8 +379,6 @@ export const BoardList: React.FC = () => {
   }, [boards]);
   useBoardEventListeners();
   
-
-
   return (
     <div className="h-full flex overflow-hidden">
 
@@ -403,7 +393,6 @@ export const BoardList: React.FC = () => {
         onQueryChange={(e) => setSearchQuery(e.target.value)}
         onCreateBoardClick={openCreateBoard}
         lastUpdated={stats.lastUpdated}
-        // ──── جدید: XP Props ────
         totalXP={totalXP}
         currentLevel={currentLevel}
         levelProgress={levelProgress}

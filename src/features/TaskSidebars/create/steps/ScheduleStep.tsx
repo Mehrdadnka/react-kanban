@@ -62,7 +62,6 @@ export const ScheduleStep: React.FC<ScheduleStepProps> = ({
   const durationDays =
     range.from && range.to && !hasDateConflict ? calculateDuration(range.from, range.to) : null;
 
-  // تابع کمکی برای set کردن ساعت روی تاریخ
   const applyTimeToDate = useCallback((date: Date, timeStr: string): Date => {
     const [h, m] = timeStr.split(':').map(Number);
     const newDate = new Date(date);
@@ -70,13 +69,10 @@ export const ScheduleStep: React.FC<ScheduleStepProps> = ({
     return newDate;
   }, []);
 
-  // Working hours confirm - سینک با startDate/dueDate
   const handleWorkingHoursConfirm = useCallback(
     (startTime: string, endTime: string) => {
-      // ۱. emit working hours
       onWorkingHoursChange?.(startTime, endTime);
 
-      // ۲. apply ساعت به startDate/dueDate
       if (range.from) {
         const updatedStart = applyTimeToDate(range.from, startTime);
         onStartDateChange?.(updatedStart);
@@ -89,7 +85,6 @@ export const ScheduleStep: React.FC<ScheduleStepProps> = ({
     [range.from, range.to, onWorkingHoursChange, onStartDateChange, onDueDateChange, applyTimeToDate]
   );
 
-  // Range date change - history رو با working hours ترکیب کن
   const handleRangeChange = (
     newRange: { from: Date | undefined; to: Date | undefined } | undefined
   ) => {
@@ -133,7 +128,6 @@ export const ScheduleStep: React.FC<ScheduleStepProps> = ({
     }
   };
 
-  // Format date display بدون ساعت midnight
   const formatDateDisplay = (date?: Date): string => {
     if (!date) return '';
     return date.toLocaleDateString('en-US', {
@@ -176,7 +170,6 @@ export const ScheduleStep: React.FC<ScheduleStepProps> = ({
             </div>
           </div>
 
-          {/* Date Summary - بدون at 12:00 AM */}
           {range.from && range.to && !hasDateConflict && (
             <div className="flex flex-col gap-2">
               <div

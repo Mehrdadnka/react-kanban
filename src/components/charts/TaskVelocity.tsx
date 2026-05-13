@@ -1,4 +1,3 @@
-// components/charts/TaskVelocity.tsx
 import React, { useMemo } from 'react';
 import * as echarts from 'echarts';
 import { BaseChart } from './BaseChart';

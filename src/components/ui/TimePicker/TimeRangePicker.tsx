@@ -1,4 +1,3 @@
-// components/ui/TimePicker/TimeRangePicker.tsx
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { ArrowRight, Timer, AlertCircle, Zap, Coffee, Moon, Sunrise, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -184,7 +183,7 @@ export const TimeRangePicker: React.FC<TimeRangePickerProps> = ({
           onChange={handleStartChange}
           label="Start Time"
           size={size}
-          showConfirmButtons={false} // Range خودش مدیریت می‌کنه
+          showConfirmButtons={false} 
         />
 
         {/* Arrow Connector */}

@@ -39,8 +39,8 @@ export const useLogoEventBridge = () => {
         logoStore.addSpark({
           boardId,
           taskId: id,
-          from: SPARK_ORIGIN,      // از مرکز board
-          to: toVertex,             // به ستون
+          from: SPARK_ORIGIN,    
+          to: toVertex,         
           speed: 0.004 + Math.random() * 0.003,
           color: COLUMN_COLORS[columnId] || '#3B82F6',
           type: 'task:created',
@@ -48,7 +48,6 @@ export const useLogoEventBridge = () => {
       }, { priority: 50 }),
 
       // ===== Task Moved =====
-      // spark از vertex قدیم به vertex جدید
       eventBus.on('task:moved', ({ id, from, to, boardId }) => {
         const fromVertex = COLUMN_TO_VERTEX[from] ?? 2
         const toVertex = COLUMN_TO_VERTEX[to] ?? 4
@@ -65,24 +64,22 @@ export const useLogoEventBridge = () => {
       }, { priority: 50 }),
 
       // ===== Task Completed =====
-      // spark از vertex ستون به الماس مرکزی
       eventBus.on('task:completed', ({ id, boardId }) => {
         logoStore.addSpark({
           boardId,
           taskId: id,
-          from: 4,                  // از done vertex
-          to: DIAMOND_VERTEX,       // به الماس مرکزی
+          from: 4,               
+          to: DIAMOND_VERTEX,  
           speed: 0.006 + Math.random() * 0.003,
           color: '#22C55E',
           type: 'task:completed',
         })
         
-        // spark اضافی از in-progress هم
         setTimeout(() => {
           logoStore.addSpark({
             boardId,
             taskId: id,
-            from: 3,                // از in-progress
+            from: 3,
             to: DIAMOND_VERTEX,
             speed: 0.005,
             color: '#22C55E',

@@ -1,7 +1,5 @@
-// KanbanBoard.tsx - COMPLETE FIXED VERSION
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import * as Tooltip from '@radix-ui/react-tooltip';
-import { TooltipProvider } from '@radix-ui/react-tooltip';
 import { IconButton } from '@radix-ui/themes';
 import { Plus, Settings, ClipboardList, Zap, CheckCircle2, Circle, HelpCircle } from 'lucide-react';
 import { Column } from './Column';
@@ -12,7 +10,7 @@ import { useColumnStore } from '@/stores/column.store';
 import { useBoardEventListeners, useBoardStore } from '@/stores/board.store';
 import { cn } from '@/lib/utils';
 import { Task } from '@/types/task.types';
-import { FilterBar, FilterState } from './FilterBar';
+import { FilterState } from './FilterBar';
 import { useTaskSidebarStore } from '@/stores/sidebar-engine/task-sidebar.store';
 import { FilterSidebar } from './FilterSidebar';
 import { useEventBus } from '@/stores/core/event-bus.store';
@@ -42,19 +40,18 @@ interface KanbanBoardProps {
 
 export const KanbanBoard: React.FC<KanbanBoardProps> = ({ boardId }) => {
   const { isDarkMode } = useApp();
-  const { tasks, addTask } = useTaskStore();
+  const { tasks } = useTaskStore();
   const { columns } = useColumnStore();
   const { activeBoardId, getActiveBoard, setActiveBoard } = useBoardStore();
   const { openCreateSidebar, openViewSidebar } = useTaskSidebarStore();
   const [showColumnManager, setShowColumnManager] = useState(false);
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
   
-  // FIX: Use activeBoardId from store instead of prop
+  // Use activeBoardId from store instead of prop
   const currentBoardId = activeBoardId || boardId;
   const activeBoard = getActiveBoard();
-  const { getColumnsByBoard } = useColumnStore();
 
-  // FIX: Set active board if boardId prop changes and no active board
+  // Set active board if boardId prop changes and no active board
   useEffect(() => {
     if (boardId && !activeBoardId) {
       useBoardStore.getState().setActiveBoard(boardId);
@@ -99,43 +96,14 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ boardId }) => {
       .sort((a, b) => a.order - b.order);
   }, [boardTasks]);
 
-  // const sortedColumns = useMemo(() => [...columns].sort((a, b) => a.order - b.order), [columns]);
+  const sortedColumns = useMemo(() => 
+    columns
+      .filter(c => c.boardId === currentBoardId)
+      .sort((a, b) => a.order - b.order),
+    [columns, currentBoardId]
+  );
 
-
-const sortedColumns = useMemo(() => 
-  columns
-    .filter(c => c.boardId === currentBoardId)
-    .sort((a, b) => a.order - b.order),
-  [columns, currentBoardId]
-);
   const columnIds = useMemo(() => sortedColumns.map(c => c.id), [sortedColumns]);
-
-  // Filter from boardTasks instead of all tasks
-  const filteredTasks = useMemo(() => {
-    let result = boardTasks;
-
-    if (filters.search) {
-      const q = filters.search.toLowerCase();
-      result = result.filter(t =>
-        t.title.toLowerCase().includes(q) ||
-        t.description?.toLowerCase().includes(q)
-      );
-    }
-    if (filters.priorities.length > 0) {
-      result = result.filter(t => filters.priorities.includes(t.priority));
-    }
-    if (filters.labels.length > 0) {
-      result = result.filter(t => t.labels.some(l => filters.labels.includes(l)));
-    }
-    if (filters.columns.length > 0) {
-      result = result.filter(t => filters.columns.includes(t.columnId));
-    }
-    if (filters.types.length > 0) {
-      result = result.filter(t => filters.types.includes(t.type));
-    }
-
-    return result;
-  }, [boardTasks, filters]);
 
   const [isFilterExpanded, setIsFilterExpanded] = useState<boolean>(false);
 
@@ -151,42 +119,28 @@ const sortedColumns = useMemo(() =>
       defaultBoardId: boardIdToUse
     });
   }, [sortedColumns, openCreateSidebar, activeBoardId, currentBoardId]);
-// KanbanBoard.tsx - توی useEffect موجود
-useEffect(() => {
-  const eventBus = useEventBus.getState();
-  
-  const noop = () => {};
+ 
+  useEffect(() => {
+    const eventBus = useEventBus.getState();
+    
+    const noop = () => {};
 
-  const listenerIds = [
-    // Task events
-    eventBus.on('task:created', noop, { priority: 10 }),
-    eventBus.on('task:updated', noop, { priority: 10 }),
-    eventBus.on('task:deleted', noop, { priority: 10 }),
-    eventBus.on('task:moved', noop, { priority: 10 }),
-    // Column events - NEW
-    eventBus.on('column:created', noop, { priority: 10 }),
-    eventBus.on('column:deleted', noop, { priority: 10 }),
-    eventBus.on('column:updated', noop, { priority: 10 }),
-  ];
+    const listenerIds = [
+      // Task events
+      eventBus.on('task:created', noop, { priority: 10 }),
+      eventBus.on('task:updated', noop, { priority: 10 }),
+      eventBus.on('task:deleted', noop, { priority: 10 }),
+      eventBus.on('task:moved', noop, { priority: 10 }),
+      // Column events
+      eventBus.on('column:created', noop, { priority: 10 }),
+      eventBus.on('column:deleted', noop, { priority: 10 }),
+      eventBus.on('column:updated', noop, { priority: 10 }),
+    ];
 
-  return () => {
-    listenerIds.forEach(id => eventBus.off(id));
-  };
-}, []);
-  // Debug logging
-  // useEffect(() => {
-  //   console.log('🎯 KanbanBoard Debug:', {
-  //     propBoardId: boardId,
-  //     activeBoardId,
-  //     currentBoardId,
-  //     boardTasksCount: boardTasks.length,
-  //     totalTasksCount: tasks.length,
-  //     activeBoard: activeBoard?.title,
-  //     boardTaskIds: boardTasks.map(t => t.id),
-  //   });
-  // }, [boardId, activeBoardId, currentBoardId, boardTasks, tasks.length, activeBoard]);
-
-
+    return () => {
+      listenerIds.forEach(id => eventBus.off(id));
+    };
+  }, []);
 
 
   const handleBackToBoards = () => {
@@ -347,9 +301,6 @@ useEffect(() => {
       {showColumnManager && (
         <>
           <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[9998]" onClick={() => setShowColumnManager(false)} />
-          {/* <ColumnManager 
-          isOpen={showColumnManager} 
-          onClose={() => setShowColumnManager(false)} /> */}
           <ColumnManagerV2 
             isOpen={showColumnManager} 
             onClose={() => setShowColumnManager(false)}

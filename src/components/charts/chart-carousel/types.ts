@@ -1,4 +1,3 @@
-// components/ui/chart-carousel/types.ts
 import { EChartsOption } from 'echarts';
 import { ReactNode } from 'react';
 

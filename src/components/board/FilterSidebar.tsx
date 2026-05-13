@@ -1,6 +1,5 @@
-// components/board/FilterSidebar.tsx
 import React, { useState } from 'react';
-import { Filter, ChevronUp, Home, ChevronRight, ArrowLeft } from 'lucide-react';
+import { Filter, Home, ChevronRight, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useApp } from '@/providers/AppProvider';
 import { Board, useBoardStore } from '@/stores/board.store';

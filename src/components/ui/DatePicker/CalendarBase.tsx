@@ -1,31 +1,25 @@
-// components/ui/DatePicker/CalendarBase.tsx
 import React, { useCallback } from 'react';
 import { ChevronLeft, ChevronRight, RotateCcw, Calendar } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths, isSameDay, isAfter, isBefore, isWithinInterval } from 'date-fns';
 import { cn } from '@/lib/utils';
 
 interface CalendarBaseProps {
-  // ماه جاری
   currentMonth: Date;
   onMonthChange: (date: Date) => void;
   
-  // روزهای انتخاب‌شده و هندلرها
   selectedDays: Date[];
   highlightedRange?: { from?: Date; to?: Date };
   onDayMouseDown?: (day: Date) => void;
   onDayMouseEnter?: (day: Date) => void;
   onDayClick?: (day: Date) => void;
   
-  // وضعیت روزها
   getDayClassName?: (day: Date, isToday: boolean) => string;
   isDayDisabled?: (day: Date) => boolean;
   
-  // پیکربندی
   numberOfMonths?: number;
   isDarkMode?: boolean;
   disabled?: boolean;
   
-  // نمایش
   calendarHeight?: string;
   showNavigation?: boolean;
 }
@@ -36,7 +30,6 @@ export const CalendarBase: React.FC<CalendarBaseProps> = ({
   currentMonth,
   onMonthChange,
   selectedDays = [],
-  highlightedRange,
   onDayMouseDown,
   onDayMouseEnter,
   onDayClick,

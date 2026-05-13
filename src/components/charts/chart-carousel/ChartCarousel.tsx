@@ -1,4 +1,3 @@
-// components/charts/chart-carousel/ChartCarousel.tsx
 import React from 'react';
 import { CarouselProvider, CarouselSlides, CarouselDots, CarouselControls, CarouselProps } from '@/components/ui/carousel';
 import { ChartConfig } from './types';

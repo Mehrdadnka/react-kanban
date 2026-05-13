@@ -1,4 +1,3 @@
-// features/logo-3d/components/DiamondCore.tsx
 import { useRef, useEffect, useState, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
@@ -9,13 +8,7 @@ import { CageOctahedron } from './CageOctahedron'
 import { useTaskStore } from '@/stores/task.store'
 import { Task } from '@/types/task.types'
 
-/**
- * Central Diamond Cage + Board Cages
- * 
- * همه هم‌مرکز در (0,0,0)
- * الماس مرکزی = cage کوچک بنفش
- * Board ها = cage های رنگی با scale متفاوت
- */
+
 export const DiamondCore = () => {
   const centralRef = useRef<Group>(null!)
   const [cubeData, setCubeData] = useState<BoardCubeData[]>([])
@@ -63,7 +56,6 @@ const getBoardColumns = (boardId: string, tasks: Task[]): string[] => {
 
   return (
     <group>
-      {/* ===== الماس مرکزی - قفس بنفش ===== */}
       <group ref={centralRef} scale={[0.45, 0.45, 0.45]}>
         <CentralDiamondCage />
       </group>

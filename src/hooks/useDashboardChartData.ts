@@ -147,7 +147,7 @@ export const useDashboardChartData = () => {
     }];
   }, [allTasks]);
 
-  // ⚡ XP Progress - ✅ FIX 3: Calculate manually instead of calling store method
+  // ⚡ XP Progress : Calculate manually
   const xpProgressData = useMemo(() => {
     // Manual level calculation (same as store)
     let level = 1;

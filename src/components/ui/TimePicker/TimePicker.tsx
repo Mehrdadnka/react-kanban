@@ -71,13 +71,11 @@ export const TimePicker: React.FC<TimePickerProps> = ({
     [onChange]
   );
 
-  // Column change handlers - فقط draft رو آپدیت می‌کنن
   const handleHourChange = useCallback(
     (index: number) => {
       const newTimeObj = { ...draftTimeObject, hour: hours[index] };
       setDraftTimeObject(newTimeObj);
       
-      // اگه confirm buttons نباشه، همون موقع emit کن
       if (!showConfirmButtons) {
         fireChange(newTimeObj);
       }
@@ -114,7 +112,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({
     onCancel?.();
   }, [value, onCancel]);
 
-  // Is dirty? (آیا تغییراتی داده شده)
+  // Is dirty?
   const isDirty = useMemo(() => {
     const originalTime = parseTimeString(value);
     return draftTimeObject.hour !== originalTime.hour || 

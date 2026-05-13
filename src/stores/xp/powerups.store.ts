@@ -295,7 +295,7 @@ export const usePowerUpStore = create<PowerUpState>()(
   )
 );
 
-// 🎯 Wire checkUnlocks to level up
+// Wire checkUnlocks to level up
 if (typeof window !== 'undefined') {
   (window as any).__powerUpStore = usePowerUpStore;
   

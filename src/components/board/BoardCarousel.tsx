@@ -1,4 +1,3 @@
-// components/board/BoardCarousel.tsx
 import React, { useEffect, useState, useCallback } from 'react';
 import { Settings, CheckCircle2, Circle, GripVertical, X } from 'lucide-react';
 import { cn } from '@/lib/utils';

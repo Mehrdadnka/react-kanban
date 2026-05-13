@@ -1,4 +1,3 @@
-// components/notifications/NotificationToast.tsx
 import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';

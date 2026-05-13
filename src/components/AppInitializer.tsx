@@ -1,4 +1,3 @@
-// components/AppInitializer.tsx - UPDATED
 import React, { useEffect } from 'react';
 import { useBoardEventListeners } from '@/stores/board.store';
 import { useXPEventHandlers } from '@/stores/xp/xp-event-handlers';

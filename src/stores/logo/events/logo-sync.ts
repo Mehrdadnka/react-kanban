@@ -11,7 +11,6 @@ export const useLogoSync = () => {
     const channel = new BroadcastChannel(CHANNEL_NAME)
     channelRef.current = channel
 
-    // گوش دادن به تب‌های دیگه
     channel.onmessage = (event) => {
       const store = useLogoStore.getState()
       const { type, data } = event.data
@@ -29,13 +28,11 @@ export const useLogoSync = () => {
     }
   }, [])
 
-  // تابع send که channel باز باشه
   const send = (type: string, data: any) => {
     if (channelRef.current) {
       try {
         channelRef.current.postMessage({ type, data })
       } catch {
-        // channel بسته شده - بی‌خیال
       }
     }
   }

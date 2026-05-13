@@ -1,4 +1,3 @@
-// components/ui/carousel/CarouselNavigation.tsx
 import React from 'react';
 import { useCarousel } from './Carousel';
 import { cn } from '@/lib/utils';

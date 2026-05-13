@@ -1,4 +1,3 @@
-// components/ui/carousel/Carousel.tsx
 import React, {
   createContext,
   useContext,

@@ -5,8 +5,7 @@ import { SidebarItem } from './SidebarItem';
 import { useApp } from '@/providers/AppProvider';
 import { useSearchControl } from '../hooks/useSearchControl';
 import { cn } from '@/lib/utils';
-import { useQuickNotesStore } from '@/stores/quick-notes.store';
-import { useSidebarEngineStore } from '@/stores/sidebar-engine/sidebar-engine.store'; // اضافه کن
+import { useSidebarEngineStore } from '@/stores/sidebar-engine/sidebar-engine.store';
 import { useQuickNotesControl } from '../hooks/useQuickNotesControl';
 import { useSettingsControl } from '../hooks/useSettingsControl';
 import { NotificationBell } from '@/components/notifications/NotificationBell';

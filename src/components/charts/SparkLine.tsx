@@ -1,4 +1,3 @@
-// components/charts/SparkLine.tsx
 import React, { useMemo, useCallback } from 'react';
 import * as echarts from 'echarts';
 import { BaseChart } from './BaseChart';

@@ -14,13 +14,13 @@ import { toast } from 'sonner';
 interface DescriptionTabProps {
   task: Task;
   isDarkMode?: boolean;
-  editable?: boolean; // برای آینده: فعال/غیرفعال کردن ویرایش
+  editable?: boolean;
 }
 
 export const DescriptionTab: React.FC<DescriptionTabProps> = ({ 
   task, 
   isDarkMode,
-  editable = true // پیش‌فرض: قابل ویرایش
+  editable = true
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -108,7 +108,6 @@ export const DescriptionTab: React.FC<DescriptionTabProps> = ({
 
   const stats = getContentStats(task.description || '');
 
-  // ──── اگر توضیحی وجود نداره و در حالت ویرایش نیستیم ────
   if (!task.description && !isEditing) {
     return (
       <div className="space-y-4" onKeyDown={handleKeyDown}>

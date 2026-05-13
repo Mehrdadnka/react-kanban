@@ -1,4 +1,3 @@
-// features/logo-3d/events/use-cross-tab-sync.ts
 import { useEffect, useRef } from 'react'
 import { useEventBus } from '@/stores/core/event-bus.store'
 
@@ -12,7 +11,6 @@ export const useCrossTabSync = () => {
     const channel = new BroadcastChannel(CHANNEL)
     channelRef.current = channel
 
-    // گوش دادن به تب‌های دیگه
     channel.onmessage = (msg) => {
       const { from, event, payload } = msg.data
       if (from === tabId.current) return
@@ -21,14 +19,14 @@ export const useCrossTabSync = () => {
       try {
         bus.emit(event, payload)
       } catch {
-        // بی‌خیال
+        // return
       }
     }
 
     return () => channel.close()
   }, [])
 
-  // تابع send
+  // send func
   const send = (event: string, payload: unknown) => {
     if (channelRef.current) {
       channelRef.current.postMessage({

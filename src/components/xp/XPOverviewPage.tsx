@@ -231,17 +231,15 @@ const tabItems: TabItem[] = [
 
       {/* Tabs */}
       <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
-       
-
-<Tab
-  items={tabItems}
-  defaultValue="overview"
-  value={activeTab}
-  onValueChange={(value) => setActiveTab(value as any)}
-  isDarkMode={isDarkMode}
-  size="default"
-  variant="underline" // یا 'underline' بسته به طراحی
-/>
+      <Tab
+        items={tabItems}
+        defaultValue="overview"
+        value={activeTab}
+        onValueChange={(value) => setActiveTab(value as any)}
+        isDarkMode={isDarkMode}
+        size="default"
+        variant="underline"
+      />
     </div>
     </div>
   );

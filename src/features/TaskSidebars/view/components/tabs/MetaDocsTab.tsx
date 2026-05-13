@@ -34,7 +34,6 @@ export const MetaDocsTab: React.FC<MetaDocsTabProps> = ({ task, isDarkMode }) =>
   const hasEstimatedHours = task.estimatedHours !== undefined && task.estimatedHours > 0;
   const hasTimeSpent = task.timeSpent !== undefined && task.timeSpent > 0;
 
-  // اگر هیچکدوم وجود نداشته باشه (البته این تب فقط وقتی ساخته میشه که چیزی باشه)
   if (!hasAttachments && !hasEstimatedHours) {
     return (
       <EmptyState

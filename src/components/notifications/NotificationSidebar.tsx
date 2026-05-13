@@ -1,4 +1,3 @@
-// components/notifications/NotificationSidebar.tsx
 import React, { memo, useMemo } from 'react';
 import { Bell, CheckCheck, Trash2, ArrowRight } from 'lucide-react';
 import { PanelProps } from '@/stores/sidebar-engine/sidebar-engine.types';

@@ -1,4 +1,3 @@
-// components/charts/LabelSunburst.tsx
 import React, { useMemo } from 'react';
 import { BaseChart } from './BaseChart';
 import { cn } from '@/lib/utils';

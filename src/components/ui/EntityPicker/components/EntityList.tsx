@@ -1,4 +1,3 @@
-// components/ui/EntityPicker/components/EntityList.tsx
 import React from 'react';
 import { EntityItem } from './EntityItem';
 import { EntityItemType } from '../entityPicker.types';

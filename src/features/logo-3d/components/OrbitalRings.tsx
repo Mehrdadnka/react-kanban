@@ -1,4 +1,3 @@
-// features/logo-3d/components/OrbitalRings.tsx
 import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
@@ -20,22 +19,16 @@ export interface RingData {
 
 interface OrbitalRingsProps {
   rings: RingData[]
-  /** radius پایه برای داخلی‌ترین حلقه */
   baseRadius?: number
-  /** فاصله بین حلقه‌ها */
   gap?: number
-  /** tube radius */
   thickness?: number
-  /** opacity پایه */
   baseOpacity?: number
-  /** active (hover) */
   active?: boolean
-  /** کیفیت geometry */
   segments?: number
 }
 
 // ============================================================
-// Single Ring با انیمیشن orbital
+// Single Ring orbital
 // ============================================================
 interface RingProps {
   ring: RingData
@@ -71,7 +64,6 @@ const OrbitalRing = ({
     return thickness * (1 + ageBoost)
   }, [ring.ageInDays, thickness])
   
-  // ──── opacity از priority ────
   const computedOpacity = useMemo(() => {
     const priorityBoost = 
       ring.priority === 'urgent' ? 0.3 :
@@ -92,7 +84,6 @@ const OrbitalRing = ({
     return c
   }, [ring.color, ring.ageInDays])
   
-  // ──── emissive از activity ────
   const emissiveIntensity = useMemo(() => {
     if (!ring.daysSinceUpdate) return active ? 0.5 : 0.15
     
@@ -131,7 +122,6 @@ const OrbitalRing = ({
       <mesh ref={ringRef}>
         <torusGeometry args={[radius, isSummary ? thickness * 3 : computedThickness, 16, segments]} />
 
-        {/* <torusGeometry args={[radius, computedThickness, 16, segments]} /> */}
         <meshPhysicalMaterial
           color={color}
           emissive={color}
@@ -174,7 +164,6 @@ export const OrbitalRings = ({
   active = false,
   segments = 24,
 }: OrbitalRingsProps) => {
-  // محدودیت نمایش
   const visibleRings = active ? rings : rings.slice(0, Math.min(3, rings.length))
   
   if (rings.length === 0) return null

@@ -6,14 +6,13 @@ import type { Mesh } from 'three'
 import type { Task } from '@/types/task.types'
 import { OrbitalRings, RingData } from './OrbitalRings'
 import * as THREE from 'three'
-// features/logo-3d/components/ParkingNode.tsx
 
 // ============================================================
-// Shader ها
+// Shaders
 // ============================================================
 
-// Vertex Shader مشترک
-const PARKING_VERTEX = `
+// Vertex Shader
+const PARKING_VERTEX = /* glsl */`
   varying vec2 vUv;
   varying vec3 vNormal;
   varying vec3 vPosition;
@@ -29,8 +28,7 @@ const PARKING_VERTEX = `
   }
 `
 
-// ──── استایل ۱: فلزی درخشان (Metallic) ────
-const METALLIC_FRAGMENT = `
+const METALLIC_FRAGMENT = /* glsl */`
   uniform vec3 uColor;
   uniform vec3 uGlowColor;
   uniform float uOpacity;
@@ -41,36 +39,28 @@ const METALLIC_FRAGMENT = `
   varying vec3 vWorldPos;
   
   void main() {
-    // Fresnel - لبه‌ها درخشان‌تر
     vec3 viewDir = normalize(cameraPosition - vWorldPos);
     float fresnel = 1.0 - abs(dot(vNormal, viewDir));
     fresnel = pow(fresnel, 3.0);
     
-    // نورپردازی ساده
     vec3 lightDir = normalize(vec3(0.5, 1.0, 0.8));
     float diff = max(dot(vNormal, lightDir), 0.0) * 0.6 + 0.4;
     
-    // Base color با gradient ملایم
     vec3 base = uColor * diff;
     
-    // Rim light (لبه‌های درخشان)
     vec3 rim = uGlowColor * fresnel * (0.5 + uActive * 0.5);
     
-    // Highlight نقطه‌ای
     vec3 highlight = vec3(1.0) * pow(fresnel, 8.0) * 0.4 * (1.0 + uActive);
     
-    // ترکیب
     vec3 finalColor = base + rim + highlight;
     
-    // Alpha: opaque با rim glow
     float alpha = uOpacity * (0.85 + fresnel * 0.15 + uActive * 0.1);
     
     gl_FragColor = vec4(finalColor, alpha);
   }
 `
 
-// ──── استایل ۲: کریستال/سنگ قیمتی (Gemstone) ────
-const GEMSTONE_FRAGMENT = `
+const GEMSTONE_FRAGMENT = /* glsl */`
   uniform vec3 uColor;
   uniform vec3 uGlowColor;
   uniform float uOpacity;
@@ -85,21 +75,17 @@ const GEMSTONE_FRAGMENT = `
     float fresnel = 1.0 - abs(dot(vNormal, viewDir));
     fresnel = pow(fresnel, 2.5);
     
-    // Internal glow (انگار نور از داخل میاد)
     float innerGlow = pow(fresnel, 1.5) * 0.7;
     
-    // Facet-like highlights
     vec3 lightDir1 = normalize(vec3(0.8, 0.6, 1.0));
     vec3 lightDir2 = normalize(vec3(-0.5, 0.8, -0.3));
     float spec1 = pow(max(dot(vNormal, lightDir1), 0.0), 6.0) * 0.5;
     float spec2 = pow(max(dot(vNormal, lightDir2), 0.0), 4.0) * 0.3;
     
-    // Color shifts based on angle
     vec3 color1 = uColor;
     vec3 color2 = uGlowColor;
     vec3 angleColor = mix(color1, color2, fresnel * 0.6);
     
-    // ترکیب
     vec3 finalColor = angleColor * (0.6 + innerGlow * 0.4);
     finalColor += uGlowColor * (spec1 + spec2) * (1.0 + uActive);
     finalColor += vec3(1.0) * pow(fresnel, 10.0) * 0.3 * uActive;
@@ -110,8 +96,7 @@ const GEMSTONE_FRAGMENT = `
   }
 `
 
-// ──── استایل ۳: مینیمال مات درخشان (Soft Glow) ────
-const SOFT_GLOW_FRAGMENT = `
+const SOFT_GLOW_FRAGMENT = /* glsl */`
   uniform vec3 uColor;
   uniform vec3 uGlowColor;
   uniform float uOpacity;
@@ -125,7 +110,6 @@ const SOFT_GLOW_FRAGMENT = `
     vec3 viewDir = normalize(cameraPosition - vWorldPos);
     float fresnel = 1.0 - abs(dot(vNormal, viewDir));
     
-    // نور ملایم و یکنواخت
     float light = 0.7 + 0.3 * dot(vNormal, normalize(vec3(0.5, 0.8, 0.5)));
     
     // Core color
@@ -135,7 +119,6 @@ const SOFT_GLOW_FRAGMENT = `
     float glow = pow(fresnel, 4.0) * 0.4 * (1.0 + uActive);
     vec3 glowColor = uGlowColor * glow;
     
-    // Pulse animation برای active
     float pulse = 1.0 + sin(uTime * 2.0) * 0.1 * uActive;
     
     vec3 finalColor = (base + glowColor) * pulse;

@@ -19,7 +19,7 @@ export interface EntityPickerProps {
   onDelete?: (id: string) => void;
   
   placeholder?: string;
-  cardPlaceholder?: string;  // NEW: placeholder inside card body
+  cardPlaceholder?: string;  // placeholder inside card body
   searchPlaceholder?: string;
   createPlaceholder?: string;
   label?: string;
@@ -28,7 +28,7 @@ export interface EntityPickerProps {
   presetColors?: string[];
   className?: string;
   disabled?: boolean;
-  compact?: boolean;  // NEW: smaller padding/sizes
+  compact?: boolean;  // smaller padding/sizes
   
   renderItem?: (item: EntityItem, isSelected: boolean) => React.ReactNode;
   renderBadge?: (item: EntityItem) => React.ReactNode;

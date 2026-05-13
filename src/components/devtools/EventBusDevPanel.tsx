@@ -1,4 +1,3 @@
-// components/devtools/EventBusDevPanel.tsx
 import React, { useState } from 'react';
 import { useEventBus } from '@/stores/core/event-bus.store';
 

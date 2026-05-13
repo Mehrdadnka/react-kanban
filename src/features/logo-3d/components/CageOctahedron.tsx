@@ -1,4 +1,3 @@
-// features/logo-3d/components/CageOctahedron.tsx
 import { useRef, useMemo, useState, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Text, Line } from '@react-three/drei'
@@ -38,7 +37,7 @@ interface FlowLineProps {
   taskCount: number
 }
 
-const FLOW_VERTEX = `
+const FLOW_VERTEX = /* glsl */`
   varying vec2 vUv;
   varying vec3 vPosition;
   varying vec3 vWorldPos;
@@ -52,7 +51,7 @@ const FLOW_VERTEX = `
   }
 `
 
-const FLOW_FRAGMENT = `
+const FLOW_FRAGMENT = /* glsl */`
   uniform vec3 uColor;
   uniform float uOpacity;
   uniform float uTime;
@@ -61,18 +60,12 @@ const FLOW_FRAGMENT = `
   varying vec2 vUv;
   
   void main() {
-    // حرکت: uTime * uSpeed باعث جابجایی فاز میشه
     float phase = uTime * uSpeed;
     
-    // الگوی dash در طول cylinder (UV.x)
-    // uDashCount = تعداد dash ها
-    // phase = جابجایی در طول زمان
     float dash = sin((vUv.x + phase) * uDashCount * 6.28318);
     
-    // تیز کردن dash
     dash = smoothstep(-0.1, 0.15, dash) * (1.0 - smoothstep(0.8, 1.1, dash));
     
-    // نرم کردن لبه‌های ابتدا و انتهای cylinder
     float endFade = 1.0;
     float fadeDist = 0.1;
     if (vUv.x < fadeDist) endFade = vUv.x / fadeDist;
@@ -81,13 +74,10 @@ const FLOW_FRAGMENT = `
     // Core dash
     float core = dash;
     
-    // Glow دور cylinder
     float glow = exp(-abs(vUv.y - 0.5) * 3.0) * 0.4;
     
-    // Alpha نهایی
     float alpha = (core * 1.0 + glow * dash * 0.5) * uOpacity * endFade;
     
-    // حداقل visibility
     alpha = max(alpha, 0.03 * uOpacity * endFade);
     
     gl_FragColor = vec4(uColor, alpha);
@@ -117,7 +107,6 @@ const FlowCylinder = ({ from, to, color, isActive, taskCount }: FlowLineProps) =
     return { geometry: geo, midPoint, quaternion }
   }, [from, to, isActive])
 
-  // Uniforms با useRef - mutable
   const uniformsRef = useRef({
     uColor: { value: new THREE.Color(color) },
     uOpacity: { value: isActive ? 0.9 : 0.4 },
@@ -217,9 +206,6 @@ const tasksByColumn = useMemo(() => {
     return grouped
   }, [boardTasks, activeVertices, vertexToColumn])
 
-
-
-
   const label = board.taskCount > 0 
     ? `${board.title} (${board.taskCount})`
     : board.title
@@ -234,18 +220,17 @@ const tasksByColumn = useMemo(() => {
         }
       }}
     >
-      <group scale={[board.scale, board.scale, board.scale]}>
-        
-{edges.map(([from, to], i) => (
-  <FlowCylinder
-    key={i}
-    from={vertices[from]}
-    to={vertices[to]}
-    color={board.color}
-    isActive={isActive}
-    taskCount={board.taskCount}
-  />
-))}
+      <group scale={[board.scale, board.scale, board.scale]}>              
+        {edges.map(([from, to], i) => (
+          <FlowCylinder
+            key={i}
+            from={vertices[from]}
+            to={vertices[to]}
+            color={board.color}
+            isActive={isActive}
+            taskCount={board.taskCount}
+          />
+        ))}
         {/* ===== Parking Nodes ===== */}
         {activeVertices.map(vertexIndex => {
           const colId = vertexToColumn[vertexIndex]

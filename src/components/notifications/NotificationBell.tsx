@@ -1,9 +1,7 @@
-// components/notifications/NotificationBell.tsx
 import React, { useEffect, useState } from 'react';
 import { Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNotificationStore } from '@/stores/notifications/xp-notifications.store';
-import { useShallow } from 'zustand/react/shallow';
 
 interface NotificationBellProps {
   onClick: () => void;

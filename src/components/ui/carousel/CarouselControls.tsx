@@ -1,4 +1,3 @@
-// components/ui/carousel/CarouselControls.tsx
 import React, { ReactNode } from 'react';
 import { useCarousel } from './CarouselProvider';
 import { cn } from '@/lib/utils';

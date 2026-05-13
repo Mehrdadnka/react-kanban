@@ -20,7 +20,6 @@ import { format } from 'date-fns';
 import { usePanelPosition } from '@/stores/sidebar-engine/sidebar-engine.store';
 import { usePanelIconComponent } from '@/hooks/usePanelIcon';
 
-// آیکون اختصاصی برای Quick Notes (مشابه استایل پروژه)
 const QuickNoteIcon: React.FC<{ size?: number }> = ({ size = 20 }) => (
   <svg
     width={size}
@@ -41,7 +40,6 @@ const QuickNoteIcon: React.FC<{ size?: number }> = ({ size = 20 }) => (
   </svg>
 );
 
-// تعریف تب‌ها
 type QuickNoteTab = 'new' | 'list';
 
 export const QuickNotesSidebar: React.FC<PanelProps> = ({ 
@@ -76,18 +74,15 @@ export const QuickNotesSidebar: React.FC<PanelProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [linkedTaskId, setLinkedTaskId] = useState(metadata?.taskId || '');
   
-  // تنظیم taskId از metadata
   useEffect(() => {
     if (metadata?.taskId) {
       setLinkedTaskId(metadata.taskId);
     }
   }, [metadata?.taskId]);
   
-  // فیلتر یادداشت‌ها
   const filteredNotes = useMemo(() => {
     let result = notes;
     
-    // فیلتر با search
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       result = result.filter(note =>
@@ -96,7 +91,6 @@ export const QuickNotesSidebar: React.FC<PanelProps> = ({
       );
     }
     
-    // مرتب‌سازی: پین شده‌ها اول، سپس بر اساس تاریخ
     result = [...result].sort((a, b) => {
       if (a.isPinned && !b.isPinned) return -1;
       if (!a.isPinned && b.isPinned) return 1;
@@ -106,13 +100,11 @@ export const QuickNotesSidebar: React.FC<PanelProps> = ({
     return result;
   }, [notes, searchQuery]);
   
-  // نمایش یادداشت‌های لینک شده به تسک خاص
   const linkedNotes = useMemo(() => {
     if (!linkedTaskId) return [];
     return filteredNotes.filter(note => note.taskId === linkedTaskId);
   }, [filteredNotes, linkedTaskId]);
   
-  // همه یادداشت‌ها
   const allNotes = linkedTaskId ? linkedNotes : filteredNotes;
   
   const handleSaveNewNote = () => {
@@ -152,7 +144,6 @@ export const QuickNotesSidebar: React.FC<PanelProps> = ({
     }
   };
   
-  // تب: یادداشت جدید
   const newNoteTab = {
     id: 'new',
     label: 'New Note',

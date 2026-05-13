@@ -1,4 +1,3 @@
-// src/components/board/__test__/integration/BoardList.bug-fix.test.tsx
 import React, { ReactNode } from 'react';
 import { render, waitFor, act } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';

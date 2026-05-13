@@ -32,7 +32,6 @@ const SparkParticle = ({
     const boardPos = boardData.position
     const boardScale = boardData.scale
     
-    // مبدا
     let fromPos: [number, number, number]
     if (spark.from === SPARK_ORIGIN) {
       fromPos = [0, 0, 0]
@@ -42,10 +41,8 @@ const SparkParticle = ({
       fromPos = [0, 0, 0]
     }
     
-    // مقصد
     let toPos: [number, number, number]
     if (spark.to === DIAMOND_VERTEX) {
-      // به الماس مرکزی
       const worldFrom: [number, number, number] = [
         boardPos[0] + fromPos[0] * boardScale,
         boardPos[1] + fromPos[1] * boardScale,

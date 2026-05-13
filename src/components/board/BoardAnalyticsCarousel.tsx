@@ -1,7 +1,6 @@
-// components/board/BoardAnalyticsCarousel.tsx
 import React, { useCallback } from 'react';
 import { ChartCarousel } from '@/components/charts/chart-carousel';
-import { SparkLine, TaskProgressRing, PriorityBreakdown, TaskVelocity, LabelSunburst } from '@/components/charts';
+import { TaskProgressRing, PriorityBreakdown, TaskVelocity, LabelSunburst } from '@/components/charts';
 import { useBoardChartData } from '../../hooks/useBoardChartData';
 import { ChartConfig } from '@/components/charts/chart-carousel/types';
 import { cn } from '@/lib/utils';
@@ -31,7 +30,6 @@ export const BoardAnalyticsCarousel: React.FC<BoardAnalyticsCarouselProps> = ({
           <TaskProgressRing
             completed={progressData.done}
             total={progressData.total}
-            height={200}
             color={board?.color || '#22c55e'}
             labelFormat="fraction"
             animate={true}
@@ -42,7 +40,6 @@ export const BoardAnalyticsCarousel: React.FC<BoardAnalyticsCarouselProps> = ({
         return (
           <PriorityBreakdown
             data={priorityData}
-            height={200}
             orientation="horizontal"
             animate={true}
           />
@@ -52,9 +49,7 @@ export const BoardAnalyticsCarousel: React.FC<BoardAnalyticsCarouselProps> = ({
         return (
           <TaskVelocity
             data={velocityData}
-            height={200}
             showArea={true}
-            showDots={false}
             animate={true}
           />
         );
@@ -63,8 +58,6 @@ export const BoardAnalyticsCarousel: React.FC<BoardAnalyticsCarouselProps> = ({
         return (
           <LabelSunburst
             data={labelSunburstData}
-            height={200}
-            radius={['20%', '80%']}
             animate={true}
           />
         );
@@ -86,7 +79,6 @@ export const BoardAnalyticsCarousel: React.FC<BoardAnalyticsCarouselProps> = ({
     <ChartCarousel
       charts={charts}
       autoPlayInterval={4000}
-      defaultTheme="dark"
       chartHeight={280}
       showControls={true}
       showDots={true}

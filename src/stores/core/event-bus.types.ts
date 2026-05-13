@@ -3,7 +3,7 @@ export type ModuleScope = 'system' | 'board' | 'task' | 'column' | 'sidebar' | '
 
 export type Priority = 0 | 10 | 50 | 100;
 
-// 🎯 COMPLETE EVENT CATALOG
+// COMPLETE EVENT CATALOG
 export interface EventCatalog {
   // System Events
   'system:boot': void;

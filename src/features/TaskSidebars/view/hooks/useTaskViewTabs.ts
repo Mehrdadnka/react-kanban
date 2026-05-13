@@ -20,21 +20,18 @@ export const useTaskViewTabs = (task: Task | null | undefined): TabConfig[] => {
     if (!task) return []; // Handle both null and undefined
 
     const tabs: TabConfig[] = [
-      // همیشه وجود دارد
       {
         id: 'overview',
         label: 'Overview',
         icon: Layout,
         order: 1,
       },
-      // شرطی: فقط اگر description وجود داشته باشد
       ...(task.description ? [{
         id: 'description',
         label: 'Description',
         icon: FileText,
         order: 2,
       }] : []),
-      // همیشه وجود دارد (حتی اگر خالی باشد، چون تاریخ ایجاد همیشه هست)
       {
         id: 'schedule',
         label: 'Schedule',
@@ -42,7 +39,6 @@ export const useTaskViewTabs = (task: Task | null | undefined): TabConfig[] => {
         badge: task.dueDate ? 1 : undefined,
         order: 3,
       },
-      // شرطی: فقط اگر attachments یا estimatedHours وجود داشته باشد
       ...(task.attachments?.length || task.estimatedHours ? [{
         id: 'meta-docs',
         label: 'Meta & Docs',
@@ -50,7 +46,6 @@ export const useTaskViewTabs = (task: Task | null | undefined): TabConfig[] => {
         badge: task.attachments?.length || undefined,
         order: 4,
       }] : []),
-      // شرطی: فقط اگر relatedTasks وجود داشته باشد
       ...(task.relatedTasks?.length ? [{
         id: 'related-tasks',
         label: 'Related Tasks',
@@ -58,7 +53,6 @@ export const useTaskViewTabs = (task: Task | null | undefined): TabConfig[] => {
         badge: task.relatedTasks.length,
         order: 5,
       }] : []),
-      // شرطی: برای آینده - اگر relatedNotes اضافه شود
       ...(task.customFields?.relatedNotes?.length ? [{
         id: 'related-notes',
         label: 'Related Notes',

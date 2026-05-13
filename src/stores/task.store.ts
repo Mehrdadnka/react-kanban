@@ -115,7 +115,7 @@ const createLog = (
 
 const MAX_ACTIVITY_LOGS = 100;
 
-// 🎯 FIXED: Unique IDs for demo tasks
+// Unique IDs for demo tasks
 const createDemoTasks = (): Task[] => {
   const now = new Date();
   
@@ -233,7 +233,7 @@ export const useTaskStore = create<TaskStore>()(
           return { tasks: updatedTasks };
         });
 
-        // 🎯 EMIT EVENT
+        // EMIT EVENT
         useEventBus.getState().emit('task:created', {
           id: newTask.id,
           boardId: newTask.boardId,
@@ -266,7 +266,7 @@ export const useTaskStore = create<TaskStore>()(
               activityLog: [...task.activityLog, ...logs].slice(-MAX_ACTIVITY_LOGS),
             };
 
-            // 🎯 EMIT EVENT if column changed
+            // EMIT EVENT if column changed
             if (updates.columnId && updates.columnId !== task.columnId) {
               const isCompleted = updates.columnId === 'done';
               
@@ -335,7 +335,7 @@ export const useTaskStore = create<TaskStore>()(
           return { tasks };
         });
 
-        // 🎯 EMIT EVENT
+        // EMIT EVENT
         useEventBus.getState().emit('task:deleted', {
           id,
           boardId,
@@ -372,7 +372,7 @@ export const useTaskStore = create<TaskStore>()(
           }),
         }));
 
-        // 🎯 EMIT EVENTS
+        // EMIT EVENTS
         useEventBus.getState().emit('task:moved', {
           id,
           from: oldColumnId,
@@ -433,7 +433,7 @@ export const useTaskStore = create<TaskStore>()(
         
         set(state => ({ tasks: [...state.tasks, duplicate] }));
 
-        // 🎯 EMIT EVENT
+        // EMIT EVENT
         useEventBus.getState().emit('task:created', {
           id: duplicate.id,
           boardId: duplicate.boardId,
@@ -465,7 +465,7 @@ export const useTaskStore = create<TaskStore>()(
           }),
         }));
 
-        // 🎯 EMIT BULK EVENT
+        // EMIT BULK EVENT
         useEventBus.getState().emit('task:bulk-moved', {
           taskIds,
           targetColumnId,

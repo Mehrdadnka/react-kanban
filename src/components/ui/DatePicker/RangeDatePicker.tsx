@@ -1,4 +1,3 @@
-// components/ui/DatePicker/RangeDatePicker.tsx (بازنویسی شده)
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Calendar, RotateCcw } from 'lucide-react';
 import { format, isSameDay, isBefore, isAfter } from 'date-fns';
@@ -43,7 +42,6 @@ export const RangeDatePicker: React.FC<RangeDatePickerProps> = ({
     }
   }, [value]);
 
-  // شروع درگ
   const handleDayMouseDown = (day: Date) => {
     if (disabled) return;
     setIsDragging(true);
@@ -52,7 +50,6 @@ export const RangeDatePicker: React.FC<RangeDatePickerProps> = ({
     setRange({ from: day, to: undefined });
   };
 
-  // حرکت موس در حین درگ
   const handleDayMouseEnter = (day: Date) => {
     if (!isDragging || !dragStart || disabled) return;
     setDragEnd(day);

@@ -1,4 +1,3 @@
-// components/charts/TaskProgressRing.tsx
 import React, { useMemo } from 'react';
 import { BaseChart } from './BaseChart';
 import { cn } from '@/lib/utils';

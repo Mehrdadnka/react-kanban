@@ -2,13 +2,10 @@ import { useState } from 'react';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { cn } from '@/lib/utils';
 import { 
-  BarChart3, Calendar, Clock, Layout, Plus, Search, 
-  TrendingUp, X, GripHorizontal, Zap, Trophy, Target,
-  ChevronDown, Flame, Activity, Sparkles
+  BarChart3, Clock,  Plus, Search, Sparkles
 } from 'lucide-react';
 import { useApp } from '@/providers/AppProvider';
-import { IconButton } from '@radix-ui/themes';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion} from 'framer-motion';
 
 interface BoardListStaticSidebarProps {
   boardsLength?: number;

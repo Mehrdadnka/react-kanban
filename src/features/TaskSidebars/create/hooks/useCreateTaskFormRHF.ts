@@ -1,9 +1,8 @@
-// useCreateTaskFormRHF.ts - UPDATED
 import { useCallback, useMemo } from 'react';
 import { Resolver, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTaskStore } from '@/stores/task.store';
-import { useTaskSidebarStore } from '@/stores/sidebar-engine/task-sidebar.store'; // 🎯 ADD
+import { useTaskSidebarStore } from '@/stores/sidebar-engine/task-sidebar.store';
 import { useAttachments } from './useAttachments';
 import { z } from 'zod';
 import { 
@@ -128,7 +127,7 @@ export const useCreateTaskFormRHF = (onSuccess: () => void) => {
   const submitForm = useCallback(async () => {
     await handleSubmit(async (data: TaskFormValues) => {
       try {
-        // 🎯 GET boardId from sidebar store
+        // GET boardId from sidebar store
         const { defaultBoardId } = useTaskSidebarStore.getState();
         const boardId = defaultBoardId || 'board-1'; // Fallback
         
@@ -150,7 +149,7 @@ export const useCreateTaskFormRHF = (onSuccess: () => void) => {
           workingHoursEnd: data.workingHoursEnd || undefined,
           reminderDate: data.reminderDate || null,
           estimatedHours: data.estimatedHours ?? null,
-          boardId: boardId, // 🎯 ADD boardId
+          boardId: boardId, 
           attachments: data.attachments || [],
           relatedTaskIds: data.relatedTaskIds || [],
           assigneeId: data.assigneeId || null,
