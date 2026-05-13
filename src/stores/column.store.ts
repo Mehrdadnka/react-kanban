@@ -1,4 +1,3 @@
-// column.store.ts - WITH EVENT BUS INTEGRATION
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
@@ -127,7 +126,7 @@ export const useColumnStore = create<ColumnStore>()(
       getDefaultColumns: () => get().columns.filter(c => c.isDefault),
     }),
     {
-      name: 'taskflow-columns',
+      name: 'taskflow-columns-v3',
       version: 2,
     }
   )

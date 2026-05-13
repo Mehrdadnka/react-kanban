@@ -40,7 +40,7 @@ interface BoardStore {
 
 const DEMO_BOARDS: Board[] = [
   {
-    id: 'board-1',
+    id: 'board-2',
     title: 'Product Launch',
     description: 'Q1 product launch planning and execution',
     color: '#6366f1',
@@ -49,7 +49,7 @@ const DEMO_BOARDS: Board[] = [
     updatedAt: new Date('2025-03-10'),
   },
   {
-    id: 'board-2',
+    id: 'board-1',
     title: 'Engineering',
     description: 'Engineering team tasks and sprints',
     color: '#10b981',
