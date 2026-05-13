@@ -1,5 +1,5 @@
 // components/board/BoardList.tsx - GAMIFIED VERSION WITH FIXED LAYOUT
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, Search, Sparkles, TrendingUp, Calendar, CheckCircle2, Layout,
@@ -19,6 +19,7 @@ import { useXPStore } from '@/stores/xp/xp.store';
 import { XPProgressRing } from '@/components/xp/XPProgressRing';
 import { Tab, TabItem } from '@/components/ui/tab/Tab';
 import BoardListStaticSidebar from './BoardListStaticSidebar';
+import { useColumnStore } from '@/stores/column.store';
 
 // ──── Level Detail Popover ────
 export interface LevelDetailPopoverProps {
@@ -351,7 +352,16 @@ export const BoardList: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    const boards = useBoardStore.getState().boards;
+    const columnStore = useColumnStore.getState();
+    
+    boards.forEach(board => {
+      columnStore.ensureDefaultColumns(board.id);
+    });
+  }, []);
   useBoardEventListeners();
+  
 
 
   return (

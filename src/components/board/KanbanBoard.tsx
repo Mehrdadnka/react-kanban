@@ -52,6 +52,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ boardId }) => {
   // FIX: Use activeBoardId from store instead of prop
   const currentBoardId = activeBoardId || boardId;
   const activeBoard = getActiveBoard();
+  const { getColumnsByBoard } = useColumnStore();
 
   // FIX: Set active board if boardId prop changes and no active board
   useEffect(() => {
@@ -98,7 +99,15 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ boardId }) => {
       .sort((a, b) => a.order - b.order);
   }, [boardTasks]);
 
-  const sortedColumns = useMemo(() => [...columns].sort((a, b) => a.order - b.order), [columns]);
+  // const sortedColumns = useMemo(() => [...columns].sort((a, b) => a.order - b.order), [columns]);
+
+
+const sortedColumns = useMemo(() => 
+  columns
+    .filter(c => c.boardId === currentBoardId)
+    .sort((a, b) => a.order - b.order),
+  [columns, currentBoardId]
+);
   const columnIds = useMemo(() => sortedColumns.map(c => c.id), [sortedColumns]);
 
   // Filter from boardTasks instead of all tasks
@@ -142,7 +151,28 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ boardId }) => {
       defaultBoardId: boardIdToUse
     });
   }, [sortedColumns, openCreateSidebar, activeBoardId, currentBoardId]);
+// KanbanBoard.tsx - توی useEffect موجود
+useEffect(() => {
+  const eventBus = useEventBus.getState();
+  
+  const noop = () => {};
 
+  const listenerIds = [
+    // Task events
+    eventBus.on('task:created', noop, { priority: 10 }),
+    eventBus.on('task:updated', noop, { priority: 10 }),
+    eventBus.on('task:deleted', noop, { priority: 10 }),
+    eventBus.on('task:moved', noop, { priority: 10 }),
+    // Column events - NEW
+    eventBus.on('column:created', noop, { priority: 10 }),
+    eventBus.on('column:deleted', noop, { priority: 10 }),
+    eventBus.on('column:updated', noop, { priority: 10 }),
+  ];
+
+  return () => {
+    listenerIds.forEach(id => eventBus.off(id));
+  };
+}, []);
   // Debug logging
   // useEffect(() => {
   //   console.log('🎯 KanbanBoard Debug:', {

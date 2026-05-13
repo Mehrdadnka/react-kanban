@@ -21,8 +21,9 @@ interface ColumnManagerV2Props {
 
 export const ColumnManagerV2: React.FC<ColumnManagerV2Props> = ({ isOpen, onClose, boardId }) => {
   const { isDarkMode } = useApp();
-  const { columns, addColumn, updateColumn, deleteColumn } = useColumnStore();
+  const { columns, addColumn, updateColumn, deleteColumn, getColumnsByBoard } = useColumnStore();
   const { tasks } = useTaskStore();
+  const boardColumns = getColumnsByBoard(boardId);
   
   const [newTitle, setNewTitle] = useState('');
   const [newColor, setNewColor] = useState('#6B7280');
@@ -30,7 +31,7 @@ export const ColumnManagerV2: React.FC<ColumnManagerV2Props> = ({ isOpen, onClos
   const [editTitle, setEditTitle] = useState('');
   const [editWip, setEditWip] = useState('');
 
-  const sorted = [...columns].sort((a, b) => a.order - b.order);
+  const sorted = [...boardColumns].sort((a, b) => a.order - b.order);
 
   const getTaskCount = (columnId: string) => {
     return tasks.filter(t => t.columnId === columnId && t.boardId === boardId).length;
@@ -38,7 +39,11 @@ export const ColumnManagerV2: React.FC<ColumnManagerV2Props> = ({ isOpen, onClos
 
   const handleAdd = () => {
     if (!newTitle.trim()) return;
-    addColumn({ title: newTitle.trim(), color: newColor });
+    addColumn({ 
+        title: newTitle.trim(), 
+        color: newColor,
+        boardId,
+     });
     setNewTitle('');
     setNewColor('#6B7280');
   };
@@ -53,7 +58,7 @@ export const ColumnManagerV2: React.FC<ColumnManagerV2Props> = ({ isOpen, onClos
   };
 
   const handleDelete = (id: string) => {
-    const column = columns.find(c => c.id === id);
+    const column = boardColumns.find(c => c.id === id);
     if (column?.isDefault) return;
     deleteColumn(id);
   };
@@ -61,11 +66,11 @@ export const ColumnManagerV2: React.FC<ColumnManagerV2Props> = ({ isOpen, onClos
   useEffect(() => {
     console.log('🔵 ColumnManagerV2 Mounted', {
       boardId,
-      columnsCount: columns.length,
-      columnIds: columns.map(c => c.id),
+      columnsCount: boardColumns.length,
+      columnIds: boardColumns.map(c => c.id),
       tasksOnBoard: tasks.filter(t => t.boardId === boardId).length
     });
-  }, [boardId, columns, tasks]);
+  }, [boardId, boardColumns, tasks]);
 
   if (!isOpen) return null;
 
@@ -224,7 +229,7 @@ export const ColumnManagerV2: React.FC<ColumnManagerV2Props> = ({ isOpen, onClos
           })}
         </div>
 
-        {columns.length === 0 && (
+        {boardColumns.length === 0 && (
           <div className="text-center py-8 text-gray-400">
             <AlertTriangle size={32} className="mx-auto mb-2 opacity-50" />
             <p className="text-sm">No columns yet. Create your first one!</p>

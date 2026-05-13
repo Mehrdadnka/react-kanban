@@ -48,9 +48,9 @@ const createDemoBoards = (): Board[] => [
 ];
 
 const createDemoColumns = (): KanbanColumn[] => [
-  { id: 'todo', title: 'To Do', color: '#3b82f6', icon: 'Circle', order: 0, isDefault: true, wipLimit: 5 },
-  { id: 'in-progress', title: 'In Progress', color: '#f59e0b', icon: 'Clock3', order: 1, isDefault: true, wipLimit: 3 },
-  { id: 'done', title: 'Done', color: '#22c55e', icon: 'CheckCircle2', order: 2, isDefault: true },
+  { id: 'todo', title: 'To Do', color: '#3b82f6', icon: 'Circle', order: 0, isDefault: true, wipLimit: 5, boardId: 'board-1' },
+  { id: 'in-progress', title: 'In Progress', color: '#f59e0b', icon: 'Clock3', order: 1, isDefault: true, wipLimit: 3 , boardId: 'board-2'},
+  { id: 'done', title: 'Done', color: '#22c55e', icon: 'CheckCircle2', order: 2, isDefault: true , boardId: 'board-3'},
 ];
 
 interface DemoTaskInput {

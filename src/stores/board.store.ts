@@ -4,6 +4,7 @@ import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
 import { useTaskStore } from './task.store';
 import { useEventBus } from './core/event-bus.store';
+import { useColumnStore } from './column.store';
 
 export interface Board {
   id: string;
@@ -86,7 +87,9 @@ export const useBoardStore = create<BoardStore>()(
             boards: [...state.boards, board],
             activeBoardId: board.id,
           }));
-          
+
+          useColumnStore.getState().ensureDefaultColumns(board.id);
+
           // EMIT EVENT
           useEventBus.getState().emit('board:created', {
             id: board.id,

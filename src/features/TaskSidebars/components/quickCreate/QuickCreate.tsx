@@ -133,7 +133,7 @@ export const QuickCreate: React.FC<QuickCreateProps> = ({
       <div className="space-y-0">
         <div className="grid grid-cols-2 gap-2 ">
           {/* Type */}
-          <MetaRow icon={<FileText size={14} />} label="Type" isDarkMode={isDarkMode}>
+          {/* <MetaRow icon={<FileText size={14} />} label="Type" isDarkMode={isDarkMode}>
             <EntityPicker
               isTopPosition
               items={typeItems}
@@ -148,9 +148,9 @@ export const QuickCreate: React.FC<QuickCreateProps> = ({
               compact  
               className="flex-1"
             />
-          </MetaRow>
+          </MetaRow> */}
 
-          <MetaRow icon={<Columns3 size={14} />} label="Status" isDarkMode={isDarkMode}>
+          {/* <MetaRow icon={<Columns3 size={14} />} label="Status" isDarkMode={isDarkMode}>
             <EntityPicker
               isTopPosition
               items={columnItems}
@@ -165,9 +165,9 @@ export const QuickCreate: React.FC<QuickCreateProps> = ({
               compact
               className="flex-1"
             />
-          </MetaRow>
+          </MetaRow> */}
 
-          <MetaRow icon={<Flag size={14} />} label="Priority" isDarkMode={isDarkMode}>
+          {/* <MetaRow icon={<Flag size={14} />} label="Priority" isDarkMode={isDarkMode}>
             <EntityPicker
               isTopPosition
               items={priorityItems}
@@ -182,10 +182,10 @@ export const QuickCreate: React.FC<QuickCreateProps> = ({
               compact
               className="flex-1"
             />
-          </MetaRow>
+          </MetaRow> */}
 
           {/* Labels */}
-          <MetaRow icon={<Tag size={14} />} label="Labels" isDarkMode={isDarkMode}>
+          {/* <MetaRow icon={<Tag size={14} />} label="Labels" isDarkMode={isDarkMode}>
             <EntityPicker
               isTopPosition
               items={labelItems}
@@ -207,10 +207,10 @@ export const QuickCreate: React.FC<QuickCreateProps> = ({
               compact
               className="flex-1"
             />
-          </MetaRow>
+          </MetaRow> */}
 
           {/* Milestone */}
-          <MetaRow icon={<Milestone size={14} />} label="Milestone" isDarkMode={isDarkMode}>
+          {/* <MetaRow icon={<Milestone size={14} />} label="Milestone" isDarkMode={isDarkMode}>
             <EntityPicker
               isTopPosition
               items={milestoneItems}
@@ -232,10 +232,10 @@ export const QuickCreate: React.FC<QuickCreateProps> = ({
               compact
               className="flex-1"
             />
-          </MetaRow>
+          </MetaRow> */}
 
           {/* Project */}
-          <MetaRow icon={<FolderKanban size={14} />} label="Project" isDarkMode={isDarkMode}>
+          {/* <MetaRow icon={<FolderKanban size={14} />} label="Project" isDarkMode={isDarkMode}>
             <EntityPicker
               isTopPosition
               items={projectItems}
@@ -257,7 +257,7 @@ export const QuickCreate: React.FC<QuickCreateProps> = ({
               compact
               className="flex-1"
             />
-          </MetaRow>
+          </MetaRow> */}
         </div>
 
       </div>

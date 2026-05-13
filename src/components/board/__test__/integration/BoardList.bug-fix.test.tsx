@@ -123,6 +123,7 @@ describe('🐛 BUG FIX: Stats Cache Invalidation', () => {
         title: 'Review',
         color: '#8b5cf6',
         icon: 'Eye',
+        boardId: 'board-1'
       });
     });
 

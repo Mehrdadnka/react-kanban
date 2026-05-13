@@ -6,4 +6,5 @@ export interface KanbanColumn {
   order: number;
   wipLimit?: number;
   isDefault: boolean;
+  boardId: string;
 }
