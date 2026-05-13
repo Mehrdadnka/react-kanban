@@ -66,7 +66,7 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
                 isMobileOpen && 'border-b border-gray-200 dark:border-gray-800'
               )}
             >
-              <div className="flex absolute items-center gap-2">
+              <div className="flex items-center gap-2">
                 <Filter size={14} className="text-blue-500" />
                 <span className="text-xs font-semibold">Filters</span>
                 {activeCount > 0 && (
@@ -75,28 +75,30 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({
                   </span>
                 )}
               </div>
-              <Separator isDarkMode={isDarkMode} />
-              <div className='flex m-auto items-start justify-center'>
-                <BoardAnalyticsCarousel boardId={activeBoardId} />
-              </div>
-              <div className='m-auto'>
-                <div className="w-10 h-1 rounded-full bg-gray-300 dark:bg-gray-600 mb-1" />
+
+              {/* Handle bar - centered */}
+              <div className="flex-1 flex justify-center">
+                <div className="w-10 h-1 rounded-full bg-gray-300 dark:bg-gray-600" />
               </div>
               
               {/* Mobile Breadcrumb */}
               {activeBoard && (
-                <button
+                <div
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleBackToBoards();
+                    handleBackToBoards?.();
                   }}
-                  className="absolute right-4 flex items-center gap-1 text-xs text-blue-500"
+                  className="flex items-center gap-1 text-xs text-blue-500 cursor-pointer"
                 >
                   <ArrowLeft size={12} />
                   Back
-                </button>
+                </div>
               )}
             </button>
+
+            <div className="flex items-center justify-center py-2">
+              <BoardAnalyticsCarousel boardId={activeBoardId} />
+            </div>
 
             {/* Content */}
             <div className={cn(
