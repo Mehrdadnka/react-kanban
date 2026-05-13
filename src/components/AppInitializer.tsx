@@ -6,6 +6,7 @@ import { useNotificationListeners } from '@/stores/notifications/xp-notification
 import { useEventBus } from '@/stores/core/event-bus.store';
 import { useSessionTracker } from '@/stores/xp/session.store';
 import { usePowerUpStore } from '@/stores/xp/powerups.store';
+import { WebGLFallback } from './WebGLFallback';
 
 export const AppInitializer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Setup ALL event listeners
@@ -20,7 +21,7 @@ export const AppInitializer: React.FC<{ children: React.ReactNode }> = ({ childr
     
     // Boot event
     eventBus.emit('system:boot');
-    console.log('🚀 TaskFlow booted with all systems');
+    console.log('TaskFlow booted with all systems');
     
     // Daily check
     const checkDaily = () => {
@@ -39,6 +40,6 @@ export const AppInitializer: React.FC<{ children: React.ReactNode }> = ({ childr
     
     return () => clearInterval(interval);
   }, []);
-  
-  return <>{children}</>;
+
+  return <WebGLFallback>{children}</WebGLFallback>;
 };
