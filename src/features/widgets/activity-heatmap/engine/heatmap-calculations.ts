@@ -1,3 +1,4 @@
+// heatmap-calculations.ts
 import { DayActivity, HeatmapData, ActivityLevel } from '../types';
 import { TOTAL_DAYS } from '../constants';
 import { Task } from '@/types/task.types';
@@ -28,28 +29,33 @@ export function calculateHeatmapData(tasks: Task[]): HeatmapData {
   const today = new Date();
   today.setHours(23, 59, 59, 999);
 
-  const startDate = new Date(today.getTime() - TOTAL_DAYS * 24 * 60 * 60 * 1000);
+  const startDate = new Date(today);
+  startDate.setDate(startDate.getDate() - TOTAL_DAYS + 1);
   startDate.setHours(0, 0, 0, 0);
-  const dayOfWeek = startDate.getDay();
-  startDate.setDate(startDate.getDate() - dayOfWeek);
+  
+  const startDayOfWeek = startDate.getDay(); // 0 = Sunday, 1 = Monday
+  const daysToMonday = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1;
+  startDate.setDate(startDate.getDate() - daysToMonday);
 
   const days: DayActivity[] = [];
   const currentDate = new Date(startDate);
 
   const taskDateMap = new Map<string, number>();
+  
   tasks.forEach(task => {
-    const taskDate = getDateString(new Date(task.createdAt));
-    taskDateMap.set(taskDate, (taskDateMap.get(taskDate) || 0) + 1);
+    if (task.createdAt) {
+      const createdDate = getDateString(new Date(task.createdAt));
+      taskDateMap.set(createdDate, (taskDateMap.get(createdDate) || 0) + 1);
+    }
     
-    if (task.updatedAt) {
+    if (task.updatedAt && task.updatedAt !== task.createdAt) {
       const updatedDate = getDateString(new Date(task.updatedAt));
-      if (updatedDate !== taskDate) {
-        taskDateMap.set(updatedDate, (taskDateMap.get(updatedDate) || 0) + 1);
-      }
+      taskDateMap.set(updatedDate, (taskDateMap.get(updatedDate) || 0) + 1);
     }
   });
 
-  while (currentDate <= today) {
+  let dayCount = 0;
+  while (currentDate <= today && dayCount < 400) { 
     const dateStr = getDateString(currentDate);
     const count = taskDateMap.get(dateStr) || 0;
 
@@ -60,7 +66,12 @@ export function calculateHeatmapData(tasks: Task[]): HeatmapData {
     });
     
     currentDate.setDate(currentDate.getDate() + 1);
+    dayCount++;
   }
+
+  console.log('Days generated:', days.length);
+  console.log('First few days:', days.slice(0, 5));
+  console.log('Last few days:', days.slice(-5));
 
   const totalActivity = days.reduce((sum, day) => sum + day.count, 0);
   const activeDays = days.filter(d => d.count > 0).length;

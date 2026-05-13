@@ -36,7 +36,11 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
   } = useHeatmapStore();
 
   useEffect(() => {
-    calculateData(tasks);
+    if (tasks && tasks.length > 0) {
+      calculateData(tasks);
+    } else {
+      calculateData([]);
+    }
   }, [tasks, calculateData]);
 
   const handleCellHover = useCallback((
