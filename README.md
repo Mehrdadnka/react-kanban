@@ -15,7 +15,7 @@ A sophisticated, high-performance Kanban board crafted with React 18 and TypeScr
 ![Quick Notes Sidebar](public/quicknotes.png)
 ![Notification Sidebar](public/notification-center.png)
 ![Xp Center](public/xpcenter.png)
-![BoardList](public/boardList.png)
+![BoardList](public/boardList-screen.png)
 ![Create Board](public/createboard.png)
 ![Xp Sider](public/xpsidebar.png)
 ![Kanban Board](public/board.png)
