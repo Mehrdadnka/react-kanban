@@ -10,7 +10,7 @@
 
 A sophisticated, high-performance Kanban board crafted with React 18 and TypeScript. Features a custom client-side router, fluid drag-and-drop interactions, an interactive dashboard with contextual sidebar drill-downs, and an exquisitely polished responsive UI.
 
-![Dashboard](public/dashboardscreen.png)
+![Dashboard](public/dashboard-screenshot.png)
 ![Dashboard Status cards](public/dashboardstatcards.png)
 ![Quick Notes Sidebar](public/quicknotes.png)
 ![Notification Sidebar](public/notification-center.png)

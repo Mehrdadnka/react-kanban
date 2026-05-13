@@ -1,0 +1,30 @@
+// features/logo-3d/constants/galaxy.constants.ts
+
+export const GALAXY = {
+  RADIUS: 120,
+  
+  BOARD_RING_RADIUS: 45,
+  BOARD_RING_HEIGHT_VARIATION: 8,
+  
+  BOARD_BASE_SCALE: 2.5,
+  BOARD_SCALE_PER_TASK: 0.15,
+  BOARD_MAX_SCALE: 5.0,
+  BOARD_MIN_SCALE: 1.8,
+  
+  CORE_SCALE: 3.5,
+  CORE_VERTEX_RADIUS: 2.0,
+  
+  CAMERA_DEFAULT_POSITION: [0, 30, 150] as [number, number, number],
+  CAMERA_FAR_PLANE: 1000,
+  
+  SHIP_MAX_SPEED: 0.5,
+  SHIP_ACCELERATION: 0.05,
+  SHIP_DAMPING: 0.8,
+  
+  SHIP_SCALE: 0.3,
+}
+
+export const CORE = {
+  SCALE: GALAXY.CORE_SCALE,
+  VERTEX_RADIUS: GALAXY.CORE_VERTEX_RADIUS,
+}

@@ -1,5 +1,5 @@
 // features/logo-3d/components/LogoCanvas.tsx
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { LogoScene } from './LogoScene'
 import * as Popover from '@radix-ui/react-popover';
 import { XPProgressRing } from '@/components/xp/XPProgressRing';
@@ -9,6 +9,9 @@ import { formatActionName, formatXP, getActionEmoji, getLevelEmoji, LevelDetailP
 import { useApp } from '@/providers/AppProvider';
 import { Activity, Award, CheckCircle2, ChevronDown, Flame, Trophy, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Spaceship } from '@/features/features/spaceship/Spaceship';
+import { TopBar } from './TopBar';
+import { ShipProvider } from '../context/ShipContext';
 
 type LogoCanvasProps = {
   size?: number
@@ -27,6 +30,9 @@ export const LogoCanvas = ({ size = 200, className = '' }: LogoCanvasProps) => {
   } = useXPStore();
   const unlockedAchievements = achievements.filter(a => a.completed);
   const recentEvents = events.slice(-5).reverse();
+
+  const shipRef = useRef<THREE.Group>(null!)
+
 
   return (
     <div style={{ width: innerWidth, height: innerHeight - 50 }} className={className}>
@@ -259,7 +265,11 @@ export const LogoCanvas = ({ size = 200, className = '' }: LogoCanvasProps) => {
                   </div>
                 </div>
 
-      <LogoScene />
+      {/* <LogoScene /> */}
+      
+      <LogoScene shipRef={shipRef}>
+        <Spaceship ref={shipRef} />
+      </LogoScene>
     </div>
   )
 }

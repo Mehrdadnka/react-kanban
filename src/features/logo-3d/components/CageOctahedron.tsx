@@ -213,6 +213,7 @@ const tasksByColumn = useMemo(() => {
   return (
     <group
      ref={groupRef} 
+     position={board.position}
      rotation={board.rotation}
       onClick={(e) => {
         if (e.target === e.currentTarget) {

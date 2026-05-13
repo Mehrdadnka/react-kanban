@@ -56,7 +56,7 @@ const getBoardColumns = (boardId: string, tasks: Task[]): string[] => {
 
   return (
     <group>
-      <group ref={centralRef} scale={[0.45, 0.45, 0.45]}>
+      <group ref={centralRef} position={[0, 0, 0]}>
         <CentralDiamondCage />
       </group>
 
@@ -66,7 +66,7 @@ const getBoardColumns = (boardId: string, tasks: Task[]): string[] => {
           key={board.id}
           board={board}
           isActive={board.id === activeBoardId}
-          rodRadius={0.03}
+          rodRadius={0.08}
         />
       ))}
     </group>
