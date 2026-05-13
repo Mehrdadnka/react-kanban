@@ -28,7 +28,13 @@ interface BoardStore {
   getActiveBoard: () => Board | undefined;
   
   // Stats with caching
-  getBoardStats: (boardId: string) => { total: number; todo: number; doing: number; done: number };
+    getBoardStats: (boardId: string) => { 
+      total: number; 
+      todo: number; 
+      doing: number; 
+      done: number;
+      columns: Array<{ id: string; title: string; color: string; count: number }>;
+    };
   invalidateStatsCache: (boardId?: string) => void;
 }
 
@@ -66,7 +72,13 @@ export const useBoardStore = create<BoardStore>()(
   persist(
     (set, get) => {
       // Initialize stats cache
-      let _statsCache: Record<string, { total: number; todo: number; doing: number; done: number }> = {};
+      let _statsCache: Record<string, { 
+        total: number; 
+        todo: number; 
+        doing: number; 
+        done: number;
+        columns: Array<{ id: string; title: string; color: string; count: number }>;
+      }> = {};
 
       return {
         boards: DEMO_BOARDS,
@@ -108,7 +120,7 @@ export const useBoardStore = create<BoardStore>()(
             ),
           }));
           
-          // 🎯 EMIT EVENT
+          // EMIT EVENT
           useEventBus.getState().emit('board:updated', {
             id,
             changes: updates as Record<string, unknown>,
@@ -143,32 +155,45 @@ export const useBoardStore = create<BoardStore>()(
         },
 
         getBoardStats: (boardId) => {
-          // Return cached if exists
           if (_statsCache[boardId]) {
             return _statsCache[boardId];
           }
 
-          // Calculate fresh stats
           const allTasks = useTaskStore.getState().tasks;
-          const boardTasks = allTasks.filter((t: any) => t.boardId === boardId);
+          const boardTasks = allTasks.filter(t => t.boardId === boardId);
+          const columnStore = useColumnStore.getState();
+          const boardColumns = columnStore.getColumnsByBoard(boardId);
           
+          // Base stats
           const stats = { 
             total: boardTasks.length, 
             todo: 0, 
             doing: 0, 
-            done: 0 
+            done: 0,
+            columns: boardColumns.map(col => ({
+              id: col.id,
+              title: col.title,
+              color: col.color,
+              count: 0
+            }))
           };
-          
-          boardTasks.forEach((task: any) => {
+
+          // Count per column
+          boardTasks.forEach(task => {
+            const column = stats.columns.find(c => c.id === task.columnId);
+            if (column) {
+              column.count++;
+            }
+            
+            // Legacy counts for backward compatibility
             const colId = task.columnId?.toLowerCase();
-            if (colId === 'todo' || colId === 'backlog') stats.todo++;
-            else if (colId === 'in-progress' || colId === 'doing' || colId === 'inprogress') stats.doing++;
-            else if (colId === 'done' || colId === 'completed') stats.done++;
+            if (colId === 'todo' || colId?.includes('todo')) stats.todo++;
+            else if (colId === 'in-progress' || colId?.includes('in-progress') || colId === 'doing' || colId === 'inprogress') stats.doing++;
+            else if (colId === 'done' || colId?.includes('done') || colId === 'completed') stats.done++;
+            else stats.todo++; // Unknown columns go to todo
           });
-          
-          // Cache the result
+
           _statsCache[boardId] = stats;
-          
           return stats;
         },
 
@@ -219,6 +244,13 @@ export const useBoardEventListeners = () => {
       
       eventBus.on('task:bulk-deleted', () => {
         boardStore.invalidateStatsCache(); // Invalidate all
+      }, { priority: 10 }),
+      eventBus.on('column:created', () => {
+        boardStore.invalidateStatsCache(); // Invalidate all since column belongs to a board
+      }, { priority: 10 }),
+
+      eventBus.on('column:deleted', () => {
+        boardStore.invalidateStatsCache();
       }, { priority: 10 }),
     ];
     

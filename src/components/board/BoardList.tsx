@@ -360,6 +360,31 @@ export const BoardList: React.FC = () => {
       columnStore.ensureDefaultColumns(board.id);
     });
   }, []);
+
+  const taskBreakdown = useMemo(() => {
+    if (boards.length === 0) return [];
+    
+    const columnMap = new Map<string, { id: string; title: string; color: string; count: number }>();
+    
+    boards.forEach(board => {
+      const stats = useBoardStore.getState().getBoardStats(board.id);
+      stats.columns.forEach(col => {
+        const existing = columnMap.get(col.id);
+        if (existing) {
+          existing.count += col.count;
+        } else {
+          columnMap.set(col.id, { 
+            id: col.id,        // ← اینو اضافه کن
+            title: col.title, 
+            color: col.color, 
+            count: col.count 
+          });
+        }
+      });
+    });
+    
+    return Array.from(columnMap.values()).filter(c => c.count > 0);
+  }, [boards]);
   useBoardEventListeners();
   
 
@@ -383,6 +408,7 @@ export const BoardList: React.FC = () => {
         currentLevel={currentLevel}
         levelProgress={levelProgress}
         streak={streak}
+        taskBreakdown={taskBreakdown}
         achievementCount={{
           unlocked: achievements.filter(a => a.completed).length,
           total: achievements.length

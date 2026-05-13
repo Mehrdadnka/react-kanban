@@ -133,30 +133,33 @@ export const BoardCard: React.FC<BoardCardProps> = ({ board, onClick }) => {
           </div>
         </div>
 
-        {/* Stats and Meta */}
-        <div className="flex items-center justify-between">
-          {/* Task counts */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-blue-400" />
-              <span className="text-xs font-medium">{stats.todo}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-amber-400" />
-              <span className="text-xs font-medium">{stats.doing}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-green-400" />
-              <span className="text-xs font-medium">{stats.done}</span>
-            </div>
-          </div>
-
-          {/* Updated time */}
-          <div className="flex items-center gap-1 text-xs text-gray-400">
-            <Clock size={12} />
-            <span>{new Date(board.updatedAt).toLocaleDateString()}</span>
-          </div>
-        </div>
+{stats.columns && stats.columns.length > 0 ? (
+  // Dynamic columns
+  <div className="flex items-center gap-3">
+    {stats.columns.map(col => (
+      <div key={col.id} className="flex items-center gap-1.5">
+        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: col.color }} />
+        <span className="text-xs font-medium">{col.count}</span>
+      </div>
+    ))}
+  </div>
+) : (
+  // Fallback to old format
+  <div className="flex items-center gap-3">
+    <div className="flex items-center gap-1.5">
+      <span className="w-2 h-2 rounded-full bg-blue-400" />
+      <span className="text-xs font-medium">{stats.todo}</span>
+    </div>
+    <div className="flex items-center gap-1.5">
+      <span className="w-2 h-2 rounded-full bg-amber-400" />
+      <span className="text-xs font-medium">{stats.doing}</span>
+    </div>
+    <div className="flex items-center gap-1.5">
+      <span className="w-2 h-2 rounded-full bg-green-400" />
+      <span className="text-xs font-medium">{stats.done}</span>
+    </div>
+  </div>
+)}
       </CardContent>
     </Card>
   );

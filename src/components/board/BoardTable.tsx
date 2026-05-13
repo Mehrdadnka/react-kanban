@@ -41,7 +41,7 @@ const BoardTitleCell: React.FC<{ board: Board, progressPercent: number }> = Reac
   const getBoardStats = useBoardStore((state) => state.getBoardStats);
   const stats = getBoardStats(board.id);
   
-  const total = stats.done + stats.doing + stats.todo;
+  const total = stats.total;
   const progressPercent = total > 0 ? Math.round((stats.done / total) * 100) : 0;
   
   
@@ -91,55 +91,26 @@ const BoardStatsCell: React.FC<{ boardId: string }> = React.memo(({ boardId }) =
   const stats = getBoardStats(boardId);
   
   return (
-    <div className="flex items-center gap-4">
-      <Tooltip.Root delayDuration={300}>
-        <Tooltip.Trigger asChild>
-          <div className="flex items-center gap-1.5 cursor-default">
-            <span className="w-2 h-2 rounded-full bg-green-400" />
-            <span className="text-sm font-medium tabular-nums">{stats.done}</span>
-          </div>
-        </Tooltip.Trigger>
-        <Tooltip.Portal>
-          <Tooltip.Content className="rounded-lg px-3 py-1.5 text-xs font-medium shadow-lg border bg-white dark:bg-gray-800">
-            Completed Tasks
-            <Tooltip.Arrow />
-          </Tooltip.Content>
-        </Tooltip.Portal>
-      </Tooltip.Root>
-
-      <Tooltip.Root delayDuration={300}>
-        <Tooltip.Trigger asChild>
-          <div className="flex items-center gap-1.5 cursor-default">
-            <span className="w-2 h-2 rounded-full bg-amber-400" />
-            <span className="text-sm font-medium tabular-nums">{stats.doing}</span>
-          </div>
-        </Tooltip.Trigger>
-        <Tooltip.Portal>
-          <Tooltip.Content className="rounded-lg px-3 py-1.5 text-xs font-medium shadow-lg border bg-white dark:bg-gray-800">
-            In Progress
-            <Tooltip.Arrow />
-          </Tooltip.Content>
-        </Tooltip.Portal>
-      </Tooltip.Root>
-
-      <Tooltip.Root delayDuration={300}>
-        <Tooltip.Trigger asChild>
-          <div className="flex items-center gap-1.5 cursor-default">
-            <span className="w-2 h-2 rounded-full bg-blue-400" />
-            <span className="text-sm font-medium tabular-nums">{stats.todo}</span>
-          </div>
-        </Tooltip.Trigger>
-        <Tooltip.Portal>
-          <Tooltip.Content className="rounded-lg px-3 py-1.5 text-xs font-medium shadow-lg border bg-white dark:bg-gray-800">
-            To Do
-            <Tooltip.Arrow />
-          </Tooltip.Content>
-        </Tooltip.Portal>
-      </Tooltip.Root>
+    <div className="flex items-center gap-3">
+      {stats.columns.map(col => (
+        <Tooltip.Root key={col.id} delayDuration={300}>
+          <Tooltip.Trigger asChild>
+            <div className="flex items-center gap-1.5 cursor-default">
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: col.color }} />
+              <span className="text-sm font-medium tabular-nums">{col.count}</span>
+            </div>
+          </Tooltip.Trigger>
+          <Tooltip.Portal>
+            <Tooltip.Content className="rounded-lg px-3 py-1.5 text-xs font-medium shadow-lg border bg-white dark:bg-gray-800">
+              {col.title}
+              <Tooltip.Arrow />
+            </Tooltip.Content>
+          </Tooltip.Portal>
+        </Tooltip.Root>
+      ))}
     </div>
   );
 });
-
 const ICON_MAP: Record<string, React.FC<{ size?: number; className?: string }>> = {
   Rocket, Code2, Palette, Layout, Briefcase, Target,
   Zap, Star, Heart, Crown, Flame, Globe,
@@ -270,7 +241,6 @@ export const BoardTable: React.FC<BoardTableProps> = ({
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    // حذف onPaginationChange
   });
 
   const totalPages = table.getPageCount();

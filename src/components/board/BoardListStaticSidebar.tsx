@@ -28,11 +28,13 @@ interface BoardListStaticSidebarProps {
   streak?: { current: number; longest: number };
   achievementCount?: { unlocked: number; total: number };
   recentXPEvents?: Array<{ action: string; amount: number; id: string }>;
+  taskBreakdown: Array<{ id: string; title: string; color: string; count: number }>;
 }
 
 const BoardListStaticSidebar: React.FC<BoardListStaticSidebarProps> = ({
   boardsLength = 0,
   queryValue,
+  taskBreakdown,
   totalTasks,
   todoTasks,
   inProgressTasks,
@@ -190,58 +192,28 @@ const BoardListStaticSidebar: React.FC<BoardListStaticSidebarProps> = ({
           isDarkMode ? 'bg-gray-800/30 border-gray-700' : 'bg-white/80 border-gray-200'
         )}>
           <h4 className="text-[10px] font-semibold text-gray-400 mb-2">Task Breakdown</h4>
-          
-          <div className="space-y-2">
-            {/* Todo Bar */}
-            <div>
-              <div className="flex items-center justify-between text-[10px] mb-1">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-blue-400" />
-                  <span className="text-gray-500">To Do</span>
-                </div>
-                <span className="font-semibold text-gray-700 dark:text-gray-300">{todoTasks}</span>
-              </div>
-              <div className="h-1 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
-                <div 
-                  className="h-full rounded-full bg-blue-400 transition-all duration-500"
-                  style={{ width: totalTasks > 0 ? `${(todoTasks / totalTasks) * 100}%` : '0%' }}
-                />
-              </div>
-            </div>
 
-            {/* In Progress Bar */}
-            <div>
-              <div className="flex items-center justify-between text-[10px] mb-1">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-amber-400" />
-                  <span className="text-gray-500">In Progress</span>
+          <div className="space-y-2 overflow-y-auto max-h-[110px] px-2">
+            {taskBreakdown.map(col => (
+              <div key={col.id}>
+                <div className="flex items-center justify-between text-[10px] mb-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: col.color }} />
+                    <span className="text-gray-500">{col.title}</span>
+                  </div>
+                  <span className="font-semibold text-gray-700 dark:text-gray-300">{col.count}</span>
                 </div>
-                <span className="font-semibold text-gray-700 dark:text-gray-300">{inProgressTasks}</span>
-              </div>
-              <div className="h-1 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
-                <div 
-                  className="h-full rounded-full bg-amber-400 transition-all duration-500"
-                  style={{ width: totalTasks > 0 ? `${(inProgressTasks / totalTasks) * 100}%` : '0%' }}
-                />
-              </div>
-            </div>
-
-            {/* Completed Bar */}
-            <div>
-              <div className="flex items-center justify-between text-[10px] mb-1">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-green-400" />
-                  <span className="text-gray-500">Completed</span>
+                <div className="h-1 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                  <div 
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{ 
+                      backgroundColor: col.color,
+                      width: totalTasks > 0 ? `${(col.count / totalTasks) * 100}%` : '0%' 
+                    }}
+                  />
                 </div>
-                <span className="font-semibold text-gray-700 dark:text-gray-300">{completedTasks}</span>
               </div>
-              <div className="h-1 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
-                <div 
-                  className="h-full rounded-full bg-green-400 transition-all duration-500"
-                  style={{ width: totalTasks > 0 ? `${(completedTasks / totalTasks) * 100}%` : '0%' }}
-                />
-              </div>
-            </div>
+            ))}
           </div>
 
           {/* Overall Progress Ring */}
