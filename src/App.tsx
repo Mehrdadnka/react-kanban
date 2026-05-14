@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from './router';
+import { Routes, Route, useRouter } from './router';
 import MainLayout from "./components/layout/MainLayout";
 import { Home } from './router/Pages/Home';
 import { Tasks } from './router/Pages/Tasks';
@@ -8,8 +8,13 @@ import { useEventBus } from './stores/core/event-bus.store';
 import { EventBusDevPanel } from '@/components/devtools/EventBusDevPanel';
 import { AppInitializer } from './components/AppInitializer';
 import { XPOverviewPage } from './components/xp/XPOverviewPage';
-
+interface AppProps {
+  isHomePage: boolean;
+}
 function App() {
+  const { currentPath } = useRouter();
+  const isHomePage = currentPath === '/';
+
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
       (window as any).__eventBus = useEventBus;
@@ -18,7 +23,7 @@ function App() {
     }
   }, []);
   return (
-      <MainLayout>
+      <MainLayout isHomePage={isHomePage} >
    {/* {process.env.NODE_ENV === 'development' && (
         <EventBusDevPanel />
         
