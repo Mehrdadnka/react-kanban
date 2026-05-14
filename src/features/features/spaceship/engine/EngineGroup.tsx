@@ -1,5 +1,3 @@
-// EngineGroup.tsx - فقط قسمت‌های لازم اصلاح شود
-
 import * as THREE from 'three';
 import { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import { useFrame } from '@react-three/fiber';
@@ -32,13 +30,13 @@ export const EngineGroup = forwardRef<EngineGroupRef, EngineGroupProps>(({
   const currentThrustRef = useRef(0);
   const jetEnginesRef = useRef<JetEngineData[]>([]);
   
-  const thrustSpeed = 0.15; // افزایش سرعت برای پاسخگویی بهتر
+  const thrustSpeed = 0.15; 
 
   const createFlameMaterial = () => {
     return new THREE.ShaderMaterial({
       uniforms: {
-        color: { value: new THREE.Color(0xff4400) }, // تغییر به نارنجی
-        emissive: { value: new THREE.Color(0xff2200) }, // تغییر به قرمز-نارنجی
+        color: { value: new THREE.Color(0x0044ff02) },
+        emissive: { value: new THREE.Color(0x0022ff02) },
         time: { value: 0.0 },
         thrustIntensity: { value: 0.0 }
       },
@@ -74,7 +72,7 @@ export const EngineGroup = forwardRef<EngineGroupRef, EngineGroupProps>(({
   const createInnerMaterial = () => {
     return new THREE.ShaderMaterial({
       uniforms: {
-        color: { value: new THREE.Color(0xff8800) }, // تغییر به نارنجی روشن
+        color: { value: new THREE.Color(0xff8800) },
         emissive: { value: new THREE.Color(0xff4400) },
         time: { value: 0.0 }
       },
@@ -135,15 +133,13 @@ export const EngineGroup = forwardRef<EngineGroupRef, EngineGroupProps>(({
   const createJetCylinder = (xPos: number) => {
     if (!groupRef.current) return;
 
-    // ایجاد شعله بیرونی
-    const flameGeometry = new THREE.CylinderGeometry(0.3, 0.5, 1.5, 16);
+    const flameGeometry = new THREE.CylinderGeometry(0.1, 0.2, 1.5, 16);
     const flameMaterial = createFlameMaterial();
     const flame = new THREE.Mesh(flameGeometry, flameMaterial);
     flame.position.set(xPos, -2.35, 0);
-    flame.visible = false; // مخفی در ابتدا
+    flame.visible = false; 
     groupRef.current.add(flame);
     
-    // ایجاد دهانه خروجی
     const outerRadius = 0.35;
     const innerRadius = 0.25;
     const length = 0.6;
@@ -174,18 +170,16 @@ export const EngineGroup = forwardRef<EngineGroupRef, EngineGroupProps>(({
     exhaustGroup.rotation.x = Math.PI;
     groupRef.current.add(exhaustGroup);
 
-    // ایجاد شعله داخلی
     const innerFlameGeometry = new THREE.CylinderGeometry(0.2, 0.35, 1.2, 16);
     const innerMaterial = createInnerMaterial();
     const innerCylinder = new THREE.Mesh(innerFlameGeometry, innerMaterial);
-    innerCylinder.position.set(xPos, -2.3, 0);
+    innerCylinder.position.set(xPos, -2.8, 0);
     innerCylinder.visible = false;
     groupRef.current.add(innerCylinder);
 
-    // ایجاد پره‌ها
     const bladeGroup = new THREE.Group();
-    for (let i = 0; i < 8; i++) {
-      const bladeGeometry = new THREE.BoxGeometry(0.08, 0.6, 0.15);
+    for (let i = 0; i < 16; i++) {
+      const bladeGeometry = new THREE.BoxGeometry(0.08, 0.06, 0.05);
       const bladeMaterial = createBladeMaterial();
       const blade = new THREE.Mesh(bladeGeometry, bladeMaterial);
       const angle = (i / 8) * Math.PI * 2;
@@ -196,7 +190,6 @@ export const EngineGroup = forwardRef<EngineGroupRef, EngineGroupProps>(({
     bladeGroup.position.set(xPos, -1.9, 0);
     groupRef.current.add(bladeGroup);
 
-    // ذخیره اطلاعات موتور جت
     jetEnginesRef.current.push({
       flameMaterial: flameMaterial,
       innerMaterial: innerMaterial,
@@ -216,13 +209,11 @@ export const EngineGroup = forwardRef<EngineGroupRef, EngineGroupProps>(({
       side: THREE.DoubleSide
     });
 
-    // ایجاد مسیر اکسترود
     const path = new THREE.CatmullRomCurve3([
       new THREE.Vector3(0, -3, 0),
       new THREE.Vector3(0, 3, 0)
     ]);
 
-    // تعریف چند ضلعی
     const shape = new THREE.Shape();
     const sides = 6;
     const radius = 0.5;
@@ -246,7 +237,6 @@ export const EngineGroup = forwardRef<EngineGroupRef, EngineGroupProps>(({
     hexagonalMesh.scale.set(3.5, 1, 1.5);
     groupRef.current.add(hexagonalMesh);
 
-    // ایجاد موتورهای جت
     createJetCylinder(-1);
     createJetCylinder(1);
   }, [color]);
@@ -256,7 +246,6 @@ export const EngineGroup = forwardRef<EngineGroupRef, EngineGroupProps>(({
     const target = isThrustActive ? 1 : 0;
     currentThrustRef.current = THREE.MathUtils.lerp(currentThrustRef.current, target, thrustSpeed);
     
-    // اعمال افکت‌های بصری بر اساس isThrustActive
     if (exhaustGroupRef.current) {
       exhaustGroupRef.current.scale.set(1, 1, 1 + currentThrustRef.current * 0.15);
     }
@@ -270,18 +259,15 @@ export const EngineGroup = forwardRef<EngineGroupRef, EngineGroupProps>(({
         engine.innerFlameMesh.visible = currentThrustRef.current > 0.05;
       }
       
-      // بروزرسانی مقادیر شیدرها
       engine.flameMaterial.uniforms.thrustIntensity.value = currentThrustRef.current;
       engine.flameMaterial.uniforms.time.value = time;
       engine.innerMaterial.uniforms.time.value = time;
       
-      // تغییر اندازه شعله بر اساس thrust
       if (engine.flameMesh) {
-        const scaleY = 0.8 + currentThrustRef.current * 1.5;
+        const scaleY = 1 + currentThrustRef.current * 1.5;
         engine.flameMesh.scale.set(1, scaleY, 1);
       }
       
-      // چرخاندن پره‌ها
       if (engine.bladeGroup) {
         const rotationSpeed = currentThrustRef.current * 0.8;
         engine.bladeGroup.rotation.z += rotationSpeed;
@@ -312,7 +298,12 @@ export const EngineGroup = forwardRef<EngineGroupRef, EngineGroupProps>(({
     }
   }));
 
-  return <group ref={groupRef} position={position} scale={scale} rotation={[1.5, 0, 0]} />;
+  return <group 
+    ref={groupRef} 
+    position={position} 
+    scale={scale} 
+    rotation={[1.5, 0, 0]} 
+  />;
 });
 
 EngineGroup.displayName = 'EngineGroup';
